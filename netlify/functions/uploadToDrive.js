@@ -19,9 +19,9 @@ exports.handler = async (event) => {
     // do not handle multi‑line values well), we expect the service account
     // JSON to be provided as a base64‑encoded string via the
     // GOOGLE_SERVICE_ACCOUNT_JSON environment variable. Decode it here.
-    const serviceAccountJsonB64 = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    const serviceAccountEnv = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     const folderId = process.env.DRIVE_FOLDER_ID;
-    if (!serviceAccountJsonB64 || !folderId) {
+    if (!serviceAccountEnv || !folderId) {
       return {
         statusCode: 500,
         body: 'Server not configured for Drive uploads'
@@ -33,10 +33,18 @@ exports.handler = async (event) => {
     }
     let credentials;
     try {
-      // Decode the base64 string back into the original JSON. If this fails,
-      // return an error so the caller knows the credentials are invalid.
-      const decoded = Buffer.from(serviceAccountJsonB64, 'base64').toString('utf8');
-      credentials = JSON.parse(decoded);
+      // The credentials may be provided either as raw JSON (starting with '{')
+      // or as a base64‑encoded string. Detect the form and parse accordingly.
+      const trimmed = serviceAccountEnv.trim();
+      let jsonString;
+      if (trimmed.startsWith('{')) {
+        // Raw JSON value. Use as is.
+        jsonString = trimmed;
+      } else {
+        // Base64‑encoded value. Decode to get the JSON string.
+        jsonString = Buffer.from(serviceAccountEnv, 'base64').toString('utf8');
+      }
+      credentials = JSON.parse(jsonString);
     } catch (err) {
       return {
         statusCode: 500,
