@@ -60,10 +60,15 @@ exports.handler = async (event) => {
     const drive = google.drive({ version: 'v3', auth });
     // Decode base64 string into a Buffer
     const fileBuffer = Buffer.from(data, 'base64');
+        // The googleapis client library expects `media.body` to be a stream with
+        // a `pipe()` method. Passing a plain Buffer causes the error
+        // "part.body.pipe is not a function". Wrap the buffer into a
+        // Readable stream using Readable.from().
+        const { Readable } = require('stream');
+        const bufferStream = Readable.from(fileBuffer);
         // Do not attempt to decode the file name here. It will have been
         // percent‑encoded by the client, so pass it through unmodified. The
-        // Drive API will store it as provided. If the name contains encoded
-        // sequences, they will appear decoded in Drive.
+        // Drive API will store it as provided.
         const res = await drive.files.create({
           requestBody: {
             name: fileName,
@@ -71,7 +76,7 @@ exports.handler = async (event) => {
           },
           media: {
             mimeType: mimeType || 'application/octet-stream',
-            body: fileBuffer
+            body: bufferStream
           },
           fields: 'id,size,mimeType'
         });
