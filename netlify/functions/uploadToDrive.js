@@ -15,16 +15,34 @@ exports.handler = async (event) => {
     if (event.httpMethod !== 'POST') {
       return { statusCode: 405, body: 'Method Not Allowed' };
     }
-    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    // In order to support Netlify’s environment variable limitations (which
+    // do not handle multi‑line values well), we expect the service account
+    // JSON to be provided as a base64‑encoded string via the
+    // GOOGLE_SERVICE_ACCOUNT_JSON environment variable. Decode it here.
+    const serviceAccountJsonB64 = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     const folderId = process.env.DRIVE_FOLDER_ID;
-    if (!serviceAccountJson || !folderId) {
-      return { statusCode: 500, body: 'Server not configured for Drive uploads' };
+    if (!serviceAccountJsonB64 || !folderId) {
+      return {
+        statusCode: 500,
+        body: 'Server not configured for Drive uploads'
+      };
     }
     const { fileName, mimeType, data } = JSON.parse(event.body || '{}');
     if (!fileName || !data) {
       return { statusCode: 400, body: 'Missing fileName or data' };
     }
-    const credentials = JSON.parse(serviceAccountJson);
+    let credentials;
+    try {
+      // Decode the base64 string back into the original JSON. If this fails,
+      // return an error so the caller knows the credentials are invalid.
+      const decoded = Buffer.from(serviceAccountJsonB64, 'base64').toString('utf8');
+      credentials = JSON.parse(decoded);
+    } catch (err) {
+      return {
+        statusCode: 500,
+        body: 'Invalid service account credentials'
+      };
+    }
     const auth = new google.auth.JWT(
       credentials.client_email,
       null,
@@ -34,17 +52,21 @@ exports.handler = async (event) => {
     const drive = google.drive({ version: 'v3', auth });
     // Decode base64 string into a Buffer
     const fileBuffer = Buffer.from(data, 'base64');
-    const res = await drive.files.create({
-      requestBody: {
-        name: decodeURIComponent(fileName),
-        parents: [folderId]
-      },
-      media: {
-        mimeType: mimeType || 'application/octet-stream',
-        body: fileBuffer
-      },
-      fields: 'id,size,mimeType'
-    });
+        // Do not attempt to decode the file name here. It will have been
+        // percent‑encoded by the client, so pass it through unmodified. The
+        // Drive API will store it as provided. If the name contains encoded
+        // sequences, they will appear decoded in Drive.
+        const res = await drive.files.create({
+          requestBody: {
+            name: fileName,
+            parents: [folderId]
+          },
+          media: {
+            mimeType: mimeType || 'application/octet-stream',
+            body: fileBuffer
+          },
+          fields: 'id,size,mimeType'
+        });
     return {
       statusCode: 200,
       body: JSON.stringify(res.data)
