@@ -1,0 +1,2444 @@
+/* Basic styling for HK Insurance Dashboard */
+/*
+ * Core variables and global styles
+ * We define a light and dark palette with soft gradients and neutral surfaces.
+ */
+:root {
+  /* Typography */
+  --font-family: "SF Pro", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /*
+   * Colour palette
+   *
+   * We shift away from the old slate scheme to a richer palette inspired by
+   * modern fintech dashboards. The primary and secondary tones are vibrant
+   * purples, complemented by a teal accent for actionable items. Success,
+   * warning and danger colours remain familiar but refined. Background
+   * gradients are airy pastels in light mode and deep blues in dark mode. Cards
+   * float on translucent surfaces with delicate shadows.
+   */
+  /*
+   * Updated colour palette
+   *
+   * We further refine the palette to feel more contemporary and premium.  Rich
+   * purples and lavenders still underpin the brand but are complemented by
+   * turquoise accents and soft pastel gradients.  Danger, warning and info
+   * colours are toned to be friendlier yet noticeable.  These colours are
+   * inspired by fintech UI boards and ensure enough contrast on both light
+   * and dark backgrounds.
+   */
+  /*
+   * Updated base palette to align with user‑provided design.  The new
+   * palette centres around a sophisticated navy (primary) and dark
+   * teal (secondary).  A muted turquoise accent is used for positive
+   * actions and highlights.  Danger and warning hues are softened to
+   * complement the dark scheme.  A dedicated shadow tint is introduced
+   * for layered drop‑shadow effects.  These values are used both in
+   * light and dark mode, with dark mode overriding gradient colours
+   * below.
+   */
+  /*
+   * Updated colour palette (2025 Refresh)
+   *
+   * We adopt a deeper, more saturated navy and teal to evoke trust and
+   * professionalism, paired with a fresh aqua accent for actions and
+   * highlights. Danger, warning and success hues are tuned for both
+   * accessibility and brand harmony. Informational elements use a
+   * complementary blue. These colours tie in with the FinSuper / PB
+   * references provided and deliver a truly premium feel.
+   */
+  --primary-color: #0F3F64;   /* refined navy for primary CTAs and highlights */
+  --secondary-color: #045B6B; /* rich teal for secondary accents and gradients */
+  --accent-color: #1EC8B3;    /* brighter aqua accent for actionable elements */
+  --danger-color: #E74C3C;    /* modern red for errors */
+  --warning-color: #F5A623;   /* warm amber for warnings */
+  --success-color: #1ABCA4;   /* reuse accent for success */
+  --info-color: #3498db;      /* classic blue for informational chips */
+  /* Tinted shadow colours used for cards and buttons */
+  --shadow-color: rgba(32, 53, 115, 0.2);
+  /* Background gradients */
+  --bg-gradient-start: #f5f7fd; /* very light violet */
+  --bg-gradient-end: #e8eaf8;   /* pastel periwinkle */
+  /* Surface colours */
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --card-shadow: rgba(0, 0, 0, 0.08);
+  /* Text colours */
+  --text-color: #273952;
+  --subtext-color: #657a99;
+  /* Radii & transitions */
+  --border-radius: 20px;
+  --transition-fast: 0.15s ease;
+  --transition-medium: 0.3s ease;
+  --transition-slow: 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+body.dark-mode .search-results-group {
+  background-color: #1f2341;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+}
+
+body.dark-mode .search-result-item:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+body {
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(180deg, var(--bg-gradient-start), var(--bg-gradient-end));
+  color: var(--text-color);
+  transition: background var(--transition-slow), color var(--transition-slow);
+  overflow: hidden;
+}
+body.dark-mode {
+  /* Dark mode overrides – richer contrasts and tinted shadows
+     
+     We brighten text slightly to improve legibility against the deep
+     backgrounds and adjust card surfaces to include a hint of the
+     primary palette.  Shadows use a cooler tint to create a floating
+     effect rather than a muddy drop. */
+  /* Deepen the dark palette and introduce subtle blues to echo the
+     FinSuper inspiration. Cards adopt a dark midnight surface with
+     slight translucency and tinted shadows. Text colours are tuned
+     for clarity on these surfaces. */
+  --bg-gradient-start: #052447; /* deeper but vibrant navy */
+  --bg-gradient-end: #09325c;   /* slightly lighter deep blue */
+  /* Lighten card surfaces and tint shadows for better contrast */
+  --card-bg: rgba(14, 37, 63, 0.88);
+  --card-shadow: rgba(10, 40, 80, 0.6);
+  --shadow-color: rgba(30, 90, 140, 0.5);
+  --text-color: #eef4ff;
+  --subtext-color: #aebedc;
+}
+
+/* Small note text for descriptions */
+.small-note {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+body.dark-mode .small-note {
+  color: #aaa;
+}
+
+/* Page headings */
+.section > h2 {
+  margin-top: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+.section > h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-color);
+}
+
+/* Increase heading contrast in dark mode */
+body.dark-mode .section > h2,
+body.dark-mode .section > h3 {
+  color: #e6eefc;
+}
+/* Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  width: 220px;
+  /* Sidebar gradient flows from navy to teal.  Opacity ensures underlying
+     gradients subtly influence the tint in light mode. */
+  background: linear-gradient(180deg, rgba(47, 76, 115, 0.95), rgba(30, 114, 87, 0.95));
+  backdrop-filter: blur(25px);
+  color: #f5f6fa;
+  display: flex;
+  flex-direction: column;
+  padding-top: 1rem;
+  overflow-y: auto;
+  box-shadow: 4px 0 12px rgba(0,0,0,0.04);
+  transition: background var(--transition-medium), color var(--transition-medium);
+}
+
+.sidebar .logo {
+  /* Updated logo styling: when an image is used, align it centrally */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 1.2rem 1.8rem 1.2rem;
+}
+
+/* Ensure the logo image scales nicely in the sidebar */
+.sidebar .logo img {
+  width: 100%;
+  max-width: 140px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.sidebar-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+.sidebar-nav li {
+  margin: 0.25rem 0;
+}
+
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f5f6fa;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 14px;
+  position: relative;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  font-weight: 500;
+}
+
+.sidebar-nav a:hover,
+/* Active and hover states for sidebar links */
+.sidebar-nav a:hover {
+  background-color: rgba(255,255,255,0.18);
+  color: #fff;
+  transform: translateX(6px);
+}
+.sidebar-nav a.active {
+  background-color: rgba(255,255,255,0.25);
+  color: #fff;
+  box-shadow: inset 4px 0 0 var(--accent-color);
+  transform: translateX(0);
+}
+.sidebar-nav a .icon {
+  font-size: 1.2rem;
+}
+
+.sidebar .icon {
+  font-size: 1.2rem;
+}
+
+/* Icon sizing: replace emoji icons with inline SVGs */
+.sidebar .icon svg,
+.topbar .icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+}
+
+/* Card action buttons use icons instead of emoji; size them appropriately */
+.card-actions button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  pointer-events: none;
+}
+
+/* Inline icons for small text (e.g., phone and email) */
+.inline-icon svg {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(30px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.topbar .topbar-left, .topbar .topbar-center, .topbar .topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.topbar #quick-add-btn {
+  font-size: 1.5rem;
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.topbar #quick-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+}
+
+.topbar input#global-search {
+  width: 100%;
+  max-width: 440px;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 30px;
+  background: rgba(255,255,255,0.7);
+  color: var(--text-color);
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+  transition: background var(--transition-medium), box-shadow var(--transition-fast);
+}
+
+.topbar input#global-search:focus {
+  background: rgba(255,255,255,0.95);
+  box-shadow: inset 0 0 0 2px var(--primary-color);
+}
+
+.topbar #dark-mode-toggle {
+  font-size: 1.3rem;
+  background: rgba(255,255,255,0.25);
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.45rem;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Filter buttons (Apply, Export CSV, Calendar toggles)
+ * Buttons within filter bars and calendar controls adopt the same
+ * gradient style used for primary actions.  Hover and active states
+ * provide gentle feedback.  These rules intentionally target specific
+ * IDs used in the dashboard and calendar controls to avoid affecting
+ * other buttons (e.g. card actions, quick add).  */
+#dashboard-filters button,
+#calendar-controls button,
+#calendar-controls #calendar-view-toggle {
+  /* Primary filter buttons adopt a vibrant accent gradient with layered shadows.
+     The gradient blends the accent colour into a lighter turquoise for a
+     sophisticated look.  We retain consistent dimensions and typography.
+   */
+  background: linear-gradient(145deg, var(--accent-color), #2ad6be);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 2px 6px rgba(71,181,165,0.15);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+#dashboard-filters button:hover,
+#calendar-controls button:hover,
+#calendar-controls #calendar-view-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18), 0 3px 8px rgba(71,181,165,0.22);
+}
+#dashboard-filters button:active,
+#calendar-controls button:active,
+#calendar-controls #calendar-view-toggle:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3) inset;
+}
+
+.topbar #dark-mode-toggle:hover {
+  background-color: rgba(0,0,0,0.1);
+  transform: scale(1.05);
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 2.5rem;
+}
+
+/* Search overlay */
+#search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4rem 3rem;
+  backdrop-filter: blur(40px);
+  /* Glassy backdrop with dimming effect */
+  background: rgba(0,0,0,0.45);
+  overflow-y: auto;
+  z-index: 2000;
+}
+
+#search-overlay.hidden {
+  display: none;
+}
+
+.search-results-group {
+  margin-bottom: 1.5rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px var(--card-shadow);
+  padding: 0.6rem 1rem;
+}
+.search-results-group h4 {
+  margin-bottom: 0.25rem;
+  color: var(--subtext-color);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.search-result-item {
+  padding: 0.5rem 0.6rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.search-result-item:hover {
+  background-color: rgba(0,0,0,0.05);
+  transform: translateX(4px);
+}
+
+/* Card styling */
+.card {
+  background: var(--card-bg);
+  color: var(--text-color);
+  padding: 1.2rem;
+  border-radius: var(--border-radius);
+  /* Layered shadows to give cards a sense of lift with a tinted inner glow */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(47,76,115,0.12);
+  margin-bottom: 1rem;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.card:hover {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18), 0 6px 14px rgba(47,76,115,0.18);
+  transform: translateY(-8px);
+}
+
+/* Summary cards row */
+.summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(47,76,115,0.12);
+  padding: 1.2rem 1.5rem;
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  overflow: hidden;
+  cursor: default;
+}
+
+.summary-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18), 0 6px 14px rgba(47,76,115,0.18);
+}
+
+.summary-card .summary-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--accent-color);
+}
+
+.summary-card .summary-label {
+  font-size: 0.9rem;
+  color: var(--subtext-color);
+  margin-bottom: 0.3rem;
+}
+
+.summary-card .trend {
+  font-size: 0.8rem;
+  color: var(--accent-color);
+}
+
+body.dark-mode .summary-card {
+  /* In dark mode, lighten summary card background slightly and use tinted shadows
+     inspired by FinSuper.  This improves contrast against the deep page background. */
+  background-color: rgba(21, 50, 78, 0.9);
+  box-shadow: 0 10px 24px rgba(4,22,45,0.7), 0 6px 14px rgba(15,45,70,0.7);
+}
+
+/* Alerts & Renewals cards */
+.renewal-card {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(47,76,115,0.12);
+  margin-bottom: 1rem;
+  padding: 1rem;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.renewal-card:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18), 0 6px 14px rgba(47,76,115,0.18);
+}
+.renewal-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.renewal-card .card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.renewal-card .status-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255,255,255,0.5);
+  color: var(--primary-color);
+}
+/* Badge colours for urgency: override using group headings or JS if needed */
+.alerts-section h3:nth-of-type(1) + .renewal-card .status-badge { background: rgba(255,0,0,0.15); color: var(--danger-color); }
+.alerts-section h3:nth-of-type(2) + .renewal-card .status-badge { background: rgba(255,165,0,0.15); color: var(--warning-color); }
+.alerts-section h3:nth-of-type(3) + .renewal-card .status-badge { background: rgba(255,217,102,0.15); color: var(--warning-color); }
+.alerts-section h3:nth-of-type(4) + .renewal-card .status-badge { background: rgba(255,0,0,0.15); color: var(--danger-color); }
+
+.renewal-card .card-body p {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+  color: var(--subtext-color);
+}
+.renewal-card .card-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.renewal-card .card-actions button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.3rem;
+  border-radius: 8px;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+.renewal-card .card-actions button:hover {
+  background-color: rgba(0,0,0,0.05);
+  transform: scale(1.1);
+}
+/* Profile header and sections */
+.profile-header {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12), 0 6px 14px rgba(47,76,115,0.12);
+  margin-bottom: 1.5rem;
+}
+.profile-header .header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+.profile-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.profile-header .info {
+  font-size: 0.85rem;
+  color: var(--subtext-color);
+  margin-top: 0.25rem;
+}
+.profile-header .info p {
+  margin: 0.1rem 0;
+}
+body.dark-mode .profile-header {
+  background-color: #1f2341;
+  color: #ddd;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5), 0 4px 8px rgba(33,56,88,0.5);
+}
+body.dark-mode .profile-header .info {
+  color: #aaa;
+}
+
+.profile-section {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(47,76,115,0.12);
+  margin-bottom: 1.2rem;
+  overflow: hidden;
+}
+.profile-section .section-header {
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.15);
+}
+.profile-section .section-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.profile-section .toggle-icon {
+  font-size: 1.1rem;
+  transition: transform var(--transition-fast);
+}
+.profile-section.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+.profile-section .section-content {
+  padding: 0.5rem 1rem 0.75rem 1rem;
+}
+.profile-section.collapsed .section-content {
+  display: none;
+}
+.profile-section .view-all {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--accent-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.profile-section .view-all:hover {
+  text-decoration: none;
+}
+body.dark-mode .profile-section {
+  background-color: #1f2341;
+  color: #ddd;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5), 0 4px 8px rgba(33,56,88,0.5);
+}
+body.dark-mode .profile-section .view-all {
+  color: var(--accent-color);
+}
+
+/* List item styling inside profile sections */
+.profile-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.profile-item:last-child {
+  border-bottom: none;
+}
+body.dark-mode .profile-item {
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* Document grid styling */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.2rem;
+}
+.doc-card {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(47,76,115,0.12);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.doc-card:hover {
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15), 0 6px 14px rgba(47,76,115,0.15);
+  transform: translateY(-6px);
+}
+.doc-card .doc-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.6rem;
+}
+.doc-card .doc-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.doc-card .doc-type {
+  font-size: 0.75rem;
+  color: #888;
+}
+body.dark-mode .doc-card {
+  background-color: #1f2341;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.5), 0 4px 8px rgba(33,56,88,0.5);
+}
+body.dark-mode .doc-card .doc-type {
+  color: #aaa;
+}
+
+/* Drag-and-drop highlight for document container */
+#documents-list.drag-over {
+  border: 2px dashed var(--accent-color);
+  padding: 1rem;
+}
+body.dark-mode #documents-list.drag-over {
+  border-color: var(--accent-color);
+}
+
+/* ---------------------------------------------------------------------------
+ * Additional styling for cloud sync, sidebar toggling and responsive design
+ * These rules are appended here to override earlier definitions when needed.
+ */
+
+/* Global cloud sync button in the top bar */
+#cloud-sync-button {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: background var(--transition-fast);
+}
+#cloud-sync-button:hover {
+  filter: brightness(0.95);
+}
+#cloud-sync-button .icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Sidebar toggle button styling */
+#toggle-sidebar-btn {
+  font-size: 1.2rem;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+body.dark-mode #toggle-sidebar-btn {
+  color: var(--text-color);
+}
+#toggle-sidebar-btn .icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Collapsible sidebar */
+.sidebar.collapsed {
+  width: 60px;
+}
+.sidebar.collapsed .logo {
+  font-size: 1.3rem;
+  padding-left: 0.6rem;
+  white-space: nowrap;
+}
+.sidebar.collapsed .sidebar-nav li a span:nth-child(2) {
+  display: none;
+}
+
+/* Cloud sync settings layout */
+.cloud-sync-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.cloud-sync-settings input[type="text"] {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.cloud-sync-settings button {
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+.cloud-sync-settings button.danger {
+  background-color: var(--danger-color);
+}
+.cloud-sync-settings button:hover {
+  filter: brightness(0.95);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+  }
+  .sidebar .sidebar-nav li a span:nth-child(2) {
+    display: none;
+  }
+  .topbar {
+    padding: 0.5rem 1rem;
+  }
+  #global-search {
+    max-width: 140px;
+  }
+}
+
+/* Card internal elements */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+.status-badge {
+  background: rgba(71, 181, 165, 0.15);
+  color: #47B5A5;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.card-body p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--subtext-color);
+}
+.card-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.card-actions button {
+  /* Provide a subtle coloured background and border to ensure icons remain
+     visible against both light and dark table rows.  Use the accent
+     colour with a slight opacity for the background and the primary
+     colour for the border. */
+  background-color: rgba(30, 200, 179, 0.15);
+  border: 1px solid rgba(30, 200, 179, 0.4);
+  color: var(--accent-color);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.3rem;
+  border-radius: 8px;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.card-actions button:hover {
+  background-color: rgba(30, 200, 179, 0.25);
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Guide collapsible styling */
+.guide-collapsibles details {
+  border: 1px solid var(--card-shadow);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--card-bg);
+  box-shadow: 0 1px 3px var(--card-shadow);
+}
+.guide-collapsibles details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary-color);
+  list-style: none;
+  outline: none;
+}
+.guide-collapsibles details[open] summary {
+  margin-bottom: 0.5rem;
+}
+body.dark-mode .guide-collapsibles details {
+  background-color: rgba(14, 37, 63, 0.88);
+  border-color: var(--shadow-color);
+  box-shadow: 0 1px 4px var(--shadow-color);
+}
+
+/* Improve readability of guide section in dark mode
+   The default summary colour inherits the primary colour, which is a
+   deep navy. In dark mode this results in very low contrast against
+   the dark card background. We override the colour for summaries and
+   their nested content to use the brighter accent colour so the
+   section headings are clearly visible. Similarly we slightly lighten
+   the body copy within the guide collapsibles by inheriting the
+   default text colour for dark mode. */
+body.dark-mode .guide-collapsibles details summary {
+  color: var(--accent-color);
+}
+body.dark-mode .guide-collapsibles details p,
+body.dark-mode .guide-collapsibles details li,
+body.dark-mode .guide-collapsibles details span {
+  color: var(--text-color);
+}
+
+/* Adjust dashboard card values in dark mode
+   The metric numbers on the dashboard use the primary colour, which is
+   deliberately dark. In dark mode this makes the numbers almost
+   invisible against the dark card background. We override their colour
+   to use the accent colour, providing high contrast and reinforcing
+   their importance. */
+body.dark-mode .dashboard-card .card-value,
+body.dark-mode .dashboard-card .card-subvalue {
+  color: var(--accent-color);
+}
+body.dark-mode .dashboard-card h4 {
+  color: var(--text-color);
+}
+
+/* Slightly reduce drop shadow on cards for a more premium look */
+body.dark-mode .dashboard-card {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3), 0 0 12px var(--shadow-color);
+}
+
+/* Action buttons in data tables */
+.data-table td.actions button {
+  background-color: rgba(30, 200, 179, 0.15);
+  border: 1px solid rgba(30, 200, 179, 0.4);
+  color: var(--accent-color);
+  border-radius: 6px;
+  padding: 0.25rem;
+  margin: 0 2px;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.data-table td.actions button:hover {
+  background-color: rgba(30, 200, 179, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Ensure icons inside data table action buttons scale consistently */
+.data-table td.actions button svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* Size the SVG icons used in vehicle and policy tables */
+.vehicle-icon svg {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
+
+body.dark-mode .status-badge {
+  background-color: rgba(71, 181, 165, 0.25);
+  color: #47B5A5;
+}
+body.dark-mode .card-body p {
+  color: var(--subtext-color);
+}
+body.dark-mode .card-actions button {
+  color: var(--accent-color);
+}
+
+/* Section heading styling */
+.section h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Drawer modal for details */
+.modal.drawer {
+  overflow: hidden;
+}
+.modal.drawer .modal-content {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  max-width: 400px;
+  width: 100%;
+  border-radius: 0;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+.modal.drawer.open .modal-content {
+  transform: translateX(0);
+}
+
+/* Modern form layout inside modal */
+.modal-content form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem 1.5rem;
+  align-items: flex-start;
+}
+
+/* ---------------------------------------------------------------------
+ * Filter controls (date inputs and selects)
+ *
+ * The dashboard and calendar pages include lightweight filters for date
+ * ranges, brokers and policy types.  These controls adopt the same
+ * dark glass aesthetic as other UI elements.  Borders and shadows
+ * reinforce focus and provide a more modern feel compared to native
+ * system pickers.
+ */
+#dashboard-filters input[type="date"],
+#dashboard-filters select,
+#calendar-controls input[type="date"],
+#calendar-controls select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 0.45rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  /* A semi‑opaque backdrop to integrate date inputs into the theme.
+     We avoid the stark white of the default date picker. */
+  background: rgba(255,255,255,0.75);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  margin-right: 0.4rem;
+  outline: none;
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  cursor: pointer;
+}
+
+body.dark-mode #dashboard-filters input[type="date"],
+body.dark-mode #dashboard-filters select,
+body.dark-mode #calendar-controls input[type="date"],
+body.dark-mode #calendar-controls select {
+  background: rgba(28,35,63,0.75);
+  border-color: rgba(255,255,255,0.15);
+  color: var(--text-color);
+}
+
+#dashboard-filters input[type="date"]:focus,
+#dashboard-filters select:focus,
+#calendar-controls input[type="date"]:focus,
+#calendar-controls select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(47, 76, 115, 0.2);
+  background: rgba(255,255,255,0.95);
+}
+
+body.dark-mode #dashboard-filters input[type="date"]:focus,
+body.dark-mode #dashboard-filters select:focus,
+body.dark-mode #calendar-controls input[type="date"]:focus,
+body.dark-mode #calendar-controls select:focus {
+  box-shadow: 0 0 0 3px rgba(47, 76, 115, 0.4);
+  background: rgba(41,48,77,0.9);
+}
+
+.modal-content form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.modal-content form input,
+.modal-content form select,
+.modal-content form textarea {
+  width: 100%;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  background: rgba(255,255,255,0.65);
+  color: var(--text-color);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+}
+
+.modal-content form input:focus,
+.modal-content form select:focus,
+.modal-content form textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(71, 181, 165, 0.35);
+}
+
+body.dark-mode .modal-content form input,
+body.dark-mode .modal-content form select,
+body.dark-mode .modal-content form textarea {
+  background: rgba(22, 40, 70, 0.8);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-color);
+}
+
+/* When focusing form fields in dark mode, brighten the background slightly and
+ * highlight the border using the accent colour.  A light glow ensures the
+ * field stands out against the deep modal backdrop. */
+body.dark-mode .modal-content form input:focus,
+body.dark-mode .modal-content form select:focus,
+body.dark-mode .modal-content form textarea:focus {
+  background: rgba(30, 50, 90, 0.9);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(30, 200, 180, 0.5);
+}
+
+/* Place the submit button on a full row */
+.modal-content form button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 0.65rem 1.6rem;
+  font-size: 0.9rem;
+  border-radius: 14px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(140deg, var(--primary-color), var(--secondary-color));
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+.modal-content form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.modal-content form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Quick add menu */
+.quick-add-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(15px);
+  border-radius: var(--border-radius);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  padding: 0.6rem 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 2000;
+  min-width: 180px;
+}
+.quick-add-menu.hidden {
+  display: none;
+}
+.quick-add-menu button {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.6rem 1rem;
+  width: 100%;
+  color: var(--primary-color);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  align-items: center;
+}
+.quick-add-menu button:hover {
+  background-color: rgba(13,110,253,0.12);
+  transform: translateX(2px);
+}
+body.dark-mode .quick-add-menu {
+  background-color: #1f2341;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+}
+body.dark-mode .quick-add-menu button {
+  color: #8faefc;
+}
+body.dark-mode .quick-add-menu button:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* Empty state component: used when no records exist */
+.empty-state {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px var(--card-shadow);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.empty-state .empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.empty-state .empty-icon svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  stroke: var(--secondary-color);
+}
+.empty-state p {
+  margin: 0.4rem 0;
+  color: var(--subtext-color);
+}
+body.dark-mode .empty-state {
+  background-color: #1f2341;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+}
+body.dark-mode .empty-state .empty-icon svg {
+  stroke: #8faefc;
+}
+
+/* Size icons within the quick add menu */
+.quick-add-menu button .icon {
+  display: inline-flex;
+  margin-right: 0.5rem;
+}
+.quick-add-menu button .icon svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* Timeline styles */
+.timeline {
+  list-style: none;
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--primary-color);
+}
+.timeline li {
+  position: relative;
+  margin-bottom: 1rem;
+  padding-left: 1rem;
+}
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -0.1rem;
+  top: 0.1rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+}
+.timeline .time {
+  font-size: 0.75rem;
+  color: #888;
+  margin-right: 0.25rem;
+}
+.timeline .desc {
+  font-size: 0.85rem;
+  color: #333;
+}
+body.dark-mode .timeline::before {
+  background-color: var(--secondary-color);
+}
+body.dark-mode .timeline li::before {
+  background-color: var(--secondary-color);
+}
+body.dark-mode .timeline .time {
+  color: #aaa;
+}
+body.dark-mode .timeline .desc {
+  color: #ddd;
+}
+
+/* Agenda view styles for calendar */
+.agenda-list h4 {
+  margin: 0.5rem 0 0.25rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+.agenda-day {
+  list-style: none;
+  padding-left: 1rem;
+  margin: 0.25rem 0 1rem 0;
+}
+.agenda-day li {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+}
+body.dark-mode .agenda-list h4 {
+  color: #aaa;
+}
+
+/* Hide default table styling as we no longer use tables for lists */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  margin-top: 1rem;
+}
+
+/* We keep table styling for detail view but avoid using for lists */
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+button {
+  /* Generic button styling for primary actions.  Uses the new
+     navy/teal gradient palette.  Rounded corners and subtle shadows
+     ensure consistency with other card components. */
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #ffffff;
+  border: none;
+  padding: 0.55rem 1.2rem;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 2px 6px rgba(47,76,115,0.12);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+}
+
+button:hover {
+  /* Maintain the gradient on hover but add lift and deeper shadow */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18), 0 4px 10px rgba(47,76,115,0.18);
+}
+
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25) inset;
+}
+
+form label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* Make forms responsive with a grid layout. Each field occupies a cell; labels stack on top of inputs. */
+.modal-content form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.modal-content form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.modal-content form button[type="submit"] {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  margin-top: 0.25rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  transition: border var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+body.dark-mode form input,
+body.dark-mode form select,
+body.dark-mode form textarea {
+  background: rgba(26, 31, 45, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.3);
+  outline: none;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+body.dark-mode form input:focus,
+body.dark-mode form select:focus,
+body.dark-mode form textarea:focus {
+  background: rgba(41, 48, 77, 0.9);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.4);
+}
+
+form textarea {
+  resize: vertical;
+}
+
+/* Primary action buttons in forms */
+form button[type="submit"] {
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.4rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+form button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+form button[type="submit"]:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2) inset;
+}
+
+/* Standalone add buttons in sections */
+.section > button {
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.4rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.section > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+.section > button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2) inset;
+}
+
+/* Customise the date picker indicator to match the colour scheme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(40%);
+}
+body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(70%);
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.5rem;
+  margin-top: 1rem;
+}
+
+table th,
+table td {
+  border: none;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+table th {
+  background-color: transparent;
+  color: #666;
+  font-weight: 600;
+}
+
+/* Card-like rows */
+table tbody tr {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+table tbody tr:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode */
+body.dark-mode {
+  background-color: #151823;
+  color: #f5f5f5;
+}
+body.dark-mode header {
+  background-color: #1f2341;
+  color: #f5f5f5;
+}
+body.dark-mode nav a {
+  color: #ddd;
+}
+body.dark-mode nav a:hover,
+body.dark-mode nav a.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+body.dark-mode button {
+  background: linear-gradient(145deg, var(--primary-color), var(--secondary-color));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 2px 6px rgba(33,56,88,0.5);
+}
+body.dark-mode button:hover {
+  /* On hover, increase elevation rather than changing colour */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6), 0 3px 8px rgba(33,56,88,0.6);
+}
+body.dark-mode table tbody tr {
+  background-color: #1f2341;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+body.dark-mode .modal-content {
+  background-color: #1f2341;
+  color: #f5f5f5;
+  backdrop-filter: blur(10px);
+}
+body.dark-mode .detail-table th {
+  color: #ccc;
+}
+body.dark-mode #search-results {
+  background-color: #2a2f55;
+  border-color: #444;
+}
+body.dark-mode #search-results div:hover {
+  background-color: #3a3f6f;
+}
+
+/* Modal glassmorphism */
+.modal-content {
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+body.dark-mode .modal-content {
+  background: rgba(31, 35, 65, 0.8);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Detail table styling */
+.detail-table th {
+  width: 40%;
+  font-weight: 600;
+  padding-right: 0.5rem;
+}
+.detail-table td {
+  width: 60%;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  backdrop-filter: blur(25px);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 90%;
+  max-width: 540px;
+  position: relative;
+  box-shadow: 0 8px 24px var(--card-shadow);
+}
+
+.modal-content.large {
+  max-width: 960px;
+}
+
+/* Smaller modal variant for authentication */
+.modal-content.small {
+  max-width: 380px;
+}
+
+/* Override form layout in auth modal to single column */
+#auth-modal .modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* Hide confirm password by default */
+#auth-confirm-password-label.hidden {
+  display: none;
+}
+
+/* Style for error messages in auth modal */
+.error-msg {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Reports controls layout */
+.reports-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+.reports-controls label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+.reports-controls select,
+.reports-controls input[type="date"] {
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255,255,255,0.8);
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+body.dark-mode .reports-controls select,
+body.dark-mode .reports-controls input[type="date"] {
+  background: rgba(28,35,63,0.85);
+  border-color: rgba(255,255,255,0.15);
+  color: var(--text-color);
+}
+.reports-controls button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color var(--transition-fast);
+}
+.reports-controls button:hover {
+  filter: brightness(0.9);
+}
+
+/* Logout button styling */
+#logout-btn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--danger-color);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: filter var(--transition-fast);
+}
+#logout-btn:hover {
+  filter: brightness(0.9);
+}
+
+/* Reports summary table styling */
+#reports-summary table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+#reports-summary th,
+#reports-summary td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  text-align: left;
+  font-size: 0.85rem;
+}
+body.dark-mode #reports-summary th,
+body.dark-mode #reports-summary td {
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* Search dropdown */
+#search-results {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-top: none;
+}
+#search-results div {
+  padding: 0.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+#search-results div:hover {
+  background-color: #f0f0f0;
+}
+
+.close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #666;
+}
+
+.close:hover {
+  color: #000;
+}
+
+.note {
+  font-size: 0.75rem;
+  color: #555;
+  display: block;
+}
+
+/* Slider styling for cashback */
+#cashback-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e6f4;
+  margin-top: 0.25rem;
+}
+#cashback-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+#cashback-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+body.dark-mode #cashback-slider {
+  background: #2a3352;
+}
+body.dark-mode #cashback-slider::-webkit-slider-thumb {
+  background: var(--accent-color);
+}
+body.dark-mode #cashback-slider::-moz-range-thumb {
+  background: var(--accent-color);
+}
+
+/* Calendar styles */
+.calendar-table {
+  width: 100%;
+  border-collapse: separate;
+  table-layout: fixed;
+  border-spacing: 4px;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 4px 12px var(--card-shadow);
+}
+.calendar-table th,
+  .calendar-table td {
+  background: rgba(255,255,255,0.4);
+  border-radius: 8px;
+  padding: 0.5rem;
+  vertical-align: top;
+  transition: background var(--transition-fast);
+}
+  .calendar-table th {
+  padding: 0.5rem;
+  color: var(--subtext-color);
+  font-weight: 600;
+}
+.calendar-cell {
+  height: 120px;
+  position: relative;
+}
+.calendar-cell .date-number {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.calendar-cell .event-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.7rem;
+}
+.calendar-cell .event-list li {
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 8px;
+  padding: 0.15rem 0.4rem;
+  margin-bottom: 0.15rem;
+  font-size: 0.76rem;
+  display: block;
+  background: rgba(90, 74, 226, 0.12);
+  color: var(--primary-color);
+  border-left: 3px solid var(--primary-color);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+body.dark-mode .calendar-cell .event-list li {
+  background: rgba(255,255,255,0.07);
+  color: var(--secondary-color);
+  border-left-color: var(--secondary-color);
+}
+.calendar-cell .event-list li:hover {
+  background: rgba(90, 74, 226, 0.25);
+  transform: translateX(2px);
+}
+
+/* Dashboard cards */
+.dashboard-card {
+  background: var(--card-bg);
+  color: var(--text-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.45), 0 0 16px var(--shadow-color);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.dashboard-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 26px rgba(0,0,0,0.5), 0 0 22px var(--shadow-color);
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  background: transparent;
+  color: var(--subtext-color);
+  margin-top: 2rem;
+}
+
+/* =============================================================
+ * Business timeline global view
+ *
+ * The global timeline aggregates events across the entire business. Each
+ * entry is displayed as a horizontal card with an icon, description,
+ * metadata and relative time. Hovering elevates the card for subtle
+ * feedback. Colours and sizes derive from the theme variables above.
+ */
+.timeline.global-timeline {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+.timeline.global-timeline::before {
+  content: none;
+}
+.timeline.global-timeline li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px var(--card-shadow);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.timeline.global-timeline li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+.timeline.global-timeline .timeline-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  stroke-width: 2;
+  color: var(--primary-color);
+}
+.timeline.global-timeline .timeline-content {
+  flex: 1;
+}
+.timeline.global-timeline .timeline-action {
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+  color: var(--text-color);
+}
+.timeline.global-timeline .timeline-meta {
+  font-size: 0.85rem;
+  color: var(--subtext-color);
+}
+.timeline.global-timeline .timeline-time {
+  font-size: 0.75rem;
+  color: var(--subtext-color);
+  margin-top: 0.25rem;
+}
+
+/* Dashboard metric cards with progress bars */
+.dashboard-card .metric-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+.dashboard-card .card-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+.dashboard-card .card-subvalue {
+  font-size: 0.9rem;
+  color: var(--subtext-color);
+}
+.dashboard-card .progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.dashboard-card .progress-bar .progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-medium);
+}
+
+/*
+ * Dashboard filter styling
+ *
+ * The date range and select controls for the dashboard should align with the
+ * modern aesthetic of the rest of the application.  We apply flex layout
+ * for even spacing, create floating label groups, and update input
+ * backgrounds and borders.  Buttons inherit gradient styling via
+ * existing rules above.
+ */
+#dashboard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+#dashboard-filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  gap: 0.35rem;
+}
+
+#dashboard-filters input[type="date"],
+#dashboard-filters select {
+  padding: 0.45rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255,255,255,0.7);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  outline: none;
+  box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+
+  /* Remove native arrow/indicator styling so custom appearance can be applied */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#dashboard-filters input[type="date"]:focus,
+#dashboard-filters select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(71, 181, 165, 0.35);
+  background: rgba(255,255,255,0.95);
+}
+
+body.dark-mode #dashboard-filters input[type="date"],
+body.dark-mode #dashboard-filters select {
+  /* Dark mode date and select fields adopt a translucent midnight hue
+     to blend with the card surfaces. */
+  background: rgba(18,27,50,0.8);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-color);
+}
+
+body.dark-mode #dashboard-filters input[type="date"]:focus,
+body.dark-mode #dashboard-filters select:focus {
+  background: rgba(41,48,77,0.9);
+  box-shadow: 0 0 0 3px rgba(71, 181, 165, 0.55);
+}
+
+/* Range slider styling (e.g. cashback to customer slider)
+ *
+ * Remove the default browser appearance and style the track and thumb
+ * to match the new accent colour.  This makes the slider more
+ * intuitive than a floating green dot and aligns it with the updated
+ * palette.
+ */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+  outline: none;
+  margin-top: 0.4rem;
+}
+input[type="range"]:focus {
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  transition: transform var(--transition-fast);
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0,0,0,0.4);
+  transition: transform var(--transition-fast);
+}
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+/*
+ * Dark mode card enhancements
+ *
+ * Cards should float above the deep backdrop with a subtle aura.  By
+ * layering tinted shadows using both primary and accent hues we give
+ * depth without resorting to harsh blacks.  These overrides apply
+ * across all card‑like components when dark mode is active.
+ */
+body.dark-mode .card,
+body.dark-mode .summary-card,
+body.dark-mode .renewal-card,
+body.dark-mode .profile-header,
+body.dark-mode .profile-section,
+body.dark-mode .doc-card {
+  box-shadow: 0 12px 28px rgba(23, 45, 92, 0.6), 0 8px 20px rgba(71,181,165,0.35);
+}
+
+/* ----------------------------------------
+ * Section-level actions and search bars
+ * ----------------------------------------
+ * The section-actions container arranges primary action buttons and page-level search inputs side by side with consistent spacing.
+ * Section search inputs adopt the glass effect used throughout the app and respond to dark mode.
+ */
+.section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.section-actions button {
+  margin-bottom: 0;
+}
+.section-search {
+  flex: 1;
+  max-width: 260px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: background var(--transition-fast), border var(--transition-fast);
+}
+body.dark-mode .section-search {
+  background: rgba(20, 35, 60, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-color);
+}
+.section-search::placeholder {
+  color: var(--subtext-color);
+}
+
+/* Hide the cashback slider in the commission form to reduce confusion */
+#cashback-slider {
+  display: none !important;
+}
+
+/* Modern data table styles for list views
+   We use a container around the table to manage overflow and provide rounded
+   corners.  The table has no outer borders and uses alternating row
+   backgrounds for readability.  Header cells are coloured with the accent
+   palette and use uppercase text.  Hovering a row highlights it softly. */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--border-radius);
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px var(--shadow-color);
+  margin-bottom: 1rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+  font-size: 0.88rem;
+}
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.data-table th {
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--accent-color);
+  background: rgba(0,0,0,0.05);
+}
+body.dark-mode .data-table th {
+  background: rgba(15, 35, 60, 0.6);
+}
+.data-table tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+body.dark-mode .data-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.04);
+}
+.data-table tbody tr:hover {
+  background: rgba(255,255,255,0.05);
+}
+body.dark-mode .data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.data-table .actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.data-table .actions button {
+  background: none;
+  border: none;
+  padding: 0.3rem;
+  cursor: pointer;
+  color: var(--accent-color);
+  transition: color var(--transition-fast);
+}
+.data-table .actions button:hover {
+  color: var(--primary-color);
+}
+
+/* Style download anchor in documents table */
+.data-table .actions a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem;
+  color: var(--accent-color);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  text-decoration: none;
+}
+.data-table .actions a:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--accent-color);
+  text-decoration: none;
+}
+.download-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+/* Custom cell for combining logo/avatar with name in broker and company tables */
+.logo-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.logo-name-cell .list-logo-inline {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  display: inline-block;
+}
+/* Fallback icon wrapper when no logo is provided */
+.logo-name-cell .inline-icon {
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+/* Name text next to logo for consistency */
+.logo-name-cell .list-name {
+  font-weight: 500;
+}
+
+/* Summary cards inside customer detail summary section */
+.summary-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.summary-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: default;
+}
+
+.summary-card h5 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.summary-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+/* Report filters layout */
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-bottom: 0.8rem;
+}
+
+/* Style native date inputs to better align with the app aesthetic */
+input[type="date"] {
+  background: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+/* Adjust calendar icon colour in WebKit browsers (Chrome/Safari) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) sepia(1) saturate(5) hue-rotate(180deg);
+}
+
+.report-filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.report-filters select,
+.report-filters input[type="date"] {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-color);
+}
+
+.report-filters button {
+  padding: 0.45rem 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.report-filters button:hover {
+  background: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.report-filters button:active {
+  transform: translateY(0);
+}
+
+/* Settings page forms: align fields and improve readability */
+#settings-range-form,
+#settings-bank-form,
+#settings-upi-form,
+#settings-wallet-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+#settings-range-form label {
+  flex: 1 1 200px;
+}
+#settings-range-form input,
+#settings-bank-form input,
+#settings-upi-form input,
+#settings-wallet-form input {
+  flex: 1 1 220px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  transition: border var(--transition-fast), background var(--transition-fast);
+}
+body.dark-mode #settings-range-form input,
+body.dark-mode #settings-bank-form input,
+body.dark-mode #settings-upi-form input,
+body.dark-mode #settings-wallet-form input {
+  background: rgba(25, 45, 80, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-color);
+}
+
+/* Styling for master data configuration blocks */
+.master-block {
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--card-shadow);
+}
+.master-block h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--text-color);
+}
+.master-block form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.master-block form input[type="text"],
+.master-block form select {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+.master-block form button {
+  padding: 0.4rem 0.8rem;
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.master-block form button:hover {
+  background-color: #17b39e;
+}
+.addon-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.addon-checkboxes label {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  color: var(--text-color);
+}
+.addon-checkboxes input {
+  margin-right: 0.25rem;
+}
+
+/*------------------------------------------------------------------------------
+ * Authentication: Google sign‑in button
+ *
+ * The login modal displays this button when Firebase authentication is enabled.
+ * The styling matches other primary buttons in the app, with a subtle hover
+ * effect. It uses the secondary colour as the default background and the
+ * primary colour on hover. The button is implemented as a flex container
+ * so that future icons (e.g., a Google logo) can be added easily next to
+ * the label.
+ */
+.google-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--secondary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.google-signin-btn:hover {
+  background: var(--primary-color);
+}

@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HK Insurance & Financial Solutions Dashboard</title>
+  <!-- Set favicon using custom logo. Provide 32x32 icon for browser tab and shortcut. -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="stylesheet" href="style.css">
+  <!-- Web app manifest for Progressive Web App support -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Configure the browser UI colours for the PWA -->
+  <meta name="theme-color" content="#00436e">
+  <!-- Chart.js for modern reports visuals -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Firebase libraries for optional cloud sync. The compat version simplifies integration with the existing code base.
+       Populate firebaseConfig in app.js with your project's credentials if you want to enable cloud sync.
+       Auth compat is included to enable Google sign‑in. -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+  <!-- Application layout: sidebar + main area -->
+    <div class="app-layout">
+    <!-- Sidebar navigation -->
+    <aside class="sidebar">
+      <!-- Replace text logo with brand image -->
+      <div class="logo">
+        <img src="icons/hk-logo.png" alt="HK Insurance logo">
+      </div>
+      <ul class="sidebar-nav" id="nav-menu">
+        <!-- Primary navigation links now use data-icon attributes for SVG icons. The icons will be injected dynamically in JavaScript via the ICONS mapping. -->
+        <li><a href="#" data-section="dashboard" data-icon="home"><span class="icon"></span><span>Dashboard</span></a></li>
+        <li><a href="#" data-section="customers" data-icon="users"><span class="icon"></span><span>Customers</span></a></li>
+        <li><a href="#" data-section="policies" data-icon="file-text"><span class="icon"></span><span>Policies</span></a></li>
+        <li><a href="#" data-section="quotes" data-icon="quote"><span class="icon"></span><span>Quotes</span></a></li>
+        <li><a href="#" data-section="payments" data-icon="credit-card"><span class="icon"></span><span>Payments</span></a></li>
+        <li><a href="#" data-section="commissions" data-icon="award"><span class="icon"></span><span>Commissions</span></a></li>
+        <li><a href="#" data-section="documents" data-icon="folder"><span class="icon"></span><span>Documents</span></a></li>
+        <li><a href="#" data-section="vehicles" data-icon="car"><span class="icon"></span><span>Vehicles</span></a></li>
+        <li><a href="#" data-section="brokers" data-icon="handshake"><span class="icon"></span><span>Brokers</span></a></li>
+        <li><a href="#" data-section="companies" data-icon="building"><span class="icon"></span><span>Companies</span></a></li>
+        <li><a href="#" data-section="calendar" data-icon="calendar"><span class="icon"></span><span>Calendar</span></a></li>
+        <!-- Global business timeline navigation -->
+        <li><a href="#" data-section="timeline" data-icon="timeline"><span class="icon"></span><span>Timeline</span></a></li>
+        <!-- Reports navigation -->
+        <li><a href="#" data-section="reports" data-icon="bar"><span class="icon"></span><span>Reports</span></a></li>
+        <!-- Alerts & Renewals navigation -->
+        <li><a href="#" data-section="alerts" data-icon="alerts"><span class="icon"></span><span>Alerts</span></a></li>
+        <li><a href="#" data-section="settings" data-icon="settings"><span class="icon"></span><span>Settings</span></a></li>
+        <li><a href="#" data-section="guide" data-icon="info"><span class="icon"></span><span>Guide</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Main area with top bar and content -->
+    <div class="main-area">
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="topbar-left" style="position: relative;">
+          <!-- Sidebar toggle button for collapsing/expanding the side menu -->
+          <button id="toggle-sidebar-btn" title="Toggle Menu">
+            <span class="icon"></span>
+          </button>
+          <!-- Quick add button: icon will be injected via JavaScript -->
+          <button id="quick-add-btn" title="Quick Add">
+            <span class="icon"></span>
+          </button>
+          <div id="quick-add-menu" class="quick-add-menu hidden">
+            <!-- Quick add menu buttons now include icons. Icons are injected via JS based on data-icon attributes -->
+            <button data-action="customer" data-icon="users"><span class="icon"></span><span>New Customer</span></button>
+            <button data-action="policy" data-icon="file-text"><span class="icon"></span><span>New Policy</span></button>
+            <button data-action="quote" data-icon="quote"><span class="icon"></span><span>New Quote</span></button>
+            <button data-action="payment" data-icon="credit-card"><span class="icon"></span><span>New Payment</span></button>
+            <button data-action="document" data-icon="folder"><span class="icon"></span><span>Upload Document</span></button>
+            <button data-action="vehicle" data-icon="car"><span class="icon"></span><span>New Vehicle</span></button>
+          </div>
+        </div>
+        <div class="topbar-center">
+          <input type="text" id="global-search" placeholder="Search…" autocomplete="off">
+          <!-- Search overlay -->
+          <div id="search-overlay" class="hidden"></div>
+        </div>
+        <div class="topbar-right">
+          <!-- Global cloud sync button. A single button handles both upload and download depending on the latest changes -->
+          <button id="cloud-sync-button" title="Sync with Cloud">
+            <span class="icon"></span>
+            <span class="btn-label">Sync</span>
+          </button>
+          <!-- Dark mode toggle icon will be injected via JavaScript -->
+          <button id="dark-mode-toggle" title="Toggle Dark Mode">
+            <span class="icon"></span>
+          </button>
+        </div>
+      </header>
+      <!-- Content area where sections render -->
+      <div class="content-area">
+
+      
+    <!-- Home section -->
+    <section id="home" class="section active">
+      <h2>Welcome to the HK Insurance Hub</h2>
+      <p>Sign in to a secure, personalized workspace where you manage customers, policies, payments, documents, and payouts – all in one place. Your data syncs across devices when online, and is cached for offline access when you’re not.</p>
+      <p>Dive into powerful 360‑degree reports and dashboards, and use the navigation to explore everything your insurance business needs.</p>
+      <p><i>Designed and Developed by <a href="http://linkedin.com/in/harshkhant" target="_blank" rel="noopener">HK Insurance & Financial Solutions</a>.</i></p>
+    </section>
+
+    <!-- Customers section -->
+    <section id="customers" class="section">
+      <h2>Customers</h2>
+      <div class="summary-cards" id="customers-summary"></div>
+      <div class="section-actions">
+        <button id="add-customer-btn">Add Customer</button>
+        <input type="text" id="customers-search" class="section-search" placeholder="Search customers…">
+      </div>
+      <div id="customers-list"></div>
+
+      <!-- Customer form modal -->
+      <div id="customer-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-customer-form">&times;</span>
+          <h3 id="customer-form-title">Add Customer</h3>
+          <form id="customer-form">
+            <input type="hidden" id="customer-id">
+            <label>Full Name*
+              <input type="text" id="customer-full-name" required>
+            </label>
+            <label>Gender
+              <select id="customer-gender">
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label>Date of Birth
+              <input type="date" id="customer-dob">
+            </label>
+            <label>Age
+              <input type="number" id="customer-age">
+              <small class="note">Calculated from DOB; you can override manually</small>
+            </label>
+            <label>Customer Type
+              <select id="customer-type">
+                <option value="Individual">Individual</option>
+                <option value="Business">Business</option>
+              </select>
+            </label>
+            <label>PAN Number
+              <input type="text" id="customer-pan">
+            </label>
+            <label>Aadhaar Number
+              <input type="text" id="customer-aadhaar">
+            </label>
+            <label>GST Number
+              <input type="text" id="customer-gst">
+            </label>
+            <label>Primary Mobile
+              <input type="tel" id="customer-primary-mobile">
+            </label>
+            <label>Alternate Mobile
+              <input type="tel" id="customer-alt-mobile">
+            </label>
+            <label>Email Address
+              <input type="email" id="customer-email">
+            </label>
+            <label>Residential Address
+              <textarea id="customer-res-address"></textarea>
+            </label>
+            <label>Office Address
+              <textarea id="customer-office-address"></textarea>
+            </label>
+            <label>Preferred Language
+              <select id="customer-language">
+                <option value="">Select</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Gujarati">Gujarati</option>
+              </select>
+            </label>
+            <label>Occupation
+              <input type="text" id="customer-occupation">
+            </label>
+            <label>Nominee Details
+              <textarea id="customer-nominee" placeholder="Name, relation, contact"></textarea>
+            </label>
+            <label>Relationships
+              <select id="customer-relationships" multiple style="height:6em;"></select>
+              <small class="note">Select other customers that have a relationship with this customer (e.g., family or business partners). Use remarks to describe the relationship types.</small>
+            </label>
+            <label>KYC Status
+              <select id="customer-kyc">
+                <option value="Pending">Pending</option>
+                <option value="Verified">Verified</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </label>
+            <label>Remarks/Notes
+              <textarea id="customer-remarks"></textarea>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Customer detail drawer -->
+      <div id="customer-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-customer-detail">&times;</span>
+          <h3 id="customer-detail-title"></h3>
+          <div id="customer-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Policies section -->
+    <section id="policies" class="section">
+      <h2>Policies</h2>
+      <div class="summary-cards" id="policies-summary"></div>
+      <div class="section-actions">
+        <button id="add-policy-btn">Add Policy</button>
+        <input type="text" id="policies-search" class="section-search" placeholder="Search policies…">
+      </div>
+      <div id="policies-list"></div>
+
+      <!-- Policy form modal -->
+      <div id="policy-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-policy-form">&times;</span>
+          <h3 id="policy-form-title">Add Policy</h3>
+          <form id="policy-form">
+            <input type="hidden" id="policy-id">
+            <label>Policy Number*
+              <input type="text" id="policy-number" required>
+            </label>
+            <label>Policy Type
+              <select id="policy-type">
+                <option value="Motor">Motor</option>
+                <option value="Health">Health</option>
+                <option value="Life">Life</option>
+                <option value="Travel">Travel</option>
+                <option value="Home">Home</option>
+                <option value="Commercial">Commercial</option>
+              </select>
+            </label>
+
+            <!-- Policy Subtype (specific line like Car/Bike/Individual etc.) populated from master data based on selected category -->
+            <label>Policy Sub‑Type
+              <select id="policy-subtype"></select>
+            </label>
+
+            <label>Linked Quote (Optional)
+              <select id="policy-quote">
+                <!-- options populated dynamically -->
+              </select>
+              <small class="note">Select a pending or shared quote to pre‑fill details. Only quotes that have not been converted and are not rejected/expired will appear.</small>
+            </label>
+            <label>Insurance Company
+              <select id="policy-company"></select>
+            </label>
+            <label>Broker/Agency
+              <select id="policy-broker"></select>
+            </label>
+
+            <label>Agency (Mine/Family)
+              <input type="text" id="policy-agency" placeholder="Enter agency name or family member involved">
+            </label>
+            <label>Proposer
+              <select id="policy-proposer"></select>
+            </label>
+            <label>Insured Person
+              <select id="policy-insured"></select>
+            </label>
+            <label>Owner
+              <select id="policy-owner"></select>
+            </label>
+            <label>Nominee
+              <select id="policy-nominee"></select>
+            </label>
+            <label>Start Date
+              <input type="date" id="policy-start-date">
+            </label>
+            <label>End Date
+              <input type="date" id="policy-end-date">
+            </label>
+            <label>Tenure
+              <input type="number" id="policy-tenure">
+              <small class="note">Calculated from start and end date; you can override manually</small>
+            </label>
+            <label>Sum Insured
+              <input type="number" id="policy-sum-insured" step="0.01">
+            </label>
+            <label>Premium Amount
+              <input type="number" id="policy-premium" step="0.01">
+            </label>
+            <label>Tax Amount
+              <input type="number" id="policy-tax" step="0.01">
+            </label>
+            <label>Total Payable
+              <input type="number" id="policy-total-payable" step="0.01">
+              <small class="note">Premium + Tax; you can override manually</small>
+            </label>
+            <label>Payment Status
+              <select id="policy-payment-status">
+                <option value="Pending">Pending</option>
+                <option value="Partially Paid">Partially Paid</option>
+                <option value="Paid">Paid</option>
+              </select>
+            </label>
+            <label>Commission Eligibility
+              <select id="policy-commission-eligibility">
+                <option value="Eligible">Eligible</option>
+                <option value="Not Eligible">Not Eligible</option>
+                <option value="Deferred">Deferred</option>
+              </select>
+            </label>
+            <label>Commission Type
+              <select id="policy-commission-type">
+                <option value="percentage">Percentage</option>
+                <option value="fixed">Fixed Amount</option>
+                <option value="points">Points</option>
+              </select>
+            </label>
+            <label>Commission Value
+              <input type="number" id="policy-commission-value" step="0.01">
+              <small class="note">If percentage, enter rate (e.g., 10 for 10%). If fixed, enter amount. If points, enter number of points.</small>
+            </label>
+            <label>Remarks
+              <textarea id="policy-remarks"></textarea>
+            </label>
+            <label>Vehicle (Motor only)
+              <select id="policy-vehicle"></select>
+              <small class="note">Select an existing vehicle for motor policies (optional).</small>
+            </label>
+            <!-- Plan & add‑on fields will be inserted here dynamically based on company and policy type -->
+            <div id="policy-plan-fields"></div>
+            <!-- Type-specific fields placeholder -->
+            <div id="type-specific-fields"></div>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Policy detail drawer -->
+      <div id="policy-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-policy-detail">&times;</span>
+          <h3 id="policy-detail-title"></h3>
+          <div id="policy-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Payments section -->
+    <section id="payments" class="section">
+      <h2>Payments</h2>
+      <div class="summary-cards" id="payments-summary"></div>
+      <div class="section-actions">
+        <button id="add-payment-btn">Add Payment</button>
+        <input type="text" id="payments-search" class="section-search" placeholder="Search payments…">
+      </div>
+      <div id="payments-list"></div>
+
+      <!-- Payment form modal -->
+      <div id="payment-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-payment-form">&times;</span>
+          <h3 id="payment-form-title">Add Payment</h3>
+          <form id="payment-form">
+            <input type="hidden" id="payment-id">
+            <label>Payer (Customer)
+              <select id="payment-payer"></select>
+            </label>
+            <label>Policy
+              <select id="payment-policy"></select>
+            </label>
+            <label>Amount
+              <input type="number" id="payment-amount" step="0.01" required>
+            </label>
+            <label>Tax Amount
+              <input type="number" id="payment-tax" step="0.01" value="0">
+            </label>
+            <label>Receiver Type
+              <select id="payment-receiver-type">
+                <option value="Company">Insurance Company</option>
+                <option value="Broker">Broker</option>
+                <option value="Agent">Me (Agent)</option>
+              </select>
+            </label>
+            <label>Receiver
+              <select id="payment-receiver"></select>
+            </label>
+            <label>Payment Mode
+              <select id="payment-mode">
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Payment Link">Broker Payment Link</option>
+              </select>
+            </label>
+            <label>Bank/UPI/Account (if applicable)
+              <select id="payment-account"></select>
+            </label>
+            <label>Payment Reference
+              <input type="text" id="payment-ref">
+            </label>
+            <label>Date
+              <input type="date" id="payment-date">
+            </label>
+            <label>Remarks
+              <textarea id="payment-remarks"></textarea>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Payment detail drawer -->
+      <div id="payment-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-payment-detail">&times;</span>
+          <h3 id="payment-detail-title"></h3>
+          <div id="payment-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Documents section -->
+    <section id="documents" class="section">
+      <h2>Documents</h2>
+      <div class="summary-cards" id="documents-summary"></div>
+      <div class="section-actions">
+        <button id="add-document-btn">Upload Document</button>
+        <input type="text" id="documents-search" class="section-search" placeholder="Search documents…">
+      </div>
+      <div id="documents-list"></div>
+
+      <!-- Document form modal -->
+      <div id="document-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-document-form">&times;</span>
+          <h3>Upload Document</h3>
+          <form id="document-form">
+            <input type="hidden" id="document-id">
+            <label>File
+              <input type="file" id="document-file" accept="image/*,application/pdf" required>
+            </label>
+            <label>Document Name
+              <input type="text" id="document-name">
+            </label>
+            <label>Document Type
+              <select id="document-type">
+                <option value="Other">Other</option>
+                <option value="PAN">PAN</option>
+                <option value="Aadhaar">Aadhaar</option>
+                <option value="RC">RC</option>
+                <option value="Policy Copy">Policy Copy</option>
+                <option value="Quote">Quote</option>
+              </select>
+            </label>
+            <label>Tags (comma separated)
+              <input type="text" id="document-tags">
+            </label>
+            <label>Linked To (multi‑select)
+              <select id="document-linked-entities" multiple style="height:8em;"></select>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Document preview drawer -->
+      <div id="document-preview-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-document-preview">&times;</span>
+          <h3 id="document-preview-title"></h3>
+          <!-- Edit button inserted to allow editing uploaded documents -->
+          <button id="edit-document-btn" class="icon-button" title="Edit Document">Edit</button>
+          <div id="document-preview-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Brokers section -->
+    <section id="brokers" class="section">
+      <h2>Brokers</h2>
+      <div class="section-actions">
+        <button id="add-broker-btn">Add Broker</button>
+        <input type="text" id="brokers-search" class="section-search" placeholder="Search brokers…">
+      </div>
+      <div id="brokers-list"></div>
+
+      <!-- Broker form modal -->
+      <div id="broker-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-broker-form">&times;</span>
+          <h3 id="broker-form-title">Add Broker</h3>
+            <form id="broker-form">
+            <input type="hidden" id="broker-id">
+            <label>Broker Name
+              <input type="text" id="broker-name" required>
+            </label>
+            <label>Agency/Owner
+              <input type="text" id="broker-owner" placeholder="e.g., My Name, Family Member" >
+            </label>
+            <label>Remarks
+              <textarea id="broker-remarks"></textarea>
+            </label>
+            <label>Logo
+              <input type="file" id="broker-logo" accept="image/*">
+              <small class="note">Upload a square logo. If omitted, initials will be used.</small>
+            </label>
+            <!-- Select companies that this broker works with -->
+            <label>Companies (multi‑select)
+              <select id="broker-companies" multiple></select>
+            </label>
+            <!-- Select linked bank accounts, UPI IDs and wallets -->
+            <label>Bank Accounts (multi‑select)
+              <select id="broker-banks" multiple></select>
+            </label>
+            <label>UPI IDs (multi‑select)
+              <select id="broker-upis" multiple></select>
+            </label>
+            <label>Wallets (multi‑select)
+              <select id="broker-wallets" multiple></select>
+            </label>
+            <!-- Commission configuration -->
+            <label>Commission Mode
+              <select id="broker-commission-mode">
+                <option value="points">Award Points</option>
+                <option value="money">Direct Money</option>
+              </select>
+            </label>
+            <label id="broker-point-rate-container">Point Rate (₹ per point)
+              <input type="number" id="broker-point-rate" step="0.01" placeholder="1">
+            </label>
+            <label>Pay Cycle
+              <select id="broker-pay-cycle">
+                <option value="adhoc">Adhoc</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Broker detail drawer -->
+      <div id="broker-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-broker-detail">&times;</span>
+          <h3 id="broker-detail-title"></h3>
+          <div id="broker-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Companies section -->
+    <section id="companies" class="section">
+      <h2>Insurance Companies</h2>
+      <div class="section-actions">
+        <button id="add-company-btn">Add Company</button>
+        <input type="text" id="companies-search" class="section-search" placeholder="Search companies…">
+      </div>
+      <div id="companies-list"></div>
+
+      <!-- Company form modal -->
+      <div id="company-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-company-form">&times;</span>
+          <h3 id="company-form-title">Add Company</h3>
+          <form id="company-form">
+            <input type="hidden" id="company-id">
+            <label>Company Name
+              <input type="text" id="company-name" required>
+            </label>
+            <label>Remarks
+              <textarea id="company-remarks"></textarea>
+            </label>
+            <label>Logo
+              <input type="file" id="company-logo" accept="image/*">
+              <small class="note">Upload a square logo. If omitted, initials will be used.</small>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Company detail drawer -->
+      <div id="company-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-company-detail">&times;</span>
+          <h3 id="company-detail-title"></h3>
+          <div id="company-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quotes section -->
+    <section id="quotes" class="section">
+      <h2>Quotes</h2>
+      <div class="summary-cards" id="quotes-summary"></div>
+      <div class="section-actions">
+        <button id="add-quote-btn">Add Quote</button>
+        <input type="text" id="quotes-search" class="section-search" placeholder="Search quotes…">
+      </div>
+      <div id="quotes-list"></div>
+
+      <!-- Quote form modal -->
+      <div id="quote-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-quote-form">&times;</span>
+          <h3 id="quote-form-title">Add Quote</h3>
+          <form id="quote-form">
+            <input type="hidden" id="quote-id">
+            <label>Customer
+              <select id="quote-customer" required></select>
+            </label>
+            <label>Broker
+              <select id="quote-broker"></select>
+            </label>
+            <label>Insurance Company
+              <select id="quote-company"></select>
+            </label>
+            <label>Policy Type
+              <select id="quote-type">
+                <option value="Motor">Motor</option>
+                <option value="Health">Health</option>
+                <option value="Life">Life</option>
+                <option value="Travel">Travel</option>
+                <option value="Home">Home</option>
+                <option value="Commercial">Commercial</option>
+              </select>
+            </label>
+            <label>Quote Date
+              <input type="date" id="quote-date">
+            </label>
+            <label>Sum Insured
+              <input type="number" id="quote-sum-insured" step="0.01">
+            </label>
+            <label>Premium Amount
+              <input type="number" id="quote-premium" step="0.01">
+            </label>
+            <label>Tax Amount
+              <input type="number" id="quote-tax" step="0.01">
+            </label>
+            <label>Total Payable
+              <input type="number" id="quote-total" step="0.01">
+            </label>
+            <label>Status
+              <select id="quote-status">
+                <option value="Shared">Shared</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Expired">Expired</option>
+              </select>
+            </label>
+            <label>Remarks
+              <textarea id="quote-remarks"></textarea>
+            </label>
+            <div id="quote-type-specific-fields"></div>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Quote detail drawer -->
+      <div id="quote-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-quote-detail">&times;</span>
+          <h3 id="quote-detail-title"></h3>
+          <div id="quote-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Commissions section -->
+    <section id="commissions" class="section">
+      <h2>Commissions</h2>
+      <div class="summary-cards" id="commissions-summary"></div>
+      <p>Commission records reflect expected and received commissions per policy. Each policy defines its own commission type and value (percentage, fixed amount or points). Use the policy form to set commission values and the commissions section below to record received amounts, redeemed points and deductions.</p>
+      <div class="section-actions">
+        <button id="add-commission-btn">Record Commission</button>
+        <button id="redeem-points-btn">Redeem Points</button>
+        <input type="text" id="commissions-search" class="section-search" placeholder="Search commissions…">
+      </div>
+      <div id="commissions-list"></div>
+
+      <!-- Commission form modal -->
+      <div id="commission-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-commission-form">&times;</span>
+          <h3 id="commission-form-title">Record Commission</h3>
+          <form id="commission-form">
+            <input type="hidden" id="commission-id">
+            <label>Policy
+              <select id="commission-policy" required></select>
+            </label>
+            <label>Date
+              <input type="date" id="commission-date" required>
+            </label>
+            <label>Expected Commission
+              <input type="number" id="commission-expected" step="0.01" readonly>
+            </label>
+            <label>Received Commission
+              <input type="number" id="commission-received" step="0.01">
+            </label>
+            <label>Cashback to Customer
+              <input type="number" id="commission-cashback" step="0.01" value="0">
+              <!-- Removed confusing range slider. The safe give‑back range will still be shown in the note below. -->
+              <small class="note" id="cashback-range-note"></small>
+            </label>
+            <label>Cashback Customer
+              <select id="commission-cashback-customer"></select>
+            </label>
+            <label>Cashback Mode
+              <select id="commission-cashback-mode">
+                <option value="">Select</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+              </select>
+            </label>
+            <!-- When a broker awards commission as points rather than cash, this field captures the number of points received for the selected policy.  The label dynamically appears or is hidden based on the broker configuration. -->
+            <label>Points Received
+              <input type="number" id="commission-points" step="0.01">
+            </label>
+            <label>Charges/Deductions
+              <input type="number" id="commission-charges" step="0.01">
+            </label>
+            <label>Net Commission Earned
+              <input type="number" id="commission-net" step="0.01" readonly>
+            </label>
+            <label>Bank/Wallet Received
+              <select id="commission-account"></select>
+            </label>
+            <label>Override Reason (if give-back exceeds max)
+              <input type="text" id="commission-override-reason">
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+      <!-- Commission detail drawer -->
+      <div id="commission-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-commission-detail">&times;</span>
+          <h3 id="commission-detail-title"></h3>
+          <div id="commission-detail-content"></div>
+        </div>
+      </div>
+
+    <!-- Redeem Points button -->
+    <!-- Redeem points form modal -->
+    <div id="redeem-points-modal" class="modal hidden">
+      <div class="modal-content large">
+        <span class="close" id="close-redeem-points">&times;</span>
+        <h3>Redeem Commission Points</h3>
+        <form id="redeem-points-form">
+          <p>Select commission records with points to redeem:</p>
+          <div id="redeem-points-list" style="max-height:200px; overflow-y:auto; border:1px solid #ccc; padding:0.5rem; margin-bottom:1rem;"></div>
+          <label>Total Amount Credited
+            <input type="number" id="redeem-total-amount" step="0.01" required>
+          </label>
+          <label>Total Charges/Deductions
+            <input type="number" id="redeem-total-charges" step="0.01" value="0">
+          </label>
+          <label>Account/Wallet Received
+            <select id="redeem-account"></select>
+          </label>
+          <label>Credit Date
+            <input type="date" id="redeem-date" required>
+          </label>
+          <button type="submit">Redeem</button>
+        </form>
+      </div>
+    </div>
+    </section>
+
+    <!-- Vehicles section -->
+    <section id="vehicles" class="section">
+      <h2>Vehicles</h2>
+      <div class="summary-cards" id="vehicles-summary"></div>
+      <div class="section-actions">
+        <button id="add-vehicle-btn">Add Vehicle</button>
+        <input type="text" id="vehicles-search" class="section-search" placeholder="Search vehicles…">
+      </div>
+      <div id="vehicles-list"></div>
+
+      <!-- Vehicle form modal -->
+      <div id="vehicle-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-vehicle-form">&times;</span>
+          <h3 id="vehicle-form-title">Add Vehicle</h3>
+          <form id="vehicle-form">
+            <input type="hidden" id="vehicle-id">
+            <label>Owner (Customer)
+              <select id="vehicle-owner"></select>
+            </label>
+            <label>Vehicle Number*
+              <input type="text" id="vehicle-number" required>
+            </label>
+            <label>Chassis Number
+              <input type="text" id="vehicle-chassis">
+            </label>
+            <label>Engine Number
+              <input type="text" id="vehicle-engine">
+            </label>
+            <label>Vehicle Type
+              <input type="text" id="vehicle-type">
+            </label>
+            <label>Make
+              <input type="text" id="vehicle-make">
+            </label>
+            <label>Model
+              <input type="text" id="vehicle-model">
+            </label>
+            <label>Fuel Type
+              <input type="text" id="vehicle-fuel">
+            </label>
+            <label>Registration Date
+              <input type="date" id="vehicle-registration">
+            </label>
+            <label>Insured Declared Value (IDV)
+              <input type="number" id="vehicle-idv" step="0.01">
+            </label>
+            <label>Remarks
+              <textarea id="vehicle-remarks"></textarea>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Vehicle detail drawer -->
+      <div id="vehicle-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-vehicle-detail">&times;</span>
+          <h3 id="vehicle-detail-title"></h3>
+          <div id="vehicle-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calendar section -->
+    <section id="calendar" class="section">
+      <h2>Calendar</h2>
+      <div id="calendar-controls" style="margin-bottom:1rem;">
+        <button id="calendar-prev">Prev</button>
+        <span id="calendar-month-label"></span>
+        <button id="calendar-next">Next</button>
+        <button id="calendar-view-toggle" title="Toggle Calendar View">Agenda</button>
+      </div>
+      <div id="calendar-view"></div>
+    </section>
+
+    <!-- Alerts & Renewals section -->
+    <section id="alerts" class="section alerts-section">
+      <h2>Alerts & Renewals</h2>
+      <p class="small-note">Stay on top of upcoming policy expirations, payments, and other urgent tasks. Colour‑coded alerts guide your next actions.</p>
+      <!-- A list container for renewals & alerts -->
+      <div id="alerts-list"></div>
+    </section>
+
+    <!-- Business timeline section -->
+    <section id="timeline" class="section">
+      <h2>Business Timeline</h2>
+      <p class="small-note">See a chronological feed of all your insurance activities across customers, policies, quotes, payments and more.</p>
+      <div id="timeline-list"></div>
+    </section>
+
+    <!-- Reports & Summary section -->
+    <section id="reports" class="section">
+      <h2>Reports &amp; Summary</h2>
+      <p class="small-note">Analyse your business performance across customers, policies and commissions. Use the filters below to generate a comprehensive view and export results.</p>
+      <div class="report-filters">
+        <label>Entity
+          <select id="report-entity-type">
+            <option value="all">All</option>
+            <option value="customer">Customer</option>
+            <option value="policy">Policy</option>
+            <option value="vehicle">Vehicle</option>
+          </select>
+        </label>
+        <label id="report-entity-select-label" style="display:none;">Select
+          <select id="report-entity-select"></select>
+        </label>
+        <label>Broker
+          <select id="report-broker">
+            <option value="">All</option>
+          </select>
+        </label>
+        <label>Company
+          <select id="report-company">
+            <option value="">All</option>
+          </select>
+        </label>
+        <label>Policy Type
+          <select id="report-policy-type">
+            <option value="">All</option>
+          </select>
+        </label>
+        <label>Vehicle
+          <select id="report-vehicle">
+            <option value="">All</option>
+          </select>
+        </label>
+        <label>Date Range
+          <select id="reports-range">
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 3 months</option>
+            <option value="180">Last 6 months</option>
+            <option value="365">Last 12 months</option>
+            <option value="year">Current Year</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+        <span class="custom-range" style="display:none;">
+          <label>From
+            <input type="date" id="reports-start">
+          </label>
+          <label>To
+            <input type="date" id="reports-end">
+          </label>
+        </span>
+        <label>Chart
+          <select id="report-chart-type">
+            <option value="bar">Bar</option>
+            <option value="pie">Pie</option>
+            <option value="doughnut">Doughnut</option>
+            <option value="line">Line</option>
+          </select>
+        </label>
+        <button id="reports-generate">Generate</button>
+        <button id="reports-download">Export CSV</button>
+      </div>
+      <!-- Chart canvas for visual reports -->
+      <div class="report-chart-container" style="margin-top:1.5rem;">
+        <canvas id="report-chart" height="320"></canvas>
+      </div>
+      <!-- Summary metrics for the generated report -->
+      <div id="reports-summary" style="margin-top:1.5rem;"></div>
+    </section>
+
+    <!-- Dashboard section -->
+    <section id="dashboard" class="section">
+      <h2>Dashboard</h2>
+      <div id="dashboard-filters" style="margin-bottom:1rem;">
+        <label>Start Date <input type="date" id="dashboard-start"></label>
+        <label>End Date <input type="date" id="dashboard-end"></label>
+        <label>Broker <select id="dashboard-broker"></select></label>
+        <label>Company <select id="dashboard-company"></select></label>
+        <label>Policy Type <select id="dashboard-policy-type">
+          <option value="">All</option>
+          <option value="Motor">Motor</option>
+          <option value="Health">Health</option>
+          <option value="Life">Life</option>
+          <option value="Travel">Travel</option>
+          <option value="Home">Home</option>
+          <option value="Commercial">Commercial</option>
+        </select></label>
+        <button id="dashboard-apply">Apply</button>
+        <button id="dashboard-export">Export CSV</button>
+      </div>
+      <div id="dashboard-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem;"></div>
+    </section>
+
+    <!-- Settings section -->
+    <section id="settings" class="section">
+      <h2>Settings & Configuration</h2>
+      <h3>Safe Give‑Back Range</h3>
+      <form id="settings-range-form">
+        <label>Minimum Percentage
+          <input type="number" id="settings-safe-min" step="0.01" min="0" max="1">
+        </label>
+        <label>Maximum Percentage
+          <input type="number" id="settings-safe-max" step="0.01" min="0" max="1">
+        </label>
+        <button type="submit">Save Range</button>
+      </form>
+      <h3>Bank Accounts</h3>
+      <div id="settings-bank-list"></div>
+      <form id="settings-bank-form">
+        <input type="text" id="settings-bank-input" placeholder="Add bank account">
+        <button type="submit">Add</button>
+      </form>
+      <h3>UPI IDs</h3>
+      <div id="settings-upi-list"></div>
+      <form id="settings-upi-form">
+        <input type="text" id="settings-upi-input" placeholder="Add UPI ID">
+        <button type="submit">Add</button>
+      </form>
+      <h3>Wallets</h3>
+      <div id="settings-wallet-list"></div>
+      <form id="settings-wallet-form">
+        <input type="text" id="settings-wallet-input" placeholder="Add Wallet">
+        <button type="submit">Add</button>
+      </form>
+
+      <!-- Master Data configuration for policy categories, types, plans and add-ons -->
+      <h3>Master Data</h3>
+      <p class="small-note">Configure your insurance product hierarchy here. Add categories (e.g., Motor, Health), define the sub‑types under each (e.g., Car, Bike), set up plan types (e.g., Comprehensive, SAOD) and map add‑ons to those plans. These values drive the policy form dynamically.</p>
+      <!-- Categories -->
+      <div id="master-categories" class="master-block">
+        <h4>Categories</h4>
+        <div id="category-list"></div>
+        <form id="category-form">
+          <input type="text" id="category-name" placeholder="Category name" required>
+          <button type="submit">Add Category</button>
+        </form>
+      </div>
+      <!-- Policy Types -->
+      <div id="master-types" class="master-block">
+        <h4>Policy Types</h4>
+        <form id="type-form">
+          <select id="type-category-select"></select>
+          <input type="text" id="type-name" placeholder="Type name" required>
+          <button type="submit">Add Type</button>
+        </form>
+        <div id="type-list"></div>
+      </div>
+      <!-- Plan Types -->
+      <div id="master-plans" class="master-block">
+        <h4>Plan Types</h4>
+        <form id="plan-form">
+          <!-- Select companies that offer this plan. Multiple selections allowed -->
+          <select id="plan-company-select" multiple></select>
+          <select id="plan-category-select"></select>
+          <select id="plan-type-select"></select>
+          <input type="text" id="plan-name" placeholder="Plan name" required>
+          <button type="submit">Add Plan</button>
+        </form>
+        <div id="plan-list"></div>
+      </div>
+      <!-- Add-ons -->
+      <div id="master-addons" class="master-block">
+        <h4>Add‑Ons</h4>
+        <form id="addon-form">
+          <input type="text" id="addon-name" placeholder="Add‑on name" required>
+          <select id="addon-category-select"></select>
+          <select id="addon-type-select"></select>
+          <div id="addon-plan-checkboxes" class="addon-checkboxes"></div>
+          <button type="submit">Add Add‑On</button>
+        </form>
+        <div id="addon-list"></div>
+      </div>
+      <h3>Backup & Restore</h3>
+      <button id="settings-export">Export Backup</button>
+      <input type="file" id="settings-import-file" accept="application/json" style="display:none;">
+      <button id="settings-import">Import Backup</button>
+      <button id="settings-reset">Reset App</button>
+      <p id="settings-message" style="color:green;"></p>
+
+      <h3>Cloud Sync</h3>
+      <p class="small-note">Configure a single Firestore document ID here and never type it again. The global sync button will push/pull your changes to this document. You can change the document ID at any time or remove your data entirely. All entities including documents are synced.</p>
+      <div class="cloud-sync-settings">
+        <label for="cloud-doc-id">Cloud Document ID</label>
+        <input type="text" id="cloud-doc-id" placeholder="hk-insurance-app">
+        <button id="cloud-doc-save">Save ID</button>
+        <button id="cloud-doc-delete" class="danger">Delete Remote Data</button>
+        <button id="cloud-sync-now">Sync with Cloud</button>
+      </div>
+      <p id="cloud-sync-status" class="small-note" style="color:var(--accent-color);"></p>
+
+      <h3>Account</h3>
+      <p class="small-note">Manage your account credentials.</p>
+      <button id="logout-btn">Logout</button>
+    </section>
+
+    <!-- Guide section -->
+    <section id="guide" class="section">
+      <h2>How to Use HK Insurance App</h2>
+      <p>This application is your personal insurance operating system. It helps you manage every part of the insurance customer journey—from initial quote to policy issuance, payments, commissions, renewals and documentation—all in one place.</p>
+      <h3>Key Features</h3>
+      <!-- Replace the simple list with collapsible details blocks. Each key module is explained in depth when expanded. -->
+      <div class="guide-collapsibles">
+        <details>
+          <summary><strong>Dashboard</strong></summary>
+          <p>The dashboard provides a high‑level overview of your business with live metrics on policies, quotes, payments, commissions and renewals. You can filter by date range, broker, company or policy type and export the results to CSV for further analysis.</p>
+        </details>
+        <details>
+          <summary><strong>Customers</strong></summary>
+          <p>Add and manage customers, view their profiles, policies, payments, documents, quotes and timelines. Use the search bar to quickly find customers. Relationship management lets you link family members or business partners.</p>
+        </details>
+        <details>
+          <summary><strong>Policies</strong></summary>
+          <p>Create and manage policies across motor, health, life, travel, home or commercial lines. Link policies to customers, brokers, companies, vehicles and documents. Track premium, tax, payment status, renewals and commissions all from a single screen.</p>
+        </details>
+        <details>
+          <summary><strong>Quotes</strong></summary>
+          <p>Generate quotes for any policy type. Share them with customers, accept or reject, and convert accepted quotes into policies with one click. Quote validity and status are tracked automatically.</p>
+        </details>
+        <details>
+          <summary><strong>Payments</strong></summary>
+          <p>Record partial or full payments from customers. Specify payment mode (cash, UPI, bank transfer, cheque) and receiver (company, broker or agent). Payments automatically update the associated policy’s payment status.</p>
+        </details>
+        <details>
+          <summary><strong>Commissions</strong></summary>
+          <p>Log commissions received from companies or brokers. Specify expected and received amounts, cashback to customers, charges and reward points. Redeem commission points in bulk and track outstanding balances.</p>
+        </details>
+        <details>
+          <summary><strong>Documents</strong></summary>
+          <p>Upload and manage documents such as PAN, Aadhaar, RC, policy copies and quotes. Tag documents for easy retrieval and link them to customers, policies, quotes and vehicles.</p>
+        </details>
+        <details>
+          <summary><strong>Vehicles</strong></summary>
+          <p>Add vehicles with detailed fields (registration number, chassis and engine numbers, make/model, fuel type). Link vehicles to motor policies and associated documents.</p>
+        </details>
+        <details>
+          <summary><strong>Brokers &amp; Companies</strong></summary>
+          <p>Manage brokers and insurance companies separately. Assign policies and quotes to the appropriate broker/company and view aggregated business metrics.</p>
+        </details>
+        <details>
+          <summary><strong>Calendar</strong></summary>
+          <p>View upcoming policy start and expiry dates, renewal due dates, follow‑ups and commission events in month or agenda view. Colour‑coded entries help prioritise tasks.</p>
+        </details>
+        <details>
+          <summary><strong>Timeline</strong></summary>
+          <p>See a global activity feed of everything happening in your business. Customer and policy profiles also contain their own timelines so you can trace all interactions at a glance.</p>
+        </details>
+        <details>
+          <summary><strong>Alerts</strong></summary>
+          <p>Stay on top of renewals, overdue payments and other tasks. Alerts are colour‑coded by urgency and link directly to the relevant policy or customer so you can take action quickly.</p>
+        </details>
+        <details>
+          <summary><strong>Settings</strong></summary>
+          <p>Configure your safe give‑back range, add bank accounts/UPI IDs/wallets for receipt of commissions, export or import backups and reset the app. Settings are stored locally for privacy.</p>
+        </details>
+      </div>
+      <h3>Getting Started</h3>
+      <div class="guide-collapsibles">
+        <details>
+          <summary>Create your first customer</summary>
+          <p>Navigate to the <strong>Customers</strong> tab and click the <strong>Add Customer</strong> button (or use the quick add menu). Fill in the customer’s details such as name, contact information and KYC status.</p>
+        </details>
+        <details>
+          <summary>Generate a quote</summary>
+          <p>Open the <strong>Quotes</strong> section and click <strong>Add Quote</strong>. Select the policy type and prefill customer, broker and company details. Share the quote with the customer and await their response.</p>
+        </details>
+        <details>
+          <summary>Convert to a policy</summary>
+          <p>Once the customer accepts a quote, go to <strong>Policies</strong> and click <strong>Add Policy</strong>. Choose the linked quote and the form will pre‑populate with the quote’s data. Confirm premiums and coverages before saving.</p>
+        </details>
+        <details>
+          <summary>Record payments &amp; commissions</summary>
+          <p>As payments and commissions occur, record them in their respective sections. The app automatically adjusts policy payment status and calculates commissions based on the recorded amounts.</p>
+        </details>
+        <details>
+          <summary>Link documents and vehicles</summary>
+          <p>Upload and link supporting documents such as KYC, policy copies and vehicle registration. When adding a motor policy you can select an existing vehicle or add a new one on the fly.</p>
+        </details>
+        <details>
+          <summary>Stay organised</summary>
+          <p>Use the <strong>Calendar</strong> to keep track of renewals and follow‑ups. Manage overdue items in the <strong>Alerts</strong> tab and review the <strong>Timeline</strong> for a chronological view of all activity.</p>
+        </details>
+      </div>
+      <p>If you need help, open any section and use the search bar at the top of the page to quickly find records. The quick add button (<strong>+</strong>) allows you to create new customers, policies, quotes, payments, documents or vehicles from anywhere.</p>
+    </section>
+      </div><!-- end content-area -->
+    </div><!-- end main-area -->
+  </div><!-- end app-layout -->
+
+  <!-- Authentication modal for login/register. When Firebase Auth is configured, a Google
+       sign‑in button will be shown instead of manual username/password fields. -->
+  <div id="auth-modal" class="modal overlay hidden">
+    <div class="modal-content small">
+      <h3 id="auth-title">Login</h3>
+      <!-- Google sign‑in wrapper. Hidden by default and toggled via JS when Firebase
+          authentication is available. The Google sign‑in has been disabled for reliability; the manual form is always displayed. -->
+      <div id="google-auth-wrapper" class="hidden" style="display:none">
+        <p>Sign in using your Google account to continue.</p>
+        <button type="button" id="google-signin-btn" class="google-signin-btn">Sign in with Google</button>
+      </div>
+      <!-- Manual authentication form for email/password login. Users can register
+           with an email and password which are stored in Firebase Auth and
+           Firestore. Subsequent logins on any device will use the same
+           credentials. -->
+       <form id="auth-form">
+         <label>Email Address
+           <input type="email" id="auth-email" required autocomplete="email">
+         </label>
+         <label>Password
+           <input type="password" id="auth-password" required autocomplete="current-password">
+         </label>
+         <!-- Role select is shown only during registration. -->
+         <label id="auth-role-label" class="hidden">Role
+           <select id="auth-role">
+             <option value="Agent" selected>Agent</option>
+             <option value="Admin">Admin</option>
+           </select>
+         </label>
+         <label id="auth-confirm-password-label" class="hidden">Confirm Password
+           <input type="password" id="auth-confirm-password" autocomplete="new-password">
+         </label>
+         <button type="submit" id="auth-submit-btn">Login</button>
+       </form>
+       <p id="auth-toggle-wrapper"><a href="#" id="auth-toggle">Register</a></p>
+       <p id="auth-error-msg" class="error-msg" style="display:none; color: var(--danger-color);"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 HK Insurance & Financial Solutions</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Register the service worker for offline functionality if supported
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(err => {
+          console.error('Service worker registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
