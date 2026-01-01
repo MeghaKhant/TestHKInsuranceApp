@@ -1563,20 +1563,24 @@ async function uploadFileToDrive(file) {
     binary += String.fromCharCode(bytes[i]);
   }
   const base64 = btoa(binary);
-  const payload = {
-    fileName: file.name,
-    mimeType: file.type || 'application/octet-stream',
-    data: base64
-  };
-  const response = await fetch('/.netlify/functions/uploadToDrive', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if (!response.ok) {
-    throw new Error('Drive upload failed');
-  }
-  return await response.json();
+      // Use encodeURIComponent on the file name so it can safely round‑trip
+      const payload = {
+        fileName: encodeURIComponent(file.name),
+        mimeType: file.type || 'application/octet-stream',
+        data: base64
+      };
+      const response = await fetch('/.netlify/functions/uploadToDrive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        // Try to read the response text to surface a more useful message
+        const text = await response.text();
+        console.error('Drive upload failed:', text);
+        throw new Error(text || 'Drive upload failed');
+      }
+      return await response.json();
 }
 
 /**
@@ -1596,20 +1600,23 @@ async function uploadBlobToDrive(blob, fileName) {
     binary += String.fromCharCode(bytes[i]);
   }
   const base64 = btoa(binary);
-  const payload = {
-    fileName: fileName,
-    mimeType: blob.type || 'application/octet-stream',
-    data: base64
-  };
-  const response = await fetch('/.netlify/functions/uploadToDrive', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-  if (!response.ok) {
-    throw new Error('Drive upload failed');
-  }
-  return await response.json();
+      const payload = {
+        // encode the filename to avoid decoding errors on the backend
+        fileName: encodeURIComponent(fileName),
+        mimeType: blob.type || 'application/octet-stream',
+        data: base64
+      };
+      const response = await fetch('/.netlify/functions/uploadToDrive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        console.error('Drive upload failed:', text);
+        throw new Error(text || 'Drive upload failed');
+      }
+      return await response.json();
 }
 
 /**
