@@ -1,5 +1,5 @@
 {
-  "name": "test-hk-insurance-app",
+  "name": "hk-insurance-app",
   "version": "1.0.0",
   "dependencies": {
     "googleapis": "^118.0.0"
