@@ -82,11 +82,7 @@
           <div id="search-overlay" class="hidden"></div>
         </div>
         <div class="topbar-right">
-          <!-- Global cloud sync button. A single button handles both upload and download depending on the latest changes -->
-          <button id="cloud-sync-button" title="Sync with Cloud">
-            <span class="icon"></span>
-            <span class="btn-label">Sync</span>
-          </button>
+          <!-- Cloud sync is now automatic; the manual sync button has been removed -->
           <!-- Dark mode toggle icon will be injected via JavaScript -->
           <button id="dark-mode-toggle" title="Toggle Dark Mode">
             <span class="icon"></span>
@@ -1047,13 +1043,13 @@
       <p id="settings-message" style="color:green;"></p>
 
       <h3>Cloud Sync</h3>
-      <p class="small-note">Configure a single Firestore document ID here and never type it again. The global sync button will push/pull your changes to this document. You can change the document ID at any time or remove your data entirely. All entities including documents are synced.</p>
+      <p class="small-note">Configure a single Firestore document ID here and never type it again. Your data now syncs automatically when online. You can change the document ID at any time or remove your data entirely. All entities including documents are synced.</p>
       <div class="cloud-sync-settings">
         <label for="cloud-doc-id">Cloud Document ID</label>
         <input type="text" id="cloud-doc-id" placeholder="hk-insurance-app">
         <button id="cloud-doc-save">Save ID</button>
         <button id="cloud-doc-delete" class="danger">Delete Remote Data</button>
-        <button id="cloud-sync-now">Sync with Cloud</button>
+        <!-- Manual sync has been removed; data syncs automatically -->
       </div>
       <p id="cloud-sync-status" class="small-note" style="color:var(--accent-color);"></p>
 

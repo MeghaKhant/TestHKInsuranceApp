@@ -835,6 +835,11 @@ function fetchDataFromCloud(documentId) {
 // Stores the current document ID used for cloud sync. Defaults to 'hk-insurance-app'.
 let currentCloudDocId = '';
 
+// Debounce timer for automatic sync. This is used by saveData() to prevent
+// uploading to Firestore too frequently. It is declared globally so that
+// multiple calls to saveData() can clear the previous timer.
+let autoSyncTimer;
+
 /**
  * Loads the cloud document ID from localStorage (key: cloudDocId). If none
  * exists it falls back to 'hk-insurance-app'. Also updates any input field
@@ -1515,6 +1520,8 @@ function saveData() {
   // we keep the remote timestamp intact. Otherwise, bump the timestamp
   // to the current moment. A local copy without a lastUpdated field
   // will be considered older than a remote copy during sync.
+  // Determine whether the lastUpdated timestamp should be preserved.
+  // When the first argument is true, skip updating lastUpdated and skip auto sync.
   const preserve = arguments.length > 0 && arguments[0] === true;
   if (!preserve) {
     try {
@@ -1534,6 +1541,28 @@ function saveData() {
     renderDashboard();
   } catch (e) {
     // ignore if renderDashboard is not defined or fails
+  }
+
+  // Automatically push local changes to Firestore after a short delay. This eliminates
+  // the need for a manual "Sync with Cloud" step. The debounce ensures multiple
+  // rapid calls to saveData() result in a single upload. Auto sync is skipped
+  // when preserve flag is passed (used when loading remote data).
+  // Use the preserve flag determined above to decide whether to queue an auto sync.
+  if (!preserve) {
+    try {
+      if (typeof autoSyncTimer !== 'undefined') {
+        clearTimeout(autoSyncTimer);
+      }
+      autoSyncTimer = setTimeout(() => {
+        if (currentCloudDocId && firestoreDb) {
+          uploadDataToCloud(currentCloudDocId).catch(err => {
+            console.warn('Auto sync failed', err);
+          });
+        }
+      }, 1000);
+    } catch (err) {
+      console.warn('Failed to schedule auto sync', err);
+    }
   }
 }
 
@@ -1772,23 +1801,33 @@ async function migrateOldDocuments() {
   try {
     if (!data || !Array.isArray(data.documents)) return;
     for (const doc of data.documents) {
-      if (doc && doc.data && !doc.driveFileId) {
-        const base64 = doc.data;
+      // Only migrate documents that still have inline base64 data and no chunks yet
+      if (doc && doc.data && !doc.chunkCount) {
+        const base64Uri = doc.data;
         try {
-          const res = await fetch(base64);
-          const blob = await res.blob();
+          // Extract base64 string and mime type from data URI
+          const matches = /^data:([^;]+);base64,(.*)$/i.exec(base64Uri);
+          if (!matches) {
+            console.warn('Invalid data URI for document', doc.id);
+            continue;
+          }
+          const mimeType = matches[1] || 'application/octet-stream';
+          const base64Str = matches[2];
           // Derive a file name from document name or fallback
           let fileName = doc.name;
           if (!fileName) {
-            const match = base64.match(/^data:([^;]+);/);
-            const ext = match ? match[1].split('/').pop() : 'bin';
+            const ext = mimeType.split('/').pop();
             fileName = `${doc.id || generateId()}.${ext}`;
           }
-          const result = await uploadBlobToDrive(blob, fileName);
-          doc.driveFileId = result.id;
+          // Upload base64 string as chunks to Firestore
+          const result = await uploadBlobToChunks(base64Str, { docId: doc.id, name: fileName, mimeType });
           doc.size = result.size;
           doc.mimeType = result.mimeType;
+          doc.chunkCount = result.chunkCount;
+          // Remove legacy properties
           delete doc.data;
+          delete doc.driveFileId;
+          delete doc.storageUrl;
         } catch (e) {
           console.warn('Migration failed for document', doc.id, e);
         }
@@ -1807,6 +1846,115 @@ function formatDate(str) {
     return new Date(str).toLocaleDateString();
   } catch (e) {
     return str;
+  }
+}
+
+/**
+ * Escape a value for inclusion in a CSV file. Wraps the value in quotes and
+ * doubles any internal quotes. Null or undefined values are converted to
+ * empty strings.
+ *
+ * @param {any} val
+ * @returns {string}
+ */
+function escapeCsvValue(val) {
+  if (val === null || val === undefined) return '""';
+  let str = String(val);
+  // Replace all double quotes with two double quotes
+  str = str.replace(/"/g, '""');
+  return `"${str}"`;
+}
+
+/**
+ * Generate and download a CSV file containing a single entity's details and
+ * associated documents. The CSV includes two sections separated by a blank
+ * line: the first section lists key/value pairs for the entity, and the
+ * second lists the documents linked to that entity.
+ *
+ * @param {string} type The entity type: 'customer', 'vehicle' or 'policy'
+ * @param {string} id The unique ID of the entity
+ */
+function downloadEntityData(type, id) {
+  try {
+    let entity;
+    let filename;
+    if (type === 'customer') {
+      entity = data.customers.find(c => c.id === id);
+      filename = entity && entity.fullName ? `customer_${entity.fullName.replace(/\s+/g, '_')}` : `customer_${id}`;
+    } else if (type === 'vehicle') {
+      entity = data.vehicles.find(v => v.id === id);
+      filename = entity && entity.vehicleNumber ? `vehicle_${entity.vehicleNumber.replace(/\s+/g, '_')}` : `vehicle_${id}`;
+    } else if (type === 'policy') {
+      entity = data.policies.find(p => p.id === id);
+      filename = entity && entity.policyNumber ? `policy_${entity.policyNumber.replace(/\s+/g, '_')}` : `policy_${id}`;
+    } else {
+      console.warn('Unsupported entity type for CSV export', type);
+      return;
+    }
+    if (!entity) {
+      alert('Unable to find entity for download');
+      return;
+    }
+    const lines = [];
+    // Section 1: entity details
+    lines.push(['Field', 'Value']);
+    Object.keys(entity).forEach(key => {
+      if (key === 'id' || key === 'addedAt' || key === 'updatedAt') return;
+      const value = entity[key];
+      let cell;
+      if (Array.isArray(value)) {
+        cell = value.join('; ');
+      } else if (typeof value === 'object' && value !== null) {
+        try {
+          cell = JSON.stringify(value);
+        } catch (e) {
+          cell = String(value);
+        }
+      } else {
+        cell = value != null ? value : '';
+      }
+      lines.push([key, cell]);
+    });
+    // Blank line separator
+    lines.push([]);
+    // Section 2: documents linked to this entity
+    lines.push(['Doc Name', 'Type', 'Tags', 'Size (bytes)', 'Link']);
+    data.documents.forEach(doc => {
+      if (!Array.isArray(doc.linkedEntities)) return;
+      const linked = doc.linkedEntities.some(link => link && link.entity === type && link.id === id);
+      if (!linked) return;
+      const docName = doc.name || '';
+      const docType = doc.type || '';
+      const tagsStr = Array.isArray(doc.tags) ? doc.tags.join('; ') : (doc.tags || '');
+      const size = doc.size || '';
+      let link = '';
+      if (doc.chunkCount) {
+        // Chunked documents do not have a direct link. Indicate that the file
+        // must be downloaded via the UI
+        link = '[chunked - download via app]';
+      } else if (doc.driveFileId) {
+        link = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
+      } else if (doc.storageUrl) {
+        link = doc.storageUrl;
+      } else if (doc.data) {
+        link = doc.data;
+      }
+      lines.push([docName, docType, tagsStr, size, link]);
+    });
+    // Convert to CSV string
+    const csvContent = lines.map(row => row.map(cell => escapeCsvValue(cell)).join(',')).join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${filename}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    console.error('Failed to generate CSV', err);
+    alert('Failed to download data. Please try again.');
   }
 }
 
@@ -2776,6 +2924,7 @@ function renderCustomersList() {
         <button class="view-customer" data-id="${c.id}" title="View">${ICONS.eye}</button>
         <button class="edit-customer" data-id="${c.id}" title="Edit">${ICONS.pencil}</button>
         <button class="delete-customer" data-id="${c.id}" title="Delete">${ICONS.trash}</button>
+        <button class="download-customer" data-id="${c.id}" title="Download customer data">${ICONS.download}</button>
       </td>
     </tr>`;
   });
@@ -2803,6 +2952,14 @@ function renderCustomersList() {
       if (confirm('Delete this customer?')) {
         deleteCustomer(id);
       }
+    });
+  });
+  // attach download handler for customers
+  container.querySelectorAll('.download-customer').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      downloadEntityData('customer', id);
     });
   });
   // update summary metrics
@@ -3406,6 +3563,7 @@ function renderPoliciesList() {
         <button class="view-policy" data-id="${p.id}" title="View">${ICONS.eye}</button>
         <button class="edit-policy" data-id="${p.id}" title="Edit">${ICONS.pencil}</button>
         <button class="delete-policy" data-id="${p.id}" title="Delete">${ICONS.trash}</button>
+        <button class="download-policy" data-id="${p.id}" title="Download policy data">${ICONS.download}</button>
       </td>
     </tr>`;
   });
@@ -3433,6 +3591,14 @@ function renderPoliciesList() {
       if (confirm('Delete this policy?')) {
         deletePolicy(btn.getAttribute('data-id'));
       }
+    });
+  });
+  // download policy handler
+  container.querySelectorAll('.download-policy').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      downloadEntityData('policy', id);
     });
   });
   // update summary metrics
@@ -4636,19 +4802,21 @@ function renderDocumentsList() {
     const name = doc.name || '(Untitled)';
     const type = doc.type || '';
     const tags = Array.isArray(doc.tags) ? doc.tags.join(', ') : (doc.tags || '');
-    // Build a download link. For chunked documents, we will attach a click handler
-    // to fetch and download the concatenated file. For other docs, build a direct link.
-    let downloadLink = '';
-    let downloadClass = '';
-    if (doc.chunkCount) {
-      downloadLink = '#';
-      downloadClass = 'download-chunked';
-    } else if (doc.driveFileId) {
-      downloadLink = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
-    } else if (doc.storageUrl) {
-      downloadLink = doc.storageUrl;
-    } else if (doc.data) {
-      downloadLink = doc.data;
+    // Determine whether this document is stored in chunks. We will attach a
+    // click handler to the download button when chunkCount is defined. For
+    // direct links (storageUrl/driveFileId/data), we store the URL on the
+    // button via a data attribute and perform the download in code for
+    // consistent styling with other actions.
+    const isChunked = !!doc.chunkCount;
+    let directLink = '';
+    if (!isChunked) {
+      if (doc.driveFileId) {
+        directLink = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
+      } else if (doc.storageUrl) {
+        directLink = doc.storageUrl;
+      } else if (doc.data) {
+        directLink = doc.data;
+      }
     }
     htmlTable += `<tr data-id="${doc.id}">` +
       `<td>${name}</td>` +
@@ -4658,7 +4826,7 @@ function renderDocumentsList() {
       `<button class="view-document" data-id="${doc.id}" title="View">${ICONS.eye}</button>` +
       `<button class="edit-document" data-id="${doc.id}" title="Edit">${ICONS.pencil}</button>` +
       `<button class="delete-document" data-id="${doc.id}" title="Delete">${ICONS.trash}</button>` +
-      `<a href="${downloadLink}" ${downloadClass ? `class="${downloadClass}" data-id="${doc.id}"` : ''} download="${name}" title="Download">${ICONS.download}</a>` +
+      `<button class="download-document" data-id="${doc.id}" ${!isChunked && directLink ? `data-link="${directLink}"` : ''} title="Download">${ICONS.download}</button>` +
       `</td></tr>`;
   });
   htmlTable += '</tbody></table></div>';
@@ -4688,26 +4856,41 @@ function renderDocumentsList() {
   });
   // attach download handler for chunked documents. This uses downloadChunkedFile to
   // reconstruct the file and triggers a download in the browser
-  container.querySelectorAll('a.download-chunked').forEach(anchor => {
-    anchor.addEventListener('click', async e => {
-      e.preventDefault();
-      const id = anchor.getAttribute('data-id');
+  // Attach download handlers. For chunked documents we reconstruct the file
+  // before downloading. For direct links we trigger download via a hidden
+  // anchor to ensure consistent styling with other action buttons.
+  container.querySelectorAll('button.download-document').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
       const doc = data.documents.find(d => d.id === id);
-      if (!doc || !doc.chunkCount) return;
+      if (!doc) return;
       try {
-        const uri = await downloadChunkedFile(doc);
-        // Convert data URI to Blob via fetch to avoid URI length limits
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const tempLink = document.createElement('a');
-        tempLink.href = url;
-        tempLink.download = doc.name || 'document';
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
-        // Revoke object URL after download to free memory
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        if (doc.chunkCount) {
+          // Fetch and assemble the file from chunks
+          const uri = await downloadChunkedFile(doc);
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const tempLink = document.createElement('a');
+          tempLink.href = url;
+          tempLink.download = doc.name || 'document';
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } else {
+          const link = btn.getAttribute('data-link');
+          if (link) {
+            // Use a temporary anchor to initiate download
+            const tempLink = document.createElement('a');
+            tempLink.href = link;
+            tempLink.download = doc.name || 'document';
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+          }
+        }
       } catch (err) {
         console.error('Download failed:', err);
         alert('Failed to download file. Please try again.');
@@ -5212,6 +5395,7 @@ function renderVehiclesList() {
         <button class="view-vehicle" data-id="${v.id}" title="View">${ICONS.eye}</button>
         <button class="edit-vehicle" data-id="${v.id}" title="Edit">${ICONS.pencil}</button>
         <button class="delete-vehicle" data-id="${v.id}" title="Delete">${ICONS.trash}</button>
+        <button class="download-vehicle" data-id="${v.id}" title="Download vehicle data">${ICONS.download}</button>
       </td>
     </tr>`;
   });
@@ -5238,6 +5422,14 @@ function renderVehiclesList() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       if (confirm('Delete this vehicle?')) deleteVehicle(btn.getAttribute('data-id'));
+    });
+  });
+  // download vehicle handler
+  container.querySelectorAll('.download-vehicle').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      downloadEntityData('vehicle', id);
     });
   });
   renderVehiclesSummary();
@@ -8682,6 +8874,14 @@ async function init() {
     await migrateOldDocuments();
   } catch (err) {
     console.warn('Document migration skipped or failed:', err);
+  }
+  // After migrating legacy documents, upload updated metadata to Firestore.
+  try {
+    if (currentCloudDocId) {
+      await uploadDataToCloud(currentCloudDocId);
+    }
+  } catch (err) {
+    console.warn('Failed to upload data after migration', err);
   }
   setupNavigation();
   setupEventListeners();
