@@ -34,11 +34,15 @@
       <ul class="sidebar-nav" id="nav-menu">
         <!-- Primary navigation links now use data-icon attributes for SVG icons. The icons will be injected dynamically in JavaScript via the ICONS mapping. -->
         <li><a href="#" data-section="dashboard" data-icon="home"><span class="icon"></span><span>Dashboard</span></a></li>
+        <li><a href="#" data-section="planner" data-icon="calendar-check"><span class="icon"></span><span>Planner</span></a></li>
         <li><a href="#" data-section="customers" data-icon="users"><span class="icon"></span><span>Customers</span></a></li>
+        <li><a href="#" data-section="leads" data-icon="target"><span class="icon"></span><span>Leads</span></a></li>
         <li><a href="#" data-section="policies" data-icon="file-text"><span class="icon"></span><span>Policies</span></a></li>
         <li><a href="#" data-section="quotes" data-icon="quote"><span class="icon"></span><span>Quotes</span></a></li>
         <li><a href="#" data-section="payments" data-icon="credit-card"><span class="icon"></span><span>Payments</span></a></li>
         <li><a href="#" data-section="commissions" data-icon="award"><span class="icon"></span><span>Commissions</span></a></li>
+        <li><a href="#" data-section="finance" data-icon="wallet"><span class="icon"></span><span>Finance</span></a></li>
+        <li><a href="#" data-section="compliance" data-icon="shield-check"><span class="icon"></span><span>Compliance</span></a></li>
         <li><a href="#" data-section="documents" data-icon="folder"><span class="icon"></span><span>Documents</span></a></li>
         <li><a href="#" data-section="vehicles" data-icon="car"><span class="icon"></span><span>Vehicles</span></a></li>
         <li><a href="#" data-section="brokers" data-icon="handshake"><span class="icon"></span><span>Brokers</span></a></li>
@@ -50,8 +54,12 @@
         <li><a href="#" data-section="reports" data-icon="bar"><span class="icon"></span><span>Reports</span></a></li>
         <!-- Alerts & Renewals navigation -->
         <li><a href="#" data-section="alerts" data-icon="alerts"><span class="icon"></span><span>Alerts</span></a></li>
+        <li><a href="#" data-section="campaigns" data-icon="megaphone"><span class="icon"></span><span>Campaigns</span></a></li>
         <!-- New Tasks module to track follow‑ups and activities -->
         <li><a href="#" data-section="tasks" data-icon="checklist"><span class="icon"></span><span>Tasks</span></a></li>
+        <li><a href="#" data-section="automation" data-icon="zap"><span class="icon"></span><span>Automation</span></a></li>
+        <!-- Immutable audit trail across entities -->
+        <li><a href="#" data-section="audit" data-icon="shield"><span class="icon"></span><span>Audit Logs</span></a></li>
         <li><a href="#" data-section="settings" data-icon="settings"><span class="icon"></span><span>Settings</span></a></li>
         <li><a href="#" data-section="guide" data-icon="info"><span class="icon"></span><span>Guide</span></a></li>
       </ul>
@@ -211,6 +219,87 @@
         </div>
       </div>
     </section>
+
+    <!-- Leads section -->
+    <section id="leads" class="section">
+      <h2>Leads</h2>
+      <div class="summary-cards" id="leads-summary"></div>
+      <p class="small-note">Manage prospects through your funnel stages. Create follow-up tasks, generate quotes, and convert leads into customers when ready.</p>
+      <div class="section-actions">
+        <button id="add-lead-btn">Add Lead</button>
+        <button id="toggle-leads-view-btn" title="Toggle list / pipeline">Pipeline</button>
+        <select id="leads-stage-filter" title="Filter by stage">
+          <option value="">All stages</option>
+        </select>
+        <select id="leads-source-filter" title="Filter by source">
+          <option value="">All sources</option>
+        </select>
+        <input type="text" id="leads-search" class="section-search" placeholder="Search leads…">
+      </div>
+      <div id="leads-view"></div>
+
+      <!-- Lead form modal -->
+      <div id="lead-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-lead-form">&times;</span>
+          <h3 id="lead-form-title">Add Lead</h3>
+          <form id="lead-form">
+            <input type="hidden" id="lead-id">
+            <label>Full Name*
+              <input type="text" id="lead-name" required>
+            </label>
+            <label>Phone
+              <input type="tel" id="lead-phone" placeholder="10-digit mobile">
+            </label>
+            <label>Email
+              <input type="email" id="lead-email" placeholder="optional">
+            </label>
+            <label>City
+              <input type="text" id="lead-city" placeholder="optional">
+            </label>
+            <label>Source
+              <select id="lead-source"></select>
+            </label>
+            <label>Stage
+              <select id="lead-stage"></select>
+            </label>
+            <label>Status
+              <select id="lead-status">
+                <option value="Open">Open</option>
+                <option value="Converted">Converted</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </label>
+            <label>Expected Product
+              <select id="lead-product">
+                <option value="">—</option>
+                <option value="Motor">Motor</option>
+                <option value="Health">Health</option>
+                <option value="Life">Life</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label>Next Follow-up Date
+              <input type="date" id="lead-next-followup">
+            </label>
+            <label>Notes
+              <textarea id="lead-notes"></textarea>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Lead detail drawer -->
+      <div id="lead-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-lead-detail">&times;</span>
+          <h3 id="lead-detail-title"></h3>
+          <div id="lead-detail-content"></div>
+        </div>
+      </div>
+    </section>
+
 
     <!-- Policies section -->
     <section id="policies" class="section">
@@ -516,6 +605,7 @@
                 <option value="">None</option>
                 <option value="customer">Customer</option>
                 <option value="policy">Policy</option>
+                <option value="lead">Lead</option>
                 <option value="quote">Quote</option>
                 <option value="payment">Payment</option>
               </select>
@@ -524,6 +614,47 @@
             <label>Notes<textarea id="task-notes"></textarea></label>
             <button type="submit">Save</button>
           </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audit Logs section -->
+    <section id="audit" class="section">
+      <h2>Audit Logs</h2>
+      <p class="small-note">Immutable, append-only change history across customers, policies, quotes, payments, documents, brokers, companies, vehicles, commissions and tasks.</p>
+      <div class="summary-cards" id="audit-summary"></div>
+      <div class="section-actions">
+        <input type="text" id="audit-search" class="section-search" placeholder="Search audit logs…">
+        <select id="audit-entity-filter">
+          <option value="">All entities</option>
+          <option value="customer">Customer</option>
+          <option value="policy">Policy</option>
+                <option value="lead">Lead</option>
+          <option value="quote">Quote</option>
+          <option value="payment">Payment</option>
+          <option value="document">Document</option>
+          <option value="broker">Broker</option>
+          <option value="company">Company</option>
+          <option value="vehicle">Vehicle</option>
+          <option value="commission">Commission</option>
+          <option value="task">Task</option>
+        </select>
+        <select id="audit-action-filter">
+          <option value="">All actions</option>
+          <option value="created">Created</option>
+          <option value="updated">Updated</option>
+          <option value="deleted">Deleted</option>
+        </select>
+        <button id="audit-export">Export CSV</button>
+      </div>
+      <div id="audit-list"></div>
+
+      <!-- Audit log detail modal -->
+      <div id="audit-detail-modal" class="modal drawer hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-audit-detail">&times;</span>
+          <h3 id="audit-detail-title">Audit Entry</h3>
+          <div id="audit-detail-content"></div>
         </div>
       </div>
     </section>
@@ -658,9 +789,21 @@
           <h3 id="quote-form-title">Add Quote</h3>
           <form id="quote-form">
             <input type="hidden" id="quote-id">
-            <label>Customer
-              <select id="quote-customer" required></select>
+            <label>Quote For
+              <select id="quote-prospect-type">
+                <option value="customer">Customer</option>
+                <option value="lead">Lead</option>
+              </select>
             </label>
+            <label id="quote-customer-wrap">Customer
+              <select id="quote-customer"></select>
+            </label>
+            <label id="quote-lead-wrap" style="display:none;">Lead
+              <select id="quote-lead"></select>
+            </label>
+            <input type="hidden" id="quote-group-id">
+            <input type="hidden" id="quote-version">
+
             <label>Broker
               <select id="quote-broker"></select>
             </label>
@@ -692,6 +835,16 @@
             <label>Total Payable
               <input type="number" id="quote-total" step="0.01">
             </label>
+            <label>Insurer Cost (Net)
+              <input type="number" id="quote-cost" step="0.01" placeholder="optional">
+            </label>
+            <label>Your Offer (Sell)
+              <input type="number" id="quote-sell" step="0.01" placeholder="optional">
+            </label>
+            <label>Margin (₹)
+              <input type="number" id="quote-margin" step="0.01" disabled>
+            </label>
+
             <label>Status
               <select id="quote-status">
                 <option value="Shared">Shared</option>
@@ -703,6 +856,10 @@
             <label>Remarks
               <textarea id="quote-remarks"></textarea>
             </label>
+            <label>Negotiation Notes
+              <textarea id="quote-negotiation-notes" placeholder="Record counter-offers, objections, and negotiation history…"></textarea>
+            </label>
+
             <div id="quote-type-specific-fields"></div>
             <button type="submit">Save</button>
           </form>
@@ -822,6 +979,101 @@
     </div>
     </section>
 
+
+    <!-- Finance section -->
+    <section id="finance" class="section">
+      <h2>Finance</h2>
+      <div class="summary-cards" id="finance-summary"></div>
+
+      <div class="section-actions">
+        <div class="tab-buttons" id="finance-tabs">
+          <button class="tab-btn active" data-tab="outstanding">Outstanding</button>
+          <button class="tab-btn" data-tab="customer">Customer Ledger</button>
+          <button class="tab-btn" data-tab="company">Company Ledger</button>
+          <button class="tab-btn" data-tab="recon">Commission Reconciliation</button>
+        </div>
+        <span class="spacer"></span>
+        <button id="finance-export-btn">Export CSV</button>
+      </div>
+
+      <div id="finance-content"></div>
+
+      <!-- Ledger adjustment modal -->
+      <div id="ledger-adjustment-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-ledger-adjustment">&times;</span>
+          <h3 id="ledger-adjustment-title">Add Ledger Adjustment</h3>
+          <form id="ledger-adjustment-form">
+            <input type="hidden" id="ledger-adjustment-id">
+            <label>Ledger Type
+              <select id="ledger-adjustment-scope" required>
+                <option value="customer">Customer</option>
+                <option value="company">Company</option>
+              </select>
+            </label>
+            <label>Customer
+              <select id="ledger-adjustment-customer"></select>
+            </label>
+            <label>Company
+              <select id="ledger-adjustment-company"></select>
+            </label>
+            <label>Direction
+              <select id="ledger-adjustment-direction" required>
+                <option value="debit">Debit (increase due)</option>
+                <option value="credit">Credit (reduce due)</option>
+              </select>
+            </label>
+            <label>Amount
+              <input type="number" id="ledger-adjustment-amount" step="0.01" required>
+            </label>
+            <label>Date
+              <input type="date" id="ledger-adjustment-date" required>
+            </label>
+            <label>Linked Policy (optional)
+              <select id="ledger-adjustment-policy"></select>
+            </label>
+            <label>Notes
+              <textarea id="ledger-adjustment-notes"></textarea>
+            </label>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compliance section -->
+    <section id="compliance" class="section">
+      <h2>Compliance</h2>
+      <div class="summary-cards" id="compliance-summary"></div>
+      <div class="section-actions">
+        <button id="manage-compliance-templates-btn">Templates</button>
+        <input type="text" id="compliance-search" class="section-search" placeholder="Search policies…">
+      </div>
+      <div id="compliance-list"></div>
+
+      <!-- Compliance templates modal -->
+      <div id="compliance-templates-modal" class="modal hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-compliance-templates">&times;</span>
+          <h3>Compliance Checklist Templates</h3>
+          <p class="small-note">Templates apply to new policies and to existing policies when you first open them. Marking items complete is always policy-specific.</p>
+
+          <div class="section-actions" style="gap:0.5rem;">
+            <label style="margin:0;">Policy Type
+              <select id="compliance-template-type"></select>
+            </label>
+            <button id="add-compliance-template-item-btn" type="button">Add Item</button>
+          </div>
+
+          <div id="compliance-template-items"></div>
+          <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+            <button id="save-compliance-template-btn" type="button">Save Template</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Vehicles section -->
     <section id="vehicles" class="section">
       <h2>Vehicles</h2>
@@ -907,6 +1159,58 @@
       <div id="alerts-list"></div>
     </section>
 
+    <!-- Renewal Campaign Builder section -->
+    <section id="campaigns" class="section">
+      <h2>Renewal Campaign Builder</h2>
+      <p class="small-note">Select expiring policies and generate copy-ready messages. No paid APIs; use copy-to-clipboard and send via your preferred channel.</p>
+      <div class="section-actions">
+        <label>From <input type="date" id="campaign-from"></label>
+        <label>To <input type="date" id="campaign-to"></label>
+        <label>Type
+          <select id="campaign-policy-type">
+            <option value="">All</option>
+            <option value="Motor">Motor</option>
+            <option value="Health">Health</option>
+            <option value="Life">Life</option>
+            <option value="Other">Other</option>
+          </select>
+        </label>
+        <label>Company
+          <select id="campaign-company">
+            <option value="">All</option>
+          </select>
+        </label>
+        <button id="campaign-refresh">Refresh</button>
+      </div>
+
+      <div class="campaign-layout">
+        <div>
+          <h3>Policies</h3>
+          <div class="section-actions">
+            <button id="campaign-select-all">Select All</button>
+            <button id="campaign-clear-all">Clear</button>
+          </div>
+          <div id="campaign-policy-list"></div>
+        </div>
+        <div>
+          <h3>Message</h3>
+          <label>Template
+            <select id="campaign-template"></select>
+          </label>
+          <label>Output
+            <textarea id="campaign-output" rows="14" placeholder="Generated messages will appear here…"></textarea>
+          </label>
+          <div class="section-actions">
+            <button id="campaign-generate">Generate</button>
+            <button id="campaign-copy">Copy to Clipboard</button>
+            <button id="campaign-export-csv">Export CSV</button>
+          </div>
+          <p id="campaign-status" class="small-note"></p>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Business timeline section -->
     <section id="timeline" class="section">
       <h2>Business Timeline</h2>
@@ -924,6 +1228,7 @@
             <option value="all">All</option>
             <option value="customer">Customer</option>
             <option value="policy">Policy</option>
+                <option value="lead">Lead</option>
             <option value="vehicle">Vehicle</option>
           </select>
         </label>
@@ -1010,6 +1315,85 @@
       <div id="dashboard-cards" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem;"></div>
     </section>
 
+    <!-- Daily Planner section -->
+    <section id="planner" class="section">
+      <h2>Daily Planner</h2>
+      <p class="small-note">Your day at a glance: tasks due/overdue, renewals due, and a place to write your plan.</p>
+      <div class="section-actions">
+        <label>Date <input type="date" id="planner-date"></label>
+        <button id="planner-today-btn">Today</button>
+        <button id="planner-add-task-btn">Add Task</button>
+        <button id="planner-run-rules-btn" title="Run scheduled automation">Run Automation</button>
+      </div>
+      <div class="summary-cards" id="planner-summary"></div>
+
+      <div class="grid-2">
+        <div>
+          <h3>Tasks</h3>
+          <div id="planner-tasks"></div>
+        </div>
+        <div>
+          <h3>Renewals & Alerts</h3>
+          <div id="planner-renewals"></div>
+        </div>
+      </div>
+
+      <h3>Plan Notes</h3>
+      <textarea id="planner-notes" rows="6" placeholder="Your plan for the day…"></textarea>
+      <div class="section-actions">
+        <button id="planner-save-notes-btn">Save Notes</button>
+        <span id="planner-notes-status" class="small-note"></span>
+      </div>
+    </section>
+
+    <!-- Automation Rules section -->
+    <section id="automation" class="section">
+      <h2>Automation Rules</h2>
+      <p class="small-note">Build your own condition → action rules. Rules run on events (e.g., Lead Created) and on scheduled checks via the Planner.</p>
+      <div class="section-actions">
+        <button id="add-rule-btn">New Rule</button>
+        <input type="text" id="automation-search" class="section-search" placeholder="Search rules…">
+      </div>
+      <div id="automation-list"></div>
+
+      <!-- Rule form modal -->
+      <div id="rule-form-modal" class="modal hidden">
+        <div class="modal-content large">
+          <span class="close" id="close-rule-form">&times;</span>
+          <h3 id="rule-form-title">New Rule</h3>
+          <form id="rule-form">
+            <input type="hidden" id="rule-id">
+            <label>Name*
+              <input type="text" id="rule-name" required>
+            </label>
+            <label><input type="checkbox" id="rule-enabled" checked> Enabled</label>
+            <label>Trigger
+              <select id="rule-trigger" required>
+                <option value="leadCreated">Lead Created</option>
+                <option value="leadStageChanged">Lead Stage Changed</option>
+                <option value="paymentReceived">Payment Received</option>
+                <option value="quoteAccepted">Quote Accepted</option>
+                <option value="policyExpiringSoon">Policy Expiring Soon (Scheduled)</option>
+                <option value="taskOverdue">Task Overdue (Scheduled)</option>
+                <option value="daily">Daily (Scheduled)</option>
+              </select>
+            </label>
+
+            <h4>Conditions (AND)</h4>
+            <div id="rule-conditions"></div>
+            <button type="button" id="add-rule-condition-btn">Add Condition</button>
+
+            <h4>Actions</h4>
+            <div id="rule-actions"></div>
+            <button type="button" id="add-rule-action-btn">Add Action</button>
+
+            <button type="submit">Save Rule</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+
     <!-- Settings section -->
     <section id="settings" class="section">
       <h2>Settings & Configuration</h2>
@@ -1041,6 +1425,13 @@
         <input type="text" id="settings-wallet-input" placeholder="Add Wallet">
         <button type="submit">Add</button>
       </form>
+
+      <h3>Privacy</h3>
+      <label style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0;">
+        <input type="checkbox" id="settings-mask-sensitive">
+        <span>Mask PAN / Aadhaar in customer views</span>
+      </label>
+      <p class="small-note">When enabled, PAN/Aadhaar values are masked in read-only views to reduce accidental exposure (you can still edit the full values in the customer form).</p>
 
       <!-- Master Data configuration for policy categories, types, plans and add-ons -->
       <h3>Master Data</h3>
@@ -1101,7 +1492,36 @@
       <button id="settings-datadump">Download Datadump</button>
       <p id="settings-message" style="color:green;"></p>
 
-      <h3>Workflow Automation</h3>
+      
+      <h3>Leads & CRM</h3>
+      <p class="small-note">Configure lead sources, funnel stages, and your agent name used in templates.</p>
+      <form id="settings-agent-name-form" style="margin-bottom:0.75rem;">
+        <label>Agent Display Name
+          <input type="text" id="settings-agent-name" placeholder="e.g., Harsh (HK Insurance)">
+        </label>
+        <button type="submit">Save</button>
+      </form>
+
+      <div class="grid-2">
+        <div>
+          <h4>Lead Sources</h4>
+          <form id="settings-lead-source-form">
+            <input type="text" id="settings-lead-source-input" placeholder="Add source (e.g., Referral)">
+            <button type="submit">Add</button>
+          </form>
+          <div id="settings-lead-source-list" class="chip-list"></div>
+        </div>
+        <div>
+          <h4>Lead Stages</h4>
+          <form id="settings-lead-stage-form">
+            <input type="text" id="settings-lead-stage-input" placeholder="Add stage (e.g., Contacted)">
+            <button type="submit">Add</button>
+          </form>
+          <div id="settings-lead-stage-list" class="chip-list"></div>
+        </div>
+      </div>
+
+<h3>Workflow Automation</h3>
       <p class="small-note">Define simple rules to automate repetitive tasks. You can enable or disable each rule below.</p>
       <div class="automation-rule">
         <label><input type="checkbox" id="rule-payment-commission"> When a payment is recorded, mark the policy as paid and create a commission entry.</label>
@@ -1132,7 +1552,7 @@
       <p>The HK Insurance Hub is your all‑in‑one back office for managing customers, policies and financial records. It handles the entire lifecycle—creating quotes and policies, tracking payments and commissions, managing vehicle and customer documents, and keeping you on schedule with renewals and alerts.</p>
 
       <h3>Architecture &amp; Security</h3>
-      <p>This application runs entirely in your browser. It stores your data locally using <strong>IndexedDB</strong> so you can continue working offline, then automatically synchronises changes to the cloud when you reconnect. Each user’s data lives in a private Firestore document identified by their email. Documents larger than 1&nbsp;MiB are chunked and stored in a <code>chunks</code> subcollection to avoid Firestore limits. Authentication is handled by Firebase Auth and strict Firestore rules ensure that only you can read or write your records. All communication is encrypted over HTTPS. You can export your entire dataset—including documents—as a ZIP archive for safekeeping and import it on another device at any time.</p>
+      <p>This application runs entirely in your browser. It stores your data locally using <strong>browser storage</strong> so you can continue working offline, then automatically synchronises changes to the cloud when you reconnect. Each user’s data lives in a private Firestore document identified by their email. Documents larger than 1&nbsp;MiB are chunked and stored in a <code>chunks</code> subcollection to avoid Firestore limits. Authentication is handled by Firebase&nbsp;Auth and strict Firestore rules ensure that only you can read or write your records. All communication is encrypted over HTTPS. You can export your entire dataset—including documents—as a ZIP archive for safekeeping and import it on another device at any time.</p>
 
       <h3>Key Features</h3>
       <!-- Collapsible details blocks explaining each module. Click to expand for more information. -->

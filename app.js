@@ -134,12 +134,73 @@ const ICONS = {
       <line x1="10" y1="10" x2="9" y2="8" />
       <line x1="14" y1="10" x2="15" y2="8" />
     </svg>
-  `
-  ,
+  `,
+  // Checklist icon for Tasks
+  checklist: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+      <path d="M9 7H7" />
+    </svg>
+  `,
+  // Shield icon for compliance/audit
+  shield: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  `,
   // Download icon for document download
   download: `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+  `,
+  // Target / leads icon
+  target: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <circle cx="12" cy="12" r="6"></circle>
+      <circle cx="12" cy="12" r="2"></circle>
+    </svg>
+  `,
+  // Planner icon
+  "calendar-check": `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+      <path d="M9 16l2 2 4-4"></path>
+    </svg>
+  `,
+  // Campaign icon
+  megaphone: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11v2a2 2 0 0 0 2 2h1l3 6h2l-2-6h6l5 3V6l-5 3H9L7 5H5a2 2 0 0 0-2 2v2"></path>
+      <path d="M12 9v6"></path>
+    </svg>
+  `,
+  // Automation icon
+  zap: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+    </svg>
+  `  ,
+  // Finance icon
+  wallet: `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 7V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1"/>
+      <path d="M3 7h18v4h-5a2 2 0 0 0 0 4h5"/>
+      <circle cx="16" cy="13" r="1"/>
+    </svg>
+  `,
+  // Compliance icon
+  'shield-check': `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2l8 4v6c0 5-3.5 9.5-8 10-4.5-.5-8-5-8-10V6l8-4z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
   `
+
 };
 
 /**
@@ -1030,7 +1091,11 @@ const pageSearchTerms = {
   commissions: '',
   vehicles: ''
   ,
-  tasks: ''
+  tasks: '',
+  audit: '',
+  leads: '',
+  automation: '',
+  compliance: ''
 };
 
 // Page‑level sort configuration for each list.  Each entry stores the
@@ -1048,7 +1113,8 @@ const pageSortStates = {
   companies: { field: '', dir: 1 },
   quotes: { field: '', dir: 1 },
   commissions: { field: '', dir: 1 },
-  vehicles: { field: '', dir: 1 }
+  vehicles: { field: '', dir: 1 },
+  audit: { field: '', dir: -1 }
 };
 
 /**
@@ -1400,7 +1466,11 @@ function setupPageSearches() {
     quotes: { id: 'quotes-search', render: renderQuotesList },
     commissions: { id: 'commissions-search', render: renderCommissionsList },
     vehicles: { id: 'vehicles-search', render: renderVehiclesList },
-    tasks: { id: 'tasks-search', render: renderTasksList }
+    tasks: { id: 'tasks-search', render: renderTasksList },
+    audit: { id: 'audit-search', render: renderAuditLogsList },
+    leads: { id: 'leads-search', render: renderLeadsView },
+    automation: { id: 'automation-search', render: renderAutomationRulesList },
+    compliance: { id: 'compliance-search', render: renderComplianceList }
   };
   Object.keys(mapping).forEach(key => {
     const info = mapping[key];
@@ -1431,6 +1501,23 @@ function loadData() {
       if (!Array.isArray(data.commissions)) data.commissions = [];
       if (!Array.isArray(data.documents)) data.documents = [];
       if (!Array.isArray(data.vehicles)) data.vehicles = [];
+        // ensure new feature domains exist (backward compatible)
+        if (!Array.isArray(data.rules)) data.rules = [];
+
+  // Ensure all policies have compliance structure (non-destructive merge)
+  try {
+    (data.policies || []).forEach(p => ensurePolicyCompliance(p));
+  } catch (e) {}
+        if (!Array.isArray(data.tasks)) data.tasks = [];
+        if (!Array.isArray(data.auditLogs)) data.auditLogs = [];
+        if (!Array.isArray(data.leads)) data.leads = [];
+        if (!Array.isArray(data.campaigns)) data.campaigns = [];
+        if (!data.plannerNotes || typeof data.plannerNotes !== 'object') data.plannerNotes = {};
+        if (!Array.isArray(data.ruleFires)) data.ruleFires = [];
+  if (!Array.isArray(data.ledgerAdjustments)) data.ledgerAdjustments = [];
+  if (!Array.isArray(data.ledgerAdjustments)) data.ledgerAdjustments = [];
+        if (!Array.isArray(data.ledgerAdjustments)) data.ledgerAdjustments = [];
+
       // ensure relationships array on customers
       if (Array.isArray(data.customers)) {
         data.customers.forEach(c => {
@@ -1445,8 +1532,63 @@ function loadData() {
         bankAccounts: [],
         upiIds: [],
         wallets: [],
+        // mask PAN/Aadhaar in UI by default
+        maskSensitive: true,
         // whether dark mode is enabled
         darkMode: false,
+        // Agent display name used in templates (optional)
+        agentDisplayName: '',
+        // Lead sources and funnel stages
+        leadSources: ['Walk-in', 'Referral', 'Online', 'Partner', 'Cold Call'],
+        leadStages: ['New', 'Contacted', 'Interested', 'Quoted', 'Negotiating', 'Won', 'Lost'],
+        // Compliance templates and alert horizon (days before due date)
+        complianceAlertWindowDays: 3,
+        complianceTemplates: {
+          Default: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'proposal', label: 'Proposal / Application', required: true, dueDays: 3 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 },
+            { id: 'paymentproof', label: 'Payment Proof', required: false, dueDays: 7 }
+          ],
+          Motor: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'rc', label: 'RC Copy', required: true, dueDays: 7 },
+            { id: 'previous', label: 'Previous Policy (if renewal)', required: false, dueDays: 7 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 },
+            { id: 'paymentproof', label: 'Payment Proof', required: false, dueDays: 7 }
+          ],
+          Health: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'proposal', label: 'Proposal / Application', required: true, dueDays: 3 },
+            { id: 'medical', label: 'Medical / Underwriting Docs', required: false, dueDays: 10 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 }
+          ],
+          Life: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'proposal', label: 'Proposal / Application', required: true, dueDays: 3 },
+            { id: 'income', label: 'Income Proof', required: false, dueDays: 10 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 }
+          ],
+          Travel: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'passport', label: 'Passport / Visa Copy', required: true, dueDays: 3 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 }
+          ],
+          Home: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'property', label: 'Property Proof / Details', required: true, dueDays: 10 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 }
+          ],
+          Commercial: [
+            { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+            { id: 'business', label: 'Business / Risk Documents', required: true, dueDays: 10 },
+            { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 }
+          ]
+        },
+        // Preferred leads view mode: 'list' or 'pipeline'
+        leadsViewMode: 'pipeline',
+        // Scheduled automation last run date (YYYY-MM-DD)
+        lastAutomationRunDate: '',
         // master list of policy plans and their allowed add-ons
         // (deprecated; replaced by master data below)
         policyPlans: [],
@@ -1462,6 +1604,19 @@ function loadData() {
       // ensure policyPlans array exists (legacy)
       if (!Array.isArray(data.settings.policyPlans)) data.settings.policyPlans = [];
       // ensure master data exists
+      // ensure compliance templates exist
+      if (!data.settings.complianceTemplates || typeof data.settings.complianceTemplates !== 'object') {
+        data.settings.complianceTemplates = JSON.parse(JSON.stringify(defaultSettings.complianceTemplates));
+      } else {
+        // merge missing template keys without overwriting user customisations
+        Object.keys(defaultSettings.complianceTemplates || {}).forEach(k => {
+          if (!Array.isArray(data.settings.complianceTemplates[k])) {
+            data.settings.complianceTemplates[k] = JSON.parse(JSON.stringify(defaultSettings.complianceTemplates[k]));
+          }
+        });
+      }
+      if (data.settings.complianceAlertWindowDays === undefined) data.settings.complianceAlertWindowDays = defaultSettings.complianceAlertWindowDays;
+
       if (!data.settings.master) data.settings.master = { categories: [], types: [], plans: [], addons: [] };
       ['categories','types','plans','addons'].forEach(key => {
         if (!Array.isArray(data.settings.master[key])) data.settings.master[key] = [];
@@ -1626,6 +1781,52 @@ function logChange(entityType, entityId, oldValue, newValue) {
   } catch (err) {
     console.warn('Failed to record audit log', err);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Privacy helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true when sensitive IDs (PAN/Aadhaar) should be masked in read views.
+ * This is a UI/UX privacy feature (not cryptographic protection).
+ */
+function isSensitiveMaskingEnabled() {
+  try {
+    return !!(data && data.settings && data.settings.maskSensitive);
+  } catch (_) {
+    return true;
+  }
+}
+
+/**
+ * Masks PAN keeping the first 2 and last 2 characters.
+ * Example: ABCDE1234F -> AB******4F
+ */
+function maskPAN(pan) {
+  const v = (pan || '').toString().trim();
+  if (!v) return '';
+  if (v.length <= 4) return '*'.repeat(Math.max(0, v.length - 1)) + v.slice(-1);
+  return v.slice(0, 2) + '*'.repeat(v.length - 4) + v.slice(-2);
+}
+
+/**
+ * Masks Aadhaar keeping only the last 4 digits.
+ * Example: 123412341234 -> ********1234
+ */
+function maskAadhaar(aadhaar) {
+  const raw = (aadhaar || '').toString().replace(/\s+/g, '').trim();
+  if (!raw) return '';
+  const last4 = raw.slice(-4);
+  return '*'.repeat(Math.max(0, raw.length - 4)) + last4;
+}
+
+function formatSensitiveId(label, value) {
+  if (!value) return '';
+  const l = (label || '').toLowerCase();
+  if (l.includes('pan')) return maskPAN(value);
+  if (l.includes('aadhaar') || l.includes('aadhar')) return maskAadhaar(value);
+  return maskPAN(value);
 }
 
 /**
@@ -2319,9 +2520,27 @@ function showSection(sectionId) {
   } else if (sectionId === 'reports') {
     // Render the reports section when selected
     renderReports();
+  } else if (sectionId === 'leads') {
+    renderLeadsView();
+    renderLeadsSummary();
+  } else if (sectionId === 'planner') {
+    renderPlanner();
+  } else if (sectionId === 'campaigns') {
+    renderCampaignBuilder();
+  } else if (sectionId === 'automation') {
+    renderAutomationRulesList();
+  } else if (sectionId === 'finance') {
+    renderFinance();
+  } else if (sectionId === 'compliance') {
+    renderComplianceList();
+    renderComplianceSummary();
+  
   } else if (sectionId === 'tasks') {
     renderTasksList();
     renderTasksSummary();
+  } else if (sectionId === 'audit') {
+    renderAuditLogsList();
+    renderAuditLogsSummary();
   }
 }
 
@@ -3027,13 +3246,23 @@ function renderCustomersList() {
 }
 
 function deleteCustomer(id) {
+  const oldCustomer = data.customers.find(c => c.id === id);
   // remove from policies references
   data.policies.forEach(p => {
-    if (p.proposer === id) p.proposer = '';
-    if (p.insured === id) p.insured = '';
-    if (p.owner === id) p.owner = '';
-    if (p.nominee === id) p.nominee = '';
+    const before = JSON.parse(JSON.stringify(p));
+    let changed = false;
+    if (p.proposer === id) { p.proposer = ''; changed = true; }
+    if (p.insured === id) { p.insured = ''; changed = true; }
+    if (p.owner === id) { p.owner = ''; changed = true; }
+    if (p.nominee === id) { p.nominee = ''; changed = true; }
+    if (changed) {
+      addTimeline(p, 'Unlinked deleted customer');
+      logChange('policy', p.id, before, p);
+    }
   });
+  if (oldCustomer) {
+    logChange('customer', id, oldCustomer, null);
+  }
   data.customers = data.customers.filter(c => c.id !== id);
   saveData();
   renderCustomersList();
@@ -3148,11 +3377,15 @@ function handleCustomerForm() {
     if (id) {
       // update existing
       const existing = data.customers.find(c => c.id === id);
+      if (!existing) return;
+      const oldCustomer = JSON.parse(JSON.stringify(existing));
       Object.assign(existing, customerObj);
       addTimeline(existing, 'Updated customer');
+      logChange('customer', existing.id, oldCustomer, existing);
     } else {
       addTimeline(customerObj, 'Created customer');
       data.customers.push(customerObj);
+      logChange('customer', customerObj.id, null, customerObj);
     }
     saveData();
     renderCustomersList();
@@ -3217,8 +3450,9 @@ function openCustomerDetail(id) {
   pushItem('Gender', customer.gender);
   pushItem('Date of Birth', formatDate(customer.dob));
   pushItem('Age', customer.age);
-  pushItem('PAN', customer.pan);
-  pushItem('Aadhaar', customer.aadhaar);
+  // Mask sensitive IDs in read views to reduce accidental exposure.
+  pushItem('PAN', isSensitiveMaskingEnabled() ? formatSensitiveId('PAN', customer.pan) : customer.pan);
+  pushItem('Aadhaar', isSensitiveMaskingEnabled() ? formatSensitiveId('Aadhaar', customer.aadhaar) : customer.aadhaar);
   pushItem('GST', customer.gst);
   pushItem('Language', customer.language);
   pushItem('Occupation', customer.occupation);
@@ -3594,6 +3828,7 @@ function renderPoliciesList() {
     '<th data-field="proposer">Customer</th>' +
     '<th data-field="premiumAmount">Premium</th>' +
     '<th data-field="paymentStatus">Status</th>' +
+    '<th>Compliance</th>' +
     '<th>Actions</th></tr></thead><tbody>';
   list.forEach(p => {
     const proposerName = (data.customers.find(c => c.id === p.proposer) || {}).fullName || '';
@@ -3619,6 +3854,7 @@ function renderPoliciesList() {
       <td>${proposerName}</td>
       <td>${premium}</td>
       <td>${status}</td>
+      <td>${getPolicyComplianceBadgeHtml(p)}</td>
       <td class="actions">
         <button class="view-policy" data-id="${p.id}" title="View">${ICONS.eye}</button>
         <button class="edit-policy" data-id="${p.id}" title="Edit">${ICONS.pencil}</button>
@@ -3666,8 +3902,30 @@ function renderPoliciesList() {
 }
 
 function deletePolicy(id) {
-  // remove associated payments
-  data.payments = data.payments.filter(pay => pay.policy !== id);
+  const oldPolicy = data.policies.find(p => p.id === id);
+  // remove associated payments (support both legacy pay.policy and newer pay.policyId)
+  const removedPayments = (data.payments || []).filter(pay => (pay.policy || pay.policyId) === id);
+  removedPayments.forEach(pay => {
+    logChange('payment', pay.id, pay, null);
+  });
+  data.payments = (data.payments || []).filter(pay => (pay.policy || pay.policyId) !== id);
+
+  // if this policy was created from a quote, revert the quote's conversion linkage
+  if (oldPolicy && oldPolicy.quoteId) {
+    const q = data.quotes.find(qu => qu.id === oldPolicy.quoteId);
+    if (q && q.convertedToPolicyId === id) {
+      const oldQuote = JSON.parse(JSON.stringify(q));
+      q.conversionStatus = '';
+      q.convertedToPolicyId = '';
+      q.conversionDate = '';
+      addTimeline(q, 'Reverted policy link (policy deleted)');
+      logChange('quote', q.id, oldQuote, q);
+    }
+  }
+
+  if (oldPolicy) {
+    logChange('policy', id, oldPolicy, null);
+  }
   data.policies = data.policies.filter(p => p.id !== id);
   saveData();
   renderPoliciesList();
@@ -4140,6 +4398,8 @@ function handlePolicyForm() {
     let savedPolicy;
     if (id) {
       const existing = data.policies.find(p => p.id === id);
+      if (!existing) return;
+      const oldPolicy = JSON.parse(JSON.stringify(existing));
       // preserve existing manual override unless user changed payment status
       if (existing.manualOverride && !policyObj.manualOverride) {
         policyObj.manualOverride = existing.manualOverride;
@@ -4149,16 +4409,23 @@ function handlePolicyForm() {
       Object.assign(existing, policyObj);
       savedPolicy = existing;
       addTimeline(existing, 'Updated policy');
+      logChange('policy', existing.id, oldPolicy, existing);
       // If quote changed or removed, revert previous quote conversion
       if (previousQuoteId && previousQuoteId !== policyObj.quoteId) {
         const prevQuote = data.quotes.find(q => q.id === previousQuoteId);
         if (prevQuote) {
+          const oldPrevQuote = JSON.parse(JSON.stringify(prevQuote));
+          let changedPrev = false;
           // revert conversion details only if it was previously linked to this policy
           if (prevQuote.convertedToPolicyId === existing.id) {
             prevQuote.conversionStatus = '';
             prevQuote.convertedToPolicyId = '';
             prevQuote.conversionDate = '';
             // don't change quote.status back automatically; keep as Accepted if accepted earlier
+            changedPrev = true;
+          }
+          if (changedPrev) {
+            logChange('quote', prevQuote.id, oldPrevQuote, prevQuote);
           }
         }
       }
@@ -4166,19 +4433,25 @@ function handlePolicyForm() {
       savedPolicy = policyObj;
       addTimeline(policyObj, 'Created policy');
       data.policies.push(policyObj);
+      logChange('policy', policyObj.id, null, policyObj);
     }
     // if policy linked to a quote, update quote conversion status
     if (policyObj.quoteId) {
       const q = data.quotes.find(qu => qu.id === policyObj.quoteId);
       if (q) {
+        const oldQuote = JSON.parse(JSON.stringify(q));
         q.status = 'Accepted';
         q.conversionStatus = 'Accepted';
         q.convertedToPolicyId = savedPolicy.id;
         // use conversion date either from policy start date or current date if not provided
         q.conversionDate = (savedPolicy.startDate || new Date().toISOString());
         addTimeline(q, 'Converted to policy');
+        logChange('quote', q.id, oldQuote, q);
       }
     }
+    // Ensure compliance checklist exists for this policy
+    try { ensurePolicyCompliance(savedPolicy); } catch (_) {}
+
     saveData();
     renderPoliciesList();
     renderCommissionsList();
@@ -4210,6 +4483,11 @@ function openPolicyDetail(id) {
   const ownerName = (data.customers.find(c => c.id === policy.owner) || {}).fullName || '';
   const nomineeName = (data.customers.find(c => c.id === policy.nominee) || {}).fullName || '';
   const status = policy.paymentStatus || '';
+  // Phase 4: ensure compliance checklist exists and compute quick finance stats
+  ensurePolicyCompliance(policy);
+  const complianceStats = getPolicyComplianceStats(policy);
+  const payTotals = computePolicyPaymentTotals(policy.id);
+
   // Header card
   const headerEl = document.createElement('div');
   headerEl.className = 'profile-header';
@@ -4223,6 +4501,17 @@ function openPolicyDetail(id) {
     badge.className = 'status-badge';
     badge.textContent = status;
     headerTop.appendChild(badge);
+  }
+  // Compliance badge
+  if (complianceStats) {
+    const cb = document.createElement('span');
+    cb.className = 'badge ' + (complianceStats.overdueRequired > 0 ? 'bad' : (complianceStats.pendingRequired > 0 ? 'warn' : 'good'));
+    cb.textContent = complianceStats.requiredTotal > 0
+      ? (complianceStats.overdueRequired > 0
+          ? `Compliance: ${complianceStats.requiredDone}/${complianceStats.requiredTotal} • ${complianceStats.overdueRequired} overdue`
+          : (complianceStats.pendingRequired > 0 ? `Compliance: ${complianceStats.requiredDone}/${complianceStats.requiredTotal}` : 'Compliant'))
+      : 'Compliance: —';
+    headerTop.appendChild(cb);
   }
   headerEl.appendChild(headerTop);
   // Info lines for type, company, broker
@@ -4285,6 +4574,8 @@ function openPolicyDetail(id) {
   pushItem('Premium Amount', policy.premiumAmount);
   pushItem('Tax Amount', policy.taxAmount);
   pushItem('Total Payable', policy.totalPayable);
+  pushItem('Paid', formatINR(payTotals.totalPaid));
+  pushItem('Outstanding', formatINR(payTotals.outstanding));
   pushItem('Commission Type', policy.commissionType);
   pushItem('Commission Value', policy.commissionValue);
   pushItem('Expected Commission', policy.expectedCommission);
@@ -4424,6 +4715,114 @@ function openPolicyDetail(id) {
     });
     content.appendChild(docsSection);
   }
+
+  // Compliance checklist section
+  if (policy.compliance && Array.isArray(policy.compliance.items) && policy.compliance.items.length > 0) {
+    const compSection = document.createElement('div');
+    compSection.className = 'profile-section';
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = '<h4>Compliance Checklist</h4><span class="toggle-icon">▾</span>';
+    header.addEventListener('click', () => compSection.classList.toggle('collapsed'));
+    compSection.appendChild(header);
+
+    const compContent = document.createElement('div');
+    compContent.className = 'section-content';
+
+    // Progress summary
+    const stats = getPolicyComplianceStats(policy);
+    const summary = document.createElement('div');
+    summary.className = 'muted';
+    summary.style.marginBottom = '0.5rem';
+    summary.textContent = stats.requiredTotal > 0
+      ? `Required: ${stats.requiredDone}/${stats.requiredTotal} • Pending: ${stats.pendingRequired} • Overdue: ${stats.overdueRequired}`
+      : 'No required items configured for this policy type.';
+    compContent.appendChild(summary);
+
+    const progress = document.createElement('div');
+    progress.className = 'progress';
+    const bar = document.createElement('div');
+    const pct = stats.requiredTotal > 0 ? Math.round((stats.requiredDone / stats.requiredTotal) * 100) : 0;
+    bar.style.width = pct + '%';
+    progress.appendChild(bar);
+    compContent.appendChild(progress);
+
+    const list = document.createElement('div');
+    list.style.marginTop = '0.5rem';
+
+    policy.compliance.items.forEach((it, idx) => {
+      const row = document.createElement('div');
+      row.className = 'compliance-item';
+      const dueInfo = computeComplianceDueInfo(policy, it);
+      if (!it.done && dueInfo && dueInfo.overdue) row.classList.add('overdue');
+
+      const left = document.createElement('div');
+      left.className = 'left';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!it.done;
+      cb.addEventListener('change', () => {
+        const oldPolicy = JSON.parse(JSON.stringify(policy));
+        it.done = cb.checked;
+        it.doneAt = cb.checked ? new Date().toISOString() : '';
+        it.doneBy = (auth && auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : 'local';
+        // refresh status
+        policy.compliance.lastUpdated = new Date().toISOString();
+        policy.compliance.type = policy.policyType || policy.compliance.type || 'Default';
+        logChange('policy', policy.id, oldPolicy, policy);
+        saveData();
+        // refresh badges + compliance screen
+        try { renderPoliciesList(); } catch (_) {}
+        try { renderComplianceList(); renderComplianceSummary(); } catch (_) {}
+        // re-open to refresh UI quickly
+        openPolicyDetail(policy.id);
+      });
+
+      const textWrap = document.createElement('div');
+      const title = document.createElement('div');
+      title.innerHTML = `<strong>${escapeHtml(it.label || '')}</strong> ${it.required ? '<span class="badge warn">Required</span>' : '<span class="badge">Optional</span>'}`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const dueLabel = dueInfo && dueInfo.dueDate ? `Due: ${formatDate(dueInfo.dueDate)}${dueInfo.overdue ? ' (Overdue)' : ''}` : (it.dueDays ? `Due: +${it.dueDays} days` : '');
+      meta.textContent = dueLabel;
+      textWrap.appendChild(title);
+      textWrap.appendChild(meta);
+
+      left.appendChild(cb);
+      left.appendChild(textWrap);
+
+      const right = document.createElement('div');
+      right.style.display = 'flex';
+      right.style.gap = '0.35rem';
+      right.style.alignItems = 'center';
+
+      const docsBtn = document.createElement('button');
+      docsBtn.textContent = 'Docs';
+      docsBtn.title = 'View linked documents';
+      docsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // jump to documents and pre-filter by policy number
+        showSection('documents');
+        const term = (policy.policyNumber || '').toString();
+        const input = document.getElementById('documents-search');
+        if (input) {
+          input.value = term;
+          pageSearchTerms.documents = term;
+          renderDocumentsList();
+        }
+      });
+      right.appendChild(docsBtn);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      list.appendChild(row);
+    });
+
+    compContent.appendChild(list);
+    compSection.appendChild(compContent);
+    content.appendChild(compSection);
+  }
+
   // Timeline section
   if (policy.timeline && policy.timeline.length > 0) {
     const timelineSection = document.createElement('div');
@@ -4562,7 +4961,14 @@ function renderPaymentsList() {
 }
 
 function deletePayment(id) {
+  const oldPay = data.payments.find(p => p.id === id);
   data.payments = data.payments.filter(pay => pay.id !== id);
+  if (oldPay) {
+    logChange('payment', id, oldPay, null);
+    // re-evaluate policy payment status if needed
+    const polId = oldPay.policy || oldPay.policyId;
+    if (polId) updatePolicyPaymentStatus(polId);
+  }
   saveData();
   renderPaymentsList();
   renderPoliciesList();
@@ -4758,14 +5164,16 @@ function updatePolicyPaymentStatus(policyId) {
   if (!policyId) return;
   const policy = data.policies.find(p => p.id === policyId);
   if (!policy) return;
+  const oldPolicy = JSON.parse(JSON.stringify(policy));
   // sum all payments for this policy
   if (policy.manualOverride) {
     // manual override; do not auto update
     return;
   }
-  const payments = data.payments.filter(pay => pay.policy === policyId);
+  const payments = data.payments.filter(pay => (pay.policy || pay.policyId) === policyId);
   const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0) + (p.tax || 0), 0);
   const totalDue = parseFloat(policy.totalPayable) || 0;
+  const previousStatus = policy.paymentStatus;
   if (totalPaid >= totalDue) {
     policy.paymentStatus = 'Paid';
   } else if (totalPaid > 0) {
@@ -4773,7 +5181,10 @@ function updatePolicyPaymentStatus(policyId) {
   } else {
     policy.paymentStatus = 'Pending';
   }
-  addTimeline(policy, 'Updated payment status');
+  if (policy.paymentStatus !== previousStatus) {
+    addTimeline(policy, 'Updated payment status');
+    logChange('policy', policy.id, oldPolicy, policy);
+  }
 }
 
 // Payment detail modal
@@ -4968,6 +5379,16 @@ function renderDocumentsList() {
 }
 
 function deleteDocument(id) {
+  const oldDoc = data.documents.find(d => d.id === id);
+  // Best-effort cleanup of chunked storage (does not block UI)
+  if (oldDoc && oldDoc.chunkCount) {
+    deleteChunksForDoc(oldDoc.id).catch(err => {
+      console.warn('Failed to delete document chunks', err);
+    });
+  }
+  if (oldDoc) {
+    logChange('document', id, oldDoc, null);
+  }
   data.documents = data.documents.filter(doc => doc.id !== id);
   saveData();
   renderDocumentsList();
@@ -5072,6 +5493,7 @@ function handleDocumentForm() {
         alert('Document not found');
         return;
       }
+      const oldDoc = JSON.parse(JSON.stringify(existing));
       // Upload new file if provided, otherwise keep existing file/chunks
       let uploadResult = null;
       if (file) {
@@ -5102,6 +5524,7 @@ function handleDocumentForm() {
         delete existing.data;
       }
       addTimeline(existing, 'Updated document');
+      logChange('document', existing.id, oldDoc, existing);
       saveData();
       renderDocumentsList();
       document.getElementById('document-form-modal').classList.add('hidden');
@@ -5137,6 +5560,7 @@ function handleDocumentForm() {
     };
     addTimeline(docObj, 'Uploaded document');
     data.documents.push(docObj);
+    logChange('document', docObj.id, null, docObj);
     saveData();
     renderDocumentsList();
     document.getElementById('document-form-modal').classList.add('hidden');
@@ -5674,6 +6098,251 @@ function handleTaskForm() {
 }
 
 // -----------------------------------------------------------------------------
+// Audit Logs (immutable)
+// -----------------------------------------------------------------------------
+
+function getAuditAction(entry) {
+  if (!entry) return '';
+  if (!entry.oldValue && entry.newValue) return 'created';
+  if (entry.oldValue && !entry.newValue) return 'deleted';
+  if (entry.oldValue && entry.newValue) return 'updated';
+  return 'updated';
+}
+
+function diffTopLevelKeys(oldVal, newVal) {
+  try {
+    if (!oldVal || !newVal || typeof oldVal !== 'object' || typeof newVal !== 'object') return [];
+    const keys = new Set([...Object.keys(oldVal), ...Object.keys(newVal)]);
+    const changed = [];
+    keys.forEach(k => {
+      const a = oldVal[k];
+      const b = newVal[k];
+      // compare primitives + JSON fallback
+      const same = (a === b) || (JSON.stringify(a) === JSON.stringify(b));
+      if (!same) changed.push(k);
+    });
+    return changed;
+  } catch (_) {
+    return [];
+  }
+}
+
+function renderAuditLogsSummary() {
+  const container = document.getElementById('audit-summary');
+  if (!container) return;
+  const logs = Array.isArray(data.auditLogs) ? data.auditLogs : [];
+  const total = logs.length;
+  const last24h = logs.filter(l => {
+    const ts = l.timestamp ? new Date(l.timestamp).getTime() : 0;
+    return ts && (Date.now() - ts) <= (24 * 60 * 60 * 1000);
+  }).length;
+  const created = logs.filter(l => getAuditAction(l) === 'created').length;
+  const updated = logs.filter(l => getAuditAction(l) === 'updated').length;
+  const deleted = logs.filter(l => getAuditAction(l) === 'deleted').length;
+  container.innerHTML = `
+    <div class="summary-card"><h4>Total Entries</h4><p>${total}</p></div>
+    <div class="summary-card"><h4>Last 24h</h4><p>${last24h}</p></div>
+    <div class="summary-card"><h4>Created</h4><p>${created}</p></div>
+    <div class="summary-card"><h4>Updated</h4><p>${updated}</p></div>
+    <div class="summary-card"><h4>Deleted</h4><p>${deleted}</p></div>
+  `;
+}
+
+function getFilteredAuditLogs() {
+  const term = (pageSearchTerms.audit || '').toLowerCase();
+  const entityFilter = (document.getElementById('audit-entity-filter')?.value || '').toLowerCase();
+  const actionFilter = (document.getElementById('audit-action-filter')?.value || '').toLowerCase();
+  let list = Array.isArray(data.auditLogs) ? data.auditLogs.slice() : [];
+  // newest first by default
+  list.sort((a, b) => {
+    const ta = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const tb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return (tb - ta);
+  });
+  if (entityFilter) {
+    list = list.filter(l => (l.entityType || '').toLowerCase() === entityFilter);
+  }
+  if (actionFilter) {
+    list = list.filter(l => getAuditAction(l) === actionFilter);
+  }
+  if (term) {
+    list = list.filter(l => {
+      const base = `${l.user || ''} ${l.entityType || ''} ${l.entityId || ''}`.toLowerCase();
+      if (base.includes(term)) return true;
+      // allow searching in top-level changed keys only to keep perf reasonable
+      const keys = diffTopLevelKeys(l.oldValue, l.newValue).join(' ').toLowerCase();
+      return keys.includes(term);
+    });
+  }
+  return list;
+}
+
+function renderAuditLogsList() {
+  const container = document.getElementById('audit-list');
+  if (!container) return;
+
+  // bind controls once
+  const entitySel = document.getElementById('audit-entity-filter');
+  if (entitySel && !entitySel.dataset.bound) {
+    entitySel.dataset.bound = 'true';
+    entitySel.addEventListener('change', () => {
+      renderAuditLogsList();
+      renderAuditLogsSummary();
+    });
+  }
+  const actionSel = document.getElementById('audit-action-filter');
+  if (actionSel && !actionSel.dataset.bound) {
+    actionSel.dataset.bound = 'true';
+    actionSel.addEventListener('change', () => {
+      renderAuditLogsList();
+      renderAuditLogsSummary();
+    });
+  }
+  const exportBtn = document.getElementById('audit-export');
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = 'true';
+    exportBtn.addEventListener('click', () => {
+      const list = getFilteredAuditLogs();
+      exportAuditLogsCsv(list);
+    });
+  }
+  const closeBtn = document.getElementById('close-audit-detail');
+  if (closeBtn && !closeBtn.dataset.bound) {
+    closeBtn.dataset.bound = 'true';
+    closeBtn.addEventListener('click', () => {
+      document.getElementById('audit-detail-modal')?.classList.add('hidden');
+    });
+  }
+
+  const list = getFilteredAuditLogs();
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${ICONS.shield}</div><p>No audit entries.</p><p class="small-note">Audit logs will appear as you create, update or delete records.</p></div>`;
+    renderAuditLogsSummary();
+    return;
+  }
+
+  // sorting support (by time, entity, user, action)
+  const sortState = pageSortStates.audit;
+  if (sortState.field) {
+    list.sort((a, b) => {
+      let va = '';
+      let vb = '';
+      if (sortState.field === 'timestamp') {
+        va = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+        vb = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      } else if (sortState.field === 'action') {
+        va = getAuditAction(a);
+        vb = getAuditAction(b);
+      } else {
+        va = (a[sortState.field] || '').toString().toLowerCase();
+        vb = (b[sortState.field] || '').toString().toLowerCase();
+      }
+      if (va < vb) return -1 * sortState.dir;
+      if (va > vb) return 1 * sortState.dir;
+      return 0;
+    });
+  }
+
+  let html = '<div class="table-container"><table class="data-table"><thead><tr>' +
+    '<th data-field="timestamp">Time</th>' +
+    '<th data-field="user">User</th>' +
+    '<th data-field="entityType">Entity</th>' +
+    '<th data-field="action">Action</th>' +
+    '<th data-field="entityId">Entity ID</th>' +
+    '<th>Summary</th>' +
+    '<th>Actions</th></tr></thead><tbody>';
+  // cap rendering to last 500 rows to keep the UI snappy
+  list.slice(0, 500).forEach(entry => {
+    const when = entry.timestamp ? formatRelative(entry.timestamp) : '';
+    const user = escapeHtml(entry.user || '');
+    const entityType = escapeHtml(entry.entityType || '');
+    const action = getAuditAction(entry);
+    const actionLabel = action.charAt(0).toUpperCase() + action.slice(1);
+    const entityId = escapeHtml(entry.entityId || '');
+    let summary = '';
+    if (action === 'created') summary = `Created ${entityType}`;
+    else if (action === 'deleted') summary = `Deleted ${entityType}`;
+    else {
+      const keys = diffTopLevelKeys(entry.oldValue, entry.newValue);
+      summary = keys.length ? `Updated: ${keys.slice(0, 6).join(', ')}${keys.length > 6 ? '…' : ''}` : `Updated ${entityType}`;
+    }
+    html += `<tr data-id="${entry.id}">` +
+      `<td>${escapeHtml(when)}</td>` +
+      `<td>${user}</td>` +
+      `<td>${entityType}</td>` +
+      `<td>${escapeHtml(actionLabel)}</td>` +
+      `<td>${entityId}</td>` +
+      `<td>${escapeHtml(summary)}</td>` +
+      `<td class="actions"><button class="view-audit" data-id="${entry.id}" title="View">${ICONS.eye}</button></td>` +
+      `</tr>`;
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+
+  const tableElem = container.querySelector('table.data-table');
+  if (tableElem) {
+    attachTableSorting('audit', tableElem, renderAuditLogsList);
+  }
+  container.querySelectorAll('.view-audit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openAuditLogDetail(btn.getAttribute('data-id'));
+    });
+  });
+
+  renderAuditLogsSummary();
+}
+
+function openAuditLogDetail(id) {
+  const entry = (Array.isArray(data.auditLogs) ? data.auditLogs : []).find(e => e.id === id);
+  if (!entry) return;
+  const modal = document.getElementById('audit-detail-modal');
+  const titleEl = document.getElementById('audit-detail-title');
+  const content = document.getElementById('audit-detail-content');
+  if (!modal || !titleEl || !content) return;
+  const action = getAuditAction(entry);
+  titleEl.textContent = `${(entry.entityType || 'Entity')} • ${action.toUpperCase()} • ${formatDate(entry.timestamp) || ''}`;
+  const keys = diffTopLevelKeys(entry.oldValue, entry.newValue);
+  const keysLine = keys.length ? `<p class="small-note">Changed fields: ${escapeHtml(keys.join(', '))}</p>` : '';
+  const oldStr = entry.oldValue ? escapeHtml(JSON.stringify(entry.oldValue, null, 2)) : '';
+  const newStr = entry.newValue ? escapeHtml(JSON.stringify(entry.newValue, null, 2)) : '';
+  content.innerHTML = `
+    <div class="detail-table" style="width:100%;">
+      <p><strong>User:</strong> ${escapeHtml(entry.user || '')}</p>
+      <p><strong>Entity:</strong> ${escapeHtml(entry.entityType || '')}</p>
+      <p><strong>Entity ID:</strong> ${escapeHtml(entry.entityId || '')}</p>
+      <p><strong>Action:</strong> ${escapeHtml(action)}</p>
+      ${keysLine}
+    </div>
+    <h4>Before</h4>
+    <pre style="white-space:pre-wrap; background:var(--bg-secondary); padding:1rem; border-radius:8px; overflow:auto;">${oldStr || '(none)'}</pre>
+    <h4>After</h4>
+    <pre style="white-space:pre-wrap; background:var(--bg-secondary); padding:1rem; border-radius:8px; overflow:auto;">${newStr || '(none)'}</pre>
+  `;
+  modal.classList.remove('hidden');
+  modal.classList.add('open');
+}
+
+function exportAuditLogsCsv(list) {
+  const rows = [
+    ['timestamp','relative','user','entityType','entityId','action','changedKeys']
+  ];
+  (list || []).forEach(e => {
+    const ts = e.timestamp || '';
+    const rel = ts ? formatRelative(ts) : '';
+    const action = getAuditAction(e);
+    const keys = diffTopLevelKeys(e.oldValue, e.newValue).join('|');
+    rows.push([ts, rel, e.user || '', e.entityType || '', e.entityId || '', action, keys]);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `audit_logs_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+}
+
+// -----------------------------------------------------------------------------
 // Workflow automation rule management and execution
 //
 // Rules are simple objects stored in data.rules. Each rule defines a trigger
@@ -5747,19 +6416,67 @@ async function applyAutomationRules(eventType, payload) {
           const quote = payload.quote;
           if (!quote) continue;
           // Create a draft policy using quote data. Use generateId for new id.
+          let customerId = (quote.customerId || quote.customer || '');
+          // If quote is linked to a lead (prospect), convert the lead to a customer automatically
+          if (!customerId && quote.leadId) {
+            const lead = (data.leads || []).find(l => l.id === quote.leadId);
+            if (lead) {
+              if (lead.customerId) {
+                customerId = lead.customerId;
+              } else {
+                const cust = {
+                  id: generateId(),
+                  fullName: lead.name || '',
+                  mobileNumber: lead.phone || '',
+                  email: lead.email || '',
+                  city: lead.city || '',
+                  dob: '',
+                  gender: '',
+                  pan: '',
+                  aadhaar: '',
+                  address: '',
+                  remarks: `Auto-created from accepted lead quote (${lead.id})`,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  timeline: []
+                };
+                addTimeline(cust, 'Created customer (from accepted lead quote)');
+                data.customers.push(cust);
+                logChange('customer', cust.id, null, cust);
+
+                const oldLead = JSON.parse(JSON.stringify(lead));
+                lead.status = 'Converted';
+                lead.customerId = cust.id;
+                lead.updatedAt = new Date().toISOString();
+                addTimeline(lead, `Converted to customer (${cust.id}) from accepted quote`);
+                logChange('lead', lead.id, oldLead, lead);
+
+                customerId = cust.id;
+              }
+            }
+            // also patch quote record if present
+            const qRec = data.quotes.find(q => q.id === quote.id);
+            if (qRec && customerId) {
+              const oldQ = JSON.parse(JSON.stringify(qRec));
+              qRec.customer = customerId;
+              qRec.updatedAt = new Date().toISOString();
+              addTimeline(qRec, 'Customer linked automatically (accepted lead quote)');
+              logChange('quote', qRec.id, oldQ, qRec);
+            }
+          }
           const newPolicy = {
             id: generateId(),
-            customerId: quote.customerId,
+            customerId: customerId,
             policyNumber: '',
             policyType: quote.policyType,
             startDate: '',
             endDate: '',
-            premiumAmount: quote.premiumAmount || '',
-            taxAmount: quote.taxAmount || '',
+            premiumAmount: (quote.premiumAmount || quote.premium || ''),
+            taxAmount: (quote.taxAmount || quote.tax || ''),
             paymentStatus: 'Pending',
-            companyId: quote.companyId || '',
-            brokerId: quote.brokerId || '',
-            vehicleId: quote.vehicleId || '',
+            companyId: (quote.companyId || quote.company || ''),
+            brokerId: (quote.brokerId || quote.broker || ''),
+            vehicleId: (quote.vehicleId || quote.vehicle || ''),
             quoteId: quote.id,
             notes: 'Draft created from accepted quote',
             createdAt: new Date().toISOString()
@@ -5818,6 +6535,7 @@ function handleVehicleForm() {
   form.addEventListener('submit', e => {
     e.preventDefault();
     const id = form.elements['vehicle-id'].value;
+    const existing = id ? data.vehicles.find(v => v.id === id) : null;
     const vehObj = {
       id: id || generateId(),
       owner: form.elements['vehicle-owner'].value,
@@ -5830,16 +6548,19 @@ function handleVehicleForm() {
       fuelType: form.elements['vehicle-fuel'].value.trim(),
       registrationDate: form.elements['vehicle-registration'].value,
       idv: form.elements['vehicle-idv'].value,
-      remarks: form.elements['vehicle-remarks'].value.trim(),
-      timeline: []
+      remarks: form.elements['vehicle-remarks'].value.trim()
     };
-    if (id) {
-      const existing = data.vehicles.find(v => v.id === id);
+    if (existing) {
+      const oldVeh = JSON.parse(JSON.stringify(existing));
+      vehObj.timeline = existing.timeline || [];
       Object.assign(existing, vehObj);
       addTimeline(existing, 'Updated vehicle');
+      logChange('vehicle', existing.id, oldVeh, existing);
     } else {
+      vehObj.timeline = [];
       addTimeline(vehObj, 'Created vehicle');
       data.vehicles.push(vehObj);
+      logChange('vehicle', vehObj.id, null, vehObj);
     }
     saveData();
     renderVehiclesList();
@@ -5980,10 +6701,19 @@ function openVehicleDetail(id) {
 }
 
 function deleteVehicle(id) {
+  const oldVeh = data.vehicles.find(v => v.id === id);
   // remove vehicle reference from policies
   data.policies.forEach(p => {
-    if (p.vehicle === id) p.vehicle = '';
+    if (p.vehicle === id) {
+      const before = JSON.parse(JSON.stringify(p));
+      p.vehicle = '';
+      addTimeline(p, 'Unlinked deleted vehicle');
+      logChange('policy', p.id, before, p);
+    }
   });
+  if (oldVeh) {
+    logChange('vehicle', id, oldVeh, null);
+  }
   data.vehicles = data.vehicles.filter(v => v.id !== id);
   saveData();
   renderVehiclesList();
@@ -6355,6 +7085,101 @@ function renderSettings() {
   const maxInput = document.getElementById('settings-safe-max');
   if (minInput) minInput.value = data.settings.safeGivebackMin || 0;
   if (maxInput) maxInput.value = data.settings.safeGivebackMax || 0;
+
+  // Privacy toggle: mask PAN/Aadhaar
+  const maskSensitiveToggle = document.getElementById('settings-mask-sensitive');
+  if (maskSensitiveToggle) {
+    maskSensitiveToggle.checked = isSensitiveMaskingEnabled();
+    if (!maskSensitiveToggle.dataset.bound) {
+      maskSensitiveToggle.dataset.bound = 'true';
+      maskSensitiveToggle.addEventListener('change', () => {
+        data.settings.maskSensitive = !!maskSensitiveToggle.checked;
+        saveData();
+      });
+    }
+  }
+
+  // Leads & CRM settings (sources, stages, agent name)
+  const agentNameInput = document.getElementById('settings-agent-name');
+  if (agentNameInput) agentNameInput.value = data.settings.agentDisplayName || '';
+  const agentNameForm = document.getElementById('settings-agent-name-form');
+  if (agentNameForm && !agentNameForm.dataset.bound) {
+    agentNameForm.dataset.bound = 'true';
+    agentNameForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = (document.getElementById('settings-agent-name').value || '').trim();
+      data.settings.agentDisplayName = val;
+      saveData();
+      renderSettings();
+    });
+  }
+
+  function renderChips(containerId, items, removeCb) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    (items || []).forEach((item, idx) => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      const span = document.createElement('span');
+      span.textContent = item;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = '×';
+      btn.addEventListener('click', () => removeCb(idx));
+      chip.appendChild(span);
+      chip.appendChild(btn);
+      container.appendChild(chip);
+    });
+    if (!items || items.length === 0) container.textContent = 'No entries';
+  }
+
+  // Lead sources
+  if (!Array.isArray(data.settings.leadSources)) data.settings.leadSources = [];
+  renderChips('settings-lead-source-list', data.settings.leadSources, (idx) => {
+    data.settings.leadSources.splice(idx, 1);
+    saveData();
+    renderSettings();
+  });
+  const leadSourceForm = document.getElementById('settings-lead-source-form');
+  if (leadSourceForm && !leadSourceForm.dataset.bound) {
+    leadSourceForm.dataset.bound = 'true';
+    leadSourceForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('settings-lead-source-input');
+      const val = (input.value || '').trim();
+      if (val) {
+        if (!data.settings.leadSources.includes(val)) data.settings.leadSources.push(val);
+        saveData();
+        input.value = '';
+        renderSettings();
+      }
+    });
+  }
+
+  // Lead stages
+  if (!Array.isArray(data.settings.leadStages)) data.settings.leadStages = [];
+  renderChips('settings-lead-stage-list', data.settings.leadStages, (idx) => {
+    data.settings.leadStages.splice(idx, 1);
+    saveData();
+    renderSettings();
+  });
+  const leadStageForm = document.getElementById('settings-lead-stage-form');
+  if (leadStageForm && !leadStageForm.dataset.bound) {
+    leadStageForm.dataset.bound = 'true';
+    leadStageForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('settings-lead-stage-input');
+      const val = (input.value || '').trim();
+      if (val) {
+        if (!data.settings.leadStages.includes(val)) data.settings.leadStages.push(val);
+        saveData();
+        input.value = '';
+        renderSettings();
+      }
+    });
+  }
+
   // render lists of bank accounts, upi ids, wallets
   function renderList(listElId, items, removeCallback) {
     const container = document.getElementById(listElId);
@@ -7216,7 +8041,7 @@ function renderMasterData() {
 
 // ===== Alerts & Renewals =====
 // Build and display upcoming policy expiries grouped by due window
-function renderAlerts() {
+function renderRenewalAlerts() {
   const container = document.getElementById('alerts-list');
   if (!container) return;
   container.innerHTML = '';
@@ -7371,18 +8196,21 @@ function renderAlerts() {
 
 // ===== Alerts & Renewals wrapper =====
 // Delegate to the renewal renderer. See renderRenewals() for details.
+// ===== Alerts (combined) =====
 function renderAlerts() {
-  // Render upcoming and missed renewals
-  if (typeof renderRenewals === 'function') {
-    renderRenewals();
-  }
-  // Append overdue tasks to the alerts list
-  try {
-    renderTaskAlerts();
-  } catch (err) {
-    console.warn('Failed to render task alerts', err);
-  }
+  const container = document.getElementById('alerts-list');
+  if (!container) return;
+  container.innerHTML = '';
+  // Renewals (existing)
+  try { renderRenewalAlerts(); } catch (e) { console.warn('Failed to render renewal alerts', e); }
+  // Overdue tasks (existing)
+  try { renderTaskAlerts(); } catch (e) { console.warn('Failed to render task alerts', e); }
+  // Compliance (Phase 4)
+  try { renderComplianceAlerts(); } catch (e) { console.warn('Failed to render compliance alerts', e); }
+  // Outstanding premium (Phase 4)
+  try { renderOutstandingPremiumAlerts(); } catch (e) { console.warn('Failed to render outstanding premium alerts', e); }
 }
+
 
 /**
  * Render overdue tasks in the Alerts view. Tasks due today or past due and
@@ -7791,12 +8619,16 @@ function handleCommissionForm() {
     }
     if (id) {
       const rec = data.commissions.find(c => c.id === id);
+      if (!rec) return;
+      const oldRec = JSON.parse(JSON.stringify(rec));
       Object.assign(rec, { policyId, expected, received, cashback, cashbackCustomerId, cashbackMode, points, charges, net, account, overrideReason, date: dateVal });
       addTimeline(rec, 'Updated commission record');
+      logChange('commission', rec.id, oldRec, rec);
     } else {
       const newRec = { id: generateId(), policyId, type, value, expected, received, cashback, cashbackCustomerId, cashbackMode, points, charges, net, account, overrideReason, date: dateVal, redemptions: [], timeline: [] };
       addTimeline(newRec, 'Recorded commission');
       data.commissions.push(newRec);
+      logChange('commission', newRec.id, null, newRec);
     }
     saveData();
     renderCommissionsList();
@@ -7864,6 +8696,10 @@ function openCommissionDetail(id) {
 }
 
 function deleteCommission(id) {
+  const oldRec = data.commissions.find(c => c.id === id);
+  if (oldRec) {
+    logChange('commission', id, oldRec, null);
+  }
   data.commissions = data.commissions.filter(c => c.id !== id);
   saveData();
   renderCommissionsList();
@@ -8156,6 +8992,7 @@ function handleRedeemPointsForm() {
     selectedIds.forEach(id => {
       const rec = data.commissions.find(c => c.id === id);
       if (!rec || !rec.points || rec.points <= 0) return;
+      const oldRec = JSON.parse(JSON.stringify(rec));
       const ratio = rec.points / sumPoints;
       const amountPortion = totalAmount * ratio;
       const chargesPortion = totalCharges * ratio;
@@ -8171,6 +9008,7 @@ function handleRedeemPointsForm() {
       if (!Array.isArray(rec.redemptions)) rec.redemptions = [];
       rec.redemptions.push({ date: date, amount: amountPortion, charges: chargesPortion, account: account });
       addTimeline(rec, 'Redeemed points');
+      logChange('commission', rec.id, oldRec, rec);
     });
     saveData();
     renderCommissionsList();
@@ -8382,28 +9220,33 @@ function handleBrokerForm() {
     const logoFile = form.elements['broker-logo'] && form.elements['broker-logo'].files && form.elements['broker-logo'].files[0];
     // function to persist broker after reading logo
     const saveBroker = (logoData) => {
+      const existing = id ? data.brokers.find(b => b.id === id) : null;
       const brokerObj = {
         id: id || generateId(),
         name: name,
         owner: owner,
         remarks: remarks,
-        logo: logoData || (id ? (data.brokers.find(b => b.id === id) || {}).logo : ''),
+        logo: logoData || (existing ? existing.logo : ''),
         companyIds: companyIds,
         bankIds: bankIds,
         upiIds: upiIds,
         walletIds: walletIds,
         commissionMode: commissionMode,
         pointRate: pointRate,
-        payCycle: payCycle,
-        timeline: []
+        payCycle: payCycle
       };
-      if (id) {
-        const existing = data.brokers.find(b => b.id === id);
+      if (existing) {
+        const oldBroker = JSON.parse(JSON.stringify(existing));
+        // preserve existing timeline history
+        brokerObj.timeline = existing.timeline || [];
         Object.assign(existing, brokerObj);
         addTimeline(existing, 'Updated broker');
+        logChange('broker', existing.id, oldBroker, existing);
       } else {
+        brokerObj.timeline = [];
         addTimeline(brokerObj, 'Created broker');
         data.brokers.push(brokerObj);
+        logChange('broker', brokerObj.id, null, brokerObj);
       }
       saveData();
       renderBrokersList();
@@ -8501,10 +9344,19 @@ function openBrokerDetail(id) {
 }
 
 function deleteBroker(id) {
+  const oldBroker = data.brokers.find(b => b.id === id);
   // remove broker references from policies
   data.policies.forEach(p => {
-    if (p.broker === id) p.broker = '';
+    if (p.broker === id) {
+      const before = JSON.parse(JSON.stringify(p));
+      p.broker = '';
+      addTimeline(p, 'Unlinked deleted broker');
+      logChange('policy', p.id, before, p);
+    }
   });
+  if (oldBroker) {
+    logChange('broker', id, oldBroker, null);
+  }
   data.brokers = data.brokers.filter(b => b.id !== id);
   saveData();
   renderBrokersList();
@@ -8611,20 +9463,24 @@ function handleCompanyForm() {
     const remarks = form.elements['company-remarks'].value.trim();
     const logoFile = form.elements['company-logo'] && form.elements['company-logo'].files && form.elements['company-logo'].files[0];
     const saveCompany = (logoData) => {
+      const existing = id ? data.companies.find(c => c.id === id) : null;
       const companyObj = {
         id: id || generateId(),
         name: name,
         remarks: remarks,
-        logo: logoData || (id ? (data.companies.find(c => c.id === id) || {}).logo : ''),
-        timeline: []
+        logo: logoData || (existing ? existing.logo : '')
       };
-      if (id) {
-        const existing = data.companies.find(c => c.id === id);
+      if (existing) {
+        const oldCompany = JSON.parse(JSON.stringify(existing));
+        companyObj.timeline = existing.timeline || [];
         Object.assign(existing, companyObj);
         addTimeline(existing, 'Updated company');
+        logChange('company', existing.id, oldCompany, existing);
       } else {
+        companyObj.timeline = [];
         addTimeline(companyObj, 'Created company');
         data.companies.push(companyObj);
+        logChange('company', companyObj.id, null, companyObj);
       }
       saveData();
       renderCompaniesList();
@@ -8698,10 +9554,19 @@ function openCompanyDetail(id) {
 }
 
 function deleteCompany(id) {
+  const oldCompany = data.companies.find(c => c.id === id);
   // remove references from policies
   data.policies.forEach(p => {
-    if (p.company === id) p.company = '';
+    if (p.company === id) {
+      const before = JSON.parse(JSON.stringify(p));
+      p.company = '';
+      addTimeline(p, 'Unlinked deleted company');
+      logChange('policy', p.id, before, p);
+    }
   });
+  if (oldCompany) {
+    logChange('company', id, oldCompany, null);
+  }
   data.companies = data.companies.filter(c => c.id !== id);
   saveData();
   renderCompaniesList();
@@ -8717,9 +9582,11 @@ function renderQuotesList() {
     ? data.quotes.slice()
     : data.quotes.filter(q => {
         const cust = data.customers.find(c => c.id === q.customer) || {};
+        const lead = (data.leads || []).find(l => l.id === q.leadId) || {};
         const comp = data.companies.find(c => c.id === q.company) || {};
         const bro = data.brokers.find(b => b.id === q.broker) || {};
-        const str = `${q.policyType || ''} ${cust.fullName || ''} ${comp.name || ''} ${bro.name || ''} ${q.status || ''}`.toLowerCase();
+        const prospectName = (q.prospectType === 'lead' ? (lead.name || lead.fullName || '') : (cust.fullName || ''));
+        const str = `${q.policyType || ''} ${prospectName || ''} ${lead.phone || ''} ${comp.name || ''} ${bro.name || ''} ${q.status || ''} v${q.version || q.versionNumber || ''}`.toLowerCase();
         return str.includes(term);
       })
   );
@@ -8731,6 +9598,7 @@ function renderQuotesList() {
   let html = '';
   list.forEach(q => {
     const cust = data.customers.find(c => c.id === q.customer) || {};
+    const lead = (data.leads || []).find(l => l.id === q.leadId) || {};
     const comp = data.companies.find(c => c.id === q.company) || {};
     const bro = data.brokers.find(b => b.id === q.broker) || {};
     const premium = q.premium ? `₹${q.premium}` : '';
@@ -8741,7 +9609,10 @@ function renderQuotesList() {
       </div>
       <div class="card-body">
         ${q.quoteDate ? `<p>Date: ${formatDate(q.quoteDate)}</p>` : ''}
-        ${cust.fullName ? `<p>Customer: ${cust.fullName}</p>` : ''}
+        ${(q.version || q.versionNumber) ? `<p>Version: v${q.version || q.versionNumber}</p>` : ''}
+        ${q.margin ? `<p>Margin: ₹${q.margin}</p>` : ''}
+        ${(q.prospectType === 'lead' ? (lead.name ? `<p>Lead: ${lead.name}</p>` : '') : (cust.fullName ? `<p>Customer: ${cust.fullName}</p>` : ''))}
+        ${(q.prospectType === 'lead' && lead.phone) ? `<p>Phone: ${lead.phone}</p>` : ''}
         ${comp.name ? `<p>Company: ${comp.name}</p>` : ''}
         ${bro.name ? `<p>Broker: ${bro.name}</p>` : ''}
         ${premium ? `<p>Premium: ${premium}</p>` : ''}
@@ -8837,59 +9708,162 @@ function updateQuoteTypeSpecificFields(type) {
   });
 }
 
-function openQuoteForm(id) {
+function openQuoteForm(id, opts = {}) {
   const modal = document.getElementById('quote-form-modal');
   const title = document.getElementById('quote-form-title');
   const form = document.getElementById('quote-form');
+  if (!modal || !title || !form) return;
+
+  // reset basic fields
   form.reset();
   form.elements['quote-id'].value = '';
+  // populate selects
   populateCustomerSelect(form.elements['quote-customer']);
+  populateLeadSelect(form.elements['quote-lead']);
   populateBrokerSelect(form.elements['quote-broker']);
   populateCompanySelect(form.elements['quote-company']);
-  // update type-specific fields
+
+  // Type specific
   updateQuoteTypeSpecificFields(form.elements['quote-type'].value);
-  form.elements['quote-type'].addEventListener('change', () => {
-    updateQuoteTypeSpecificFields(form.elements['quote-type'].value);
-  });
-  // compute total
-  const premiumInput = form.elements['quote-premium'];
-  const taxInput = form.elements['quote-tax'];
-  const totalInput = form.elements['quote-total'];
-  function updateTotal() {
-    const total = calculateTotal(premiumInput.value, taxInput.value);
-    if (!isNaN(total)) totalInput.value = total;
+
+  // Attach listeners once
+  if (!form.dataset.boundQuote) {
+    form.dataset.boundQuote = 'true';
+    form.elements['quote-type'].addEventListener('change', () => {
+      updateQuoteTypeSpecificFields(form.elements['quote-type'].value);
+    });
+
+    // compute total
+    const premiumInput = form.elements['quote-premium'];
+    const taxInput = form.elements['quote-tax'];
+    const totalInput = form.elements['quote-total'];
+    function updateTotal() {
+      const total = calculateTotal(premiumInput.value, taxInput.value);
+      if (!isNaN(total)) totalInput.value = total;
+    }
+    premiumInput.addEventListener('input', updateTotal);
+    taxInput.addEventListener('input', updateTotal);
+
+    // margin calc
+    const costInput = form.elements['quote-cost'];
+    const sellInput = form.elements['quote-sell'];
+    const marginInput = form.elements['quote-margin'];
+    function updateMargin() {
+      const c = parseFloat(costInput.value || '0');
+      const s = parseFloat(sellInput.value || '0');
+      if (!isNaN(c) && !isNaN(s) && (c || s)) {
+        marginInput.value = (s - c).toFixed(2);
+      } else {
+        marginInput.value = '';
+      }
+    }
+    costInput.addEventListener('input', updateMargin);
+    sellInput.addEventListener('input', updateMargin);
+
+    // prospect toggle
+    const pt = form.elements['quote-prospect-type'];
+    function updateProspectVisibility() {
+      const isLead = (pt.value === 'lead');
+      const custWrap = document.getElementById('quote-customer-wrap');
+      const leadWrap = document.getElementById('quote-lead-wrap');
+      if (custWrap) custWrap.style.display = isLead ? 'none' : '';
+      if (leadWrap) leadWrap.style.display = isLead ? '' : 'none';
+    }
+    pt.addEventListener('change', updateProspectVisibility);
+    updateProspectVisibility();
+  } else {
+    // ensure visibility correct
+    const pt = form.elements['quote-prospect-type'];
+    const isLead = (pt.value === 'lead');
+    const custWrap = document.getElementById('quote-customer-wrap');
+    const leadWrap = document.getElementById('quote-lead-wrap');
+    if (custWrap) custWrap.style.display = isLead ? 'none' : '';
+    if (leadWrap) leadWrap.style.display = isLead ? '' : 'none';
   }
-  premiumInput.addEventListener('input', updateTotal);
-  taxInput.addEventListener('input', updateTotal);
+
+  // apply defaults from opts (e.g., open from lead detail)
+  if (opts.prospectType) {
+    form.elements['quote-prospect-type'].value = opts.prospectType;
+  }
+  if (opts.leadId) {
+    form.elements['quote-lead'].value = opts.leadId;
+  }
+  if (opts.customerId) {
+    form.elements['quote-customer'].value = opts.customerId;
+  }
+
+  // Ensure prospect fields visibility matches selection
+  {
+    const pt = form.elements['quote-prospect-type'];
+    const isLead = (pt.value === 'lead');
+    const custWrap = document.getElementById('quote-customer-wrap');
+    const leadWrap = document.getElementById('quote-lead-wrap');
+    if (custWrap) custWrap.style.display = isLead ? 'none' : '';
+    if (leadWrap) leadWrap.style.display = isLead ? '' : 'none';
+  }
+
   if (id) {
     const quote = data.quotes.find(q => q.id === id);
     if (!quote) return;
     title.textContent = 'Edit Quote';
     form.elements['quote-id'].value = quote.id;
-    form.elements['quote-customer'].value = quote.customer;
-    form.elements['quote-broker'].value = quote.broker;
-    form.elements['quote-company'].value = quote.company;
-    form.elements['quote-type'].value = quote.policyType;
-    updateQuoteTypeSpecificFields(quote.policyType);
-    form.elements['quote-date'].value = quote.quoteDate;
-    form.elements['quote-sum-insured'].value = quote.sumInsured;
-    form.elements['quote-premium'].value = quote.premium;
-    form.elements['quote-tax'].value = quote.tax;
-    form.elements['quote-total'].value = quote.total;
-    form.elements['quote-status'].value = quote.status;
-    form.elements['quote-remarks'].value = quote.remarks;
+
+    // Prospect binding (backward compatible)
+    const prospectType = quote.prospectType || (quote.leadId && !quote.customer ? 'lead' : 'customer');
+    form.elements['quote-prospect-type'].value = prospectType;
+    if (prospectType === 'lead') {
+      form.elements['quote-lead'].value = quote.leadId || '';
+    } else {
+      form.elements['quote-customer'].value = quote.customer || '';
+    }
+
+    // Update visibility for prospect
+    const isLead = (form.elements['quote-prospect-type'].value === 'lead');
+    const custWrap = document.getElementById('quote-customer-wrap');
+    const leadWrap = document.getElementById('quote-lead-wrap');
+    if (custWrap) custWrap.style.display = isLead ? 'none' : '';
+    if (leadWrap) leadWrap.style.display = isLead ? '' : 'none';
+
+    form.elements['quote-broker'].value = quote.broker || '';
+    form.elements['quote-company'].value = quote.company || '';
+    form.elements['quote-type'].value = quote.policyType || 'Motor';
+    updateQuoteTypeSpecificFields(quote.policyType || 'Motor');
+    form.elements['quote-date'].value = quote.quoteDate || '';
+    form.elements['quote-sum-insured'].value = quote.sumInsured || '';
+    form.elements['quote-premium'].value = quote.premium || '';
+    form.elements['quote-tax'].value = quote.tax || '';
+    form.elements['quote-total'].value = quote.total || '';
+    form.elements['quote-status'].value = quote.status || 'Draft';
+    form.elements['quote-remarks'].value = quote.remarks || '';
+
+    // Versioning fields (hidden)
+    form.elements['quote-group-id'].value = quote.quoteGroupId || quote.groupId || quote.id;
+    form.elements['quote-version'].value = quote.version || quote.versionNumber || 1;
+
+    // Negotiation / margin
+    form.elements['quote-cost'].value = quote.costPremium || '';
+    form.elements['quote-sell'].value = quote.sellingPremium || '';
+    const marginInput = form.elements['quote-margin'];
+    const c = parseFloat(form.elements['quote-cost'].value || '0');
+    const s = parseFloat(form.elements['quote-sell'].value || '0');
+    if (!isNaN(c) && !isNaN(s) && (c || s)) marginInput.value = (s - c).toFixed(2);
+    form.elements['quote-negotiation-notes'].value = quote.negotiationNotes || '';
+
     // type-specific values
     const ts = quote.typeSpecific || {};
     const tsContainer = document.getElementById('quote-type-specific-fields');
     tsContainer.querySelectorAll('input, textarea, select').forEach(el => {
       const key = el.getAttribute('data-key');
-      if (key && ts[key] !== undefined) {
-        el.value = ts[key];
-      }
+      if (key && ts[key] !== undefined) el.value = ts[key];
     });
   } else {
     title.textContent = 'Add Quote';
+    // default group/version for new quote
+    form.elements['quote-group-id'].value = '';
+    form.elements['quote-version'].value = '';
   }
+
+  // Ensure CTA label reflects view mode
   modal.classList.remove('hidden');
   setTimeout(() => {
     const firstField = modal.querySelector('input, select, textarea');
@@ -8897,25 +9871,65 @@ function openQuoteForm(id) {
   }, 50);
 }
 
+
 function handleQuoteForm() {
   const form = document.getElementById('quote-form');
   if (!form) return;
+  if (form.dataset.bound) return;
+  form.dataset.bound = 'true';
+
   form.addEventListener('submit', e => {
     e.preventDefault();
     const id = form.elements['quote-id'].value;
+
     // gather type-specific fields
     const ts = {};
     const tsContainer = document.getElementById('quote-type-specific-fields');
-    tsContainer.querySelectorAll('input, textarea').forEach(el => {
+    tsContainer.querySelectorAll('input, textarea, select').forEach(el => {
       const key = el.getAttribute('data-key');
       if (key) ts[key] = el.value;
     });
+
+    const existing = id ? data.quotes.find(q => q.id === id) : null;
+    const quoteId = id || generateId();
+
     const premium = parseFloat(form.elements['quote-premium'].value) || 0;
     const tax = parseFloat(form.elements['quote-tax'].value) || 0;
     const total = parseFloat(form.elements['quote-total'].value) || calculateTotal(premium, tax);
+
+    // Prospect binding (customer / lead)
+    const prospectType = (form.elements['quote-prospect-type'].value || 'customer');
+    const customerId = (prospectType === 'customer') ? (form.elements['quote-customer'].value || '') : '';
+    const leadId = (prospectType === 'lead') ? (form.elements['quote-lead'].value || '') : '';
+
+    // Versioning (quoteGroupId + version)
+    let groupId = form.elements['quote-group-id'].value || (existing && (existing.quoteGroupId || existing.groupId)) || '';
+    if (!groupId) groupId = quoteId;
+
+    let version = parseInt(form.elements['quote-version'].value || (existing && (existing.version || existing.versionNumber)) || '', 10);
+    if (!version || isNaN(version)) {
+      if (existing) {
+        version = parseInt(existing.version || existing.versionNumber || '1', 10) || 1;
+      } else {
+        const maxV = data.quotes
+          .filter(q => (q.quoteGroupId || q.groupId || q.id) === groupId)
+          .reduce((m, q) => Math.max(m, parseInt(q.version || q.versionNumber || '1', 10) || 1), 0);
+        version = maxV ? (maxV + 1) : 1;
+      }
+    }
+
+    // Negotiation / margin
+    const costPremium = (form.elements['quote-cost'].value || '').trim();
+    const sellingPremium = (form.elements['quote-sell'].value || '').trim();
+    const cNum = parseFloat(costPremium || '0');
+    const sNum = parseFloat(sellingPremium || '0');
+    const margin = (!isNaN(cNum) && !isNaN(sNum) && (cNum || sNum)) ? (sNum - cNum) : '';
+
     const quoteObj = {
-      id: id || generateId(),
-      customer: form.elements['quote-customer'].value,
+      id: quoteId,
+      prospectType,
+      customer: customerId,
+      leadId: leadId,
       broker: form.elements['quote-broker'].value,
       company: form.elements['quote-company'].value,
       policyType: form.elements['quote-type'].value,
@@ -8926,33 +9940,47 @@ function handleQuoteForm() {
       total: total,
       status: form.elements['quote-status'].value,
       remarks: form.elements['quote-remarks'].value,
+      negotiationNotes: form.elements['quote-negotiation-notes'].value,
+      costPremium: costPremium,
+      sellingPremium: sellingPremium,
+      margin: margin,
+      quoteGroupId: groupId,
+      version: version,
       typeSpecific: ts,
-      timeline: []
+      timeline: existing ? (existing.timeline || []) : []
     };
-    let oldStatus = null;
-    if (id) {
-      const existing = data.quotes.find(q => q.id === id);
-      oldStatus = existing ? existing.status : null;
-      logChange('quote', existing.id, Object.assign({}, existing), quoteObj);
+
+    const oldStatus = existing ? existing.status : null;
+
+    if (existing) {
+      const oldCopy = JSON.parse(JSON.stringify(existing));
       Object.assign(existing, quoteObj);
       addTimeline(existing, 'Updated quote');
+      logChange('quote', existing.id, oldCopy, existing);
     } else {
       addTimeline(quoteObj, 'Created quote');
       data.quotes.push(quoteObj);
       logChange('quote', quoteObj.id, null, quoteObj);
     }
-    // Trigger rule if quote is newly accepted
+
+    // Trigger automation if quote is newly accepted
     const newStatus = quoteObj.status;
     if (newStatus === 'Accepted' && oldStatus !== 'Accepted') {
       applyAutomationRules('quoteAccepted', { quote: quoteObj });
     }
+
     saveData();
     renderQuotesList();
     document.getElementById('quote-form-modal').classList.add('hidden');
   });
-  document.getElementById('close-quote-form').addEventListener('click', () => {
-    document.getElementById('quote-form-modal').classList.add('hidden');
-  });
+
+  const closeBtn = document.getElementById('close-quote-form');
+  if (closeBtn && !closeBtn.dataset.bound) {
+    closeBtn.dataset.bound = 'true';
+    closeBtn.addEventListener('click', () => {
+      document.getElementById('quote-form-modal').classList.add('hidden');
+    });
+  }
 }
 
 function openQuoteDetail(id) {
@@ -8961,6 +9989,7 @@ function openQuoteDetail(id) {
   const modal = document.getElementById('quote-detail-modal');
   const titleEl = document.getElementById('quote-detail-title');
   const content = document.getElementById('quote-detail-content');
+  const lead = (data.leads || []).find(l => l.id === quote.leadId) || {};
   const customer = data.customers.find(c => c.id === quote.customer) || {};
   const broker = data.brokers.find(b => b.id === quote.broker) || {};
   const company = data.companies.find(c => c.id === quote.company) || {};
@@ -8985,7 +10014,17 @@ function openQuoteDetail(id) {
   headerEl.appendChild(headerTop);
   const infoDiv = document.createElement('div');
   infoDiv.className = 'info';
-  if (customer.fullName) {
+  const isLeadProspect = (quote.prospectType === 'lead' || (quote.leadId && !quote.customer));
+  if (isLeadProspect && (lead.name || lead.fullName)) {
+    const p = document.createElement('p');
+    p.textContent = `Lead: ${(lead.name || lead.fullName)}`;
+    infoDiv.appendChild(p);
+    if (lead.phone) {
+      const pPhone = document.createElement('p');
+      pPhone.textContent = `Phone: ${lead.phone}`;
+      infoDiv.appendChild(pPhone);
+    }
+  } else if (customer.fullName) {
     const p = document.createElement('p');
     p.textContent = `Customer: ${customer.fullName}`;
     infoDiv.appendChild(p);
@@ -9020,6 +10059,101 @@ function openQuoteDetail(id) {
     });
     content.appendChild(basicSection);
   }
+
+  // Negotiation & margin (visible to agent)
+  const negItems = [];
+  const pushNeg = (label, val) => { if (val !== undefined && val !== null && val !== '') negItems.push({ label, value: val }); };
+  pushNeg('Insurer Cost (Net)', quote.costPremium);
+  pushNeg('Your Offer (Sell)', quote.sellingPremium);
+  if (quote.margin !== undefined && quote.margin !== null && quote.margin !== '') {
+    pushNeg('Margin (₹)', quote.margin);
+    const c = parseFloat(quote.costPremium || '0');
+    const m = parseFloat(quote.margin || '0');
+    if (!isNaN(c) && c > 0 && !isNaN(m)) {
+      pushNeg('Margin (%)', ((m / c) * 100).toFixed(1) + '%');
+    }
+  }
+  pushNeg('Negotiation Notes', quote.negotiationNotes);
+  if (negItems.length) {
+    const negSection = createProfileSection('Negotiation', negItems, item => {
+      const el = document.createElement('div');
+      el.className = 'profile-item';
+      el.innerHTML = `<span>${item.label}</span><span>${item.value}</span>`;
+      return el;
+    });
+    content.appendChild(negSection);
+  }
+
+  // Quote versions (grouped)
+  const groupId = quote.quoteGroupId || quote.groupId || quote.id;
+  const versions = data.quotes
+    .filter(q => (q.quoteGroupId || q.groupId || q.id) === groupId)
+    .sort((a, b) => (parseInt(a.version || a.versionNumber || '1', 10) || 1) - (parseInt(b.version || b.versionNumber || '1', 10) || 1));
+  if (versions.length > 1) {
+    const versionSection = document.createElement('div');
+    versionSection.className = 'profile-section';
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `<h4>Versions</h4>`;
+    const btn = document.createElement('button');
+    btn.textContent = 'New Version';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newId = createNewQuoteVersion(quote.id);
+      if (newId) {
+        renderQuotesList();
+        modal.classList.add('hidden');
+        openQuoteForm(newId);
+      }
+    });
+    header.appendChild(btn);
+    versionSection.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'section-content';
+    versions.forEach(v => {
+      const row = document.createElement('div');
+      row.className = 'profile-item';
+      const vn = parseInt(v.version || v.versionNumber || '1', 10) || 1;
+      const label = `v${vn} • ${v.status || ''}`;
+      const val = `₹${(parseFloat(v.total || v.premium || 0) || 0).toFixed(0)}${v.margin ? ' • margin ₹' + v.margin : ''}`;
+      row.innerHTML = `<span>${label}</span><span>${val}</span>`;
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => openQuoteDetail(v.id));
+      list.appendChild(row);
+    });
+    versionSection.appendChild(list);
+    content.appendChild(versionSection);
+  } else {
+    // Single version; offer quick create-new-version button
+    const versionSection = document.createElement('div');
+    versionSection.className = 'profile-section';
+    const header = document.createElement('div');
+    header.className = 'section-header';
+    header.innerHTML = `<h4>Versions</h4>`;
+    const btn = document.createElement('button');
+    btn.textContent = 'New Version';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const newId = createNewQuoteVersion(quote.id);
+      if (newId) {
+        renderQuotesList();
+        modal.classList.add('hidden');
+        openQuoteForm(newId);
+      }
+    });
+    header.appendChild(btn);
+    versionSection.appendChild(header);
+    const list = document.createElement('div');
+    list.className = 'section-content';
+    const row = document.createElement('div');
+    row.className = 'profile-item';
+    row.innerHTML = `<span>v${parseInt(quote.version || quote.versionNumber || '1', 10) || 1}</span><span>${quote.status || ''}</span>`;
+    list.appendChild(row);
+    versionSection.appendChild(list);
+    content.appendChild(versionSection);
+  }
+
   // Type Specific section
   const tsKeys = Object.keys(quote.typeSpecific || {});
   if (tsKeys.length) {
@@ -9115,12 +10249,2997 @@ function openQuoteDetail(id) {
 }
 
 function deleteQuote(id) {
+  const oldQuote = data.quotes.find(q => q.id === id);
+  // unlink from any policies that reference this quote
+  data.policies.forEach(p => {
+    if (p.quoteId === id) {
+      const before = JSON.parse(JSON.stringify(p));
+      p.quoteId = '';
+      addTimeline(p, 'Unlinked deleted quote');
+      logChange('policy', p.id, before, p);
+    }
+  });
+  if (oldQuote) {
+    logChange('quote', id, oldQuote, null);
+  }
   data.quotes = data.quotes.filter(q => q.id !== id);
   saveData();
   renderQuotesList();
 }
 
 // Setup event listeners for Add buttons and forms
+
+
+// -----------------------------------------------------------------------------
+// Phase 2 + Phase 3: Leads (CRM), Daily Planner, Renewal Campaign Builder,
+// Rules Engine v2 (conditions + actions), Quote Versioning & Negotiation
+// -----------------------------------------------------------------------------
+
+function normalizeData() {
+  if (!data) return;
+  if (!Array.isArray(data.leads)) data.leads = [];
+  if (!Array.isArray(data.campaigns)) data.campaigns = [];
+  if (!data.plannerNotes || typeof data.plannerNotes !== 'object') data.plannerNotes = {};
+  if (!Array.isArray(data.ruleFires)) data.ruleFires = [];
+  if (!Array.isArray(data.ledgerAdjustments)) data.ledgerAdjustments = [];
+  if (!data.settings) data.settings = {};
+
+  // Compliance defaults
+  if (data.settings.complianceAlertWindowDays === undefined) data.settings.complianceAlertWindowDays = 3;
+  if (!data.settings.complianceTemplates || typeof data.settings.complianceTemplates !== 'object') {
+    data.settings.complianceTemplates = {
+      Default: [
+        { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
+        { id: 'proposal', label: 'Proposal / Application', required: true, dueDays: 3 },
+        { id: 'policycopy', label: 'Policy Copy', required: true, dueDays: 7 },
+        { id: 'paymentproof', label: 'Payment Proof', required: false, dueDays: 7 }
+      ]
+    };
+  }
+  if (!Array.isArray(data.settings.leadSources) || data.settings.leadSources.length === 0) {
+    data.settings.leadSources = ['Walk-in', 'Referral', 'Online', 'Partner', 'Cold Call'];
+  }
+  if (!Array.isArray(data.settings.leadStages) || data.settings.leadStages.length === 0) {
+    data.settings.leadStages = ['New', 'Contacted', 'Interested', 'Quoted', 'Negotiating', 'Won', 'Lost'];
+  }
+  if (!data.settings.leadsViewMode) data.settings.leadsViewMode = 'pipeline';
+  if (typeof data.settings.lastAutomationRunDate !== 'string') data.settings.lastAutomationRunDate = '';
+  if (typeof data.settings.agentDisplayName !== 'string') data.settings.agentDisplayName = '';
+  if (!Array.isArray(data.rules)) data.rules = [];
+  // Ensure all policies have compliance structure (non-destructive merge)
+  try { (data.policies || []).forEach(p => ensurePolicyCompliance(p)); } catch (e) {}
+}
+
+// Simple helpers
+function isoToday() {
+  return new Date().toISOString().split('T')[0];
+}
+function addDaysISO(baseIso, days) {
+  const d = new Date(baseIso);
+  d.setDate(d.getDate() + (parseInt(days || '0', 10) || 0));
+  return d.toISOString().split('T')[0];
+}
+function safeNumber(n) {
+  const x = parseFloat(n);
+  return isNaN(x) ? 0 : x;
+}
+
+
+// -----------------------------------------------------------------------------
+// Phase 4: Finance (Ledgers, Outstanding Premium, Commission Reconciliation)
+// -----------------------------------------------------------------------------
+
+// UI state for the Finance section (non-persisted)
+const financeState = {
+  tab: 'outstanding', // outstanding | customer | company | recon
+  customerId: '',
+  companyId: '',
+  companyMode: 'premium', // premium | commission
+  includeBrokerAsCompanyPaid: false,
+  reconCompanyId: '',
+  reconStatus: 'all' // all | outstanding | matched | overpaid | reconciled
+};
+
+function formatINR(amount) {
+  const n = safeNumber(amount);
+  try {
+    return n.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+  } catch (_) {
+    return '₹' + n.toFixed(2);
+  }
+}
+
+function parseISODate(val) {
+  if (!val) return null;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function computePolicyPaymentTotals(policyId) {
+  const pays = (data.payments || []).filter(p => (p.policy || p.policyId) === policyId);
+  const totalPaid = pays.reduce((sum, p) => sum + safeNumber(p.amount) + safeNumber(p.tax), 0);
+  const policy = (data.policies || []).find(p => p.id === policyId) || {};
+  const totalDue = policyTotalDue(policy);
+  const outstanding = Math.max(0, +(totalDue - totalPaid).toFixed(2));
+  return { totalPaid: +totalPaid.toFixed(2), totalDue: +totalDue.toFixed(2), outstanding };
+}
+
+function policyTotalDue(policy) {
+  const tp = safeNumber(policy && policy.totalPayable);
+  if (tp > 0) return tp;
+  return safeNumber(policy && policy.premiumAmount) + safeNumber(policy && policy.taxAmount);
+}
+
+
+function computeExpectedCommissionForPolicy(policy) {
+  if (!policy) return 0;
+  // If commission eligibility isn't eligible, treat expected as 0 for reconciliation totals
+  if (policy.commissionEligibility && policy.commissionEligibility !== 'Eligible') return 0;
+  return safeNumber(policy.expectedCommission);
+}
+
+function computeCommissionReceivedForPolicy(policyId, mode) {
+  const comms = (data.commissions || []).filter(c => c.policyId === policyId);
+  if ((mode || '').toLowerCase() === 'points') {
+    return comms.reduce((sum, c) => sum + safeNumber(c.points), 0);
+  }
+  return comms.reduce((sum, c) => sum + safeNumber(c.received), 0);
+}
+
+function getCustomerForPolicy(policy) {
+  if (!policy) return null;
+  const id = policy.proposer || policy.owner || policy.insured || '';
+  return (data.customers || []).find(c => c.id === id) || null;
+}
+
+function buildOutstandingPolicies() {
+  const out = [];
+  (data.policies || []).forEach(p => {
+    const totals = computePolicyPaymentTotals(p.id);
+    if (totals.outstanding > 0.01) {
+      out.push({ policy: p, totals });
+    }
+  });
+  // higher outstanding first
+  out.sort((a, b) => b.totals.outstanding - a.totals.outstanding);
+  return out;
+}
+
+function renderFinanceSummary() {
+  const container = document.getElementById('finance-summary');
+  if (!container) return;
+
+  const policies = data.policies || [];
+  const totalBilled = policies.reduce((sum, p) => sum + policyTotalDue(p), 0);
+  const totalCollected = (data.payments || []).reduce((sum, pay) => sum + safeNumber(pay.amount) + safeNumber(pay.tax), 0);
+  const outstanding = Math.max(0, totalBilled - totalCollected);
+
+  const expectedCommission = policies.reduce((sum, p) => sum + computeExpectedCommissionForPolicy(p), 0);
+  const receivedCommission = (data.commissions || []).reduce((sum, c) => sum + safeNumber(c.received), 0);
+  const outstandingCommission = Math.max(0, expectedCommission - receivedCommission);
+
+  const cards = [
+    { label: 'Premium Billed', value: formatINR(totalBilled) },
+    { label: 'Premium Collected', value: formatINR(totalCollected) },
+    { label: 'Outstanding Premium', value: formatINR(outstanding) },
+    { label: 'Commission Expected', value: formatINR(expectedCommission) },
+    { label: 'Commission Received', value: formatINR(receivedCommission) },
+    { label: 'Outstanding Commission', value: formatINR(outstandingCommission) }
+  ];
+
+  container.innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="summary-label">${c.label}</div>
+      <div class="summary-value">${c.value}</div>
+    </div>
+  `).join('');
+}
+
+function setActiveFinanceTab(tab) {
+  financeState.tab = tab;
+  const tabs = document.querySelectorAll('#finance-tabs .tab-btn');
+  tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+}
+
+function renderFinance() {
+  renderFinanceSummary();
+  const content = document.getElementById('finance-content');
+  if (!content) return;
+
+  // Bind tab buttons once
+  const tabsEl = document.getElementById('finance-tabs');
+  if (tabsEl && !tabsEl.dataset.bound) {
+    tabsEl.dataset.bound = 'true';
+    tabsEl.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setActiveFinanceTab(btn.dataset.tab);
+        renderFinance();
+      });
+    });
+  }
+  const exportBtn = document.getElementById('finance-export-btn');
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = 'true';
+    exportBtn.addEventListener('click', () => exportFinanceCsv());
+  }
+
+  // Ensure a tab is active based on state
+  setActiveFinanceTab(financeState.tab || 'outstanding');
+
+  if (financeState.tab === 'customer') {
+    renderCustomerLedgerTab();
+  } else if (financeState.tab === 'company') {
+    renderCompanyLedgerTab();
+  } else if (financeState.tab === 'recon') {
+    renderCommissionReconciliationTab();
+  } else {
+    renderOutstandingPremiumTab();
+  }
+}
+
+function renderOutstandingPremiumTab() {
+  const content = document.getElementById('finance-content');
+  if (!content) return;
+  const outstanding = buildOutstandingPolicies();
+
+  const searchId = 'finance-outstanding-search';
+  const existingSearch = document.getElementById(searchId);
+  const term = existingSearch ? (existingSearch.value || '').trim().toLowerCase() : '';
+
+  const list = term ? outstanding.filter(r => {
+    const p = r.policy;
+    const cust = getCustomerForPolicy(p) || {};
+    const comp = (data.companies || []).find(c => c.id === p.company) || {};
+    return (p.policyNumber || '').toLowerCase().includes(term)
+      || (cust.fullName || '').toLowerCase().includes(term)
+      || (comp.name || '').toLowerCase().includes(term);
+  }) : outstanding;
+
+  content.innerHTML = `
+    <div class="finance-toolbar">
+      <label>Search <input id="${searchId}" type="text" placeholder="Policy / customer / company" value="${escapeHtml(term)}"></label>
+      <span class="spacer"></span>
+      <button id="finance-refresh-outstanding" type="button">Refresh</button>
+    </div>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Policy</th>
+            <th>Customer</th>
+            <th>Company</th>
+            <th>Total Due</th>
+            <th>Paid</th>
+            <th>Outstanding</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r => {
+            const p = r.policy;
+            const cust = getCustomerForPolicy(p) || {};
+            const comp = (data.companies || []).find(c => c.id === p.company) || {};
+            return `
+              <tr>
+                <td class="mono">${escapeHtml(p.policyNumber || '')}</td>
+                <td>${escapeHtml(cust.fullName || '')}</td>
+                <td>${escapeHtml(comp.name || '')}</td>
+                <td>${formatINR(r.totals.totalDue)}</td>
+                <td>${formatINR(r.totals.totalPaid)}</td>
+                <td><span class="badge bad">${formatINR(r.totals.outstanding)}</span></td>
+                <td>${escapeHtml(p.paymentStatus || '')}</td>
+                <td class="actions">
+                  <button class="view-policy" data-id="${p.id}" title="View">${ICONS.eye}</button>
+                  <button class="add-payment" data-id="${p.id}" title="Add Payment">${ICONS['credit-card']}</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${list.length === 0 ? `<div class="empty-state"><p>No outstanding premiums found.</p></div>` : ''}
+  `;
+
+  // Bind search + actions
+  const searchEl = document.getElementById(searchId);
+  if (searchEl && !searchEl.dataset.bound) {
+    searchEl.dataset.bound = 'true';
+    searchEl.addEventListener('input', () => renderOutstandingPremiumTab());
+  }
+  const refreshBtn = document.getElementById('finance-refresh-outstanding');
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.dataset.bound = 'true';
+    refreshBtn.addEventListener('click', () => renderOutstandingPremiumTab());
+  }
+
+  content.querySelectorAll('.view-policy').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
+  content.querySelectorAll('.add-payment').forEach(btn => btn.addEventListener('click', () => {
+    const policyId = btn.dataset.id;
+    openPaymentForm();
+    // Pre-fill policy field after modal open
+    setTimeout(() => {
+      const sel = document.getElementById('payment-policy');
+      if (sel) sel.value = policyId;
+    }, 50);
+  }));
+}
+
+function computeCustomerLedgerEntries(customerId, startIso, endIso) {
+  const start = startIso ? parseISODate(startIso) : null;
+  const end = endIso ? parseISODate(endIso) : null;
+  if (end) end.setHours(23, 59, 59, 999);
+
+  const entries = [];
+  // Debits from policies linked to customer
+  (data.policies || []).forEach(p => {
+    const linked = [p.proposer, p.owner, p.insured].filter(Boolean);
+    if (!linked.includes(customerId)) return;
+    const date = p.startDate || p.endDate || '';
+    if (start || end) {
+      const d = parseISODate(date);
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
+    }
+    const amt = policyTotalDue(p);
+    entries.push({
+      date,
+      description: `Premium due • ${p.policyNumber || ''}`,
+      policyId: p.id,
+      debit: amt,
+      credit: 0,
+      source: 'policy'
+    });
+  });
+  // Credits from payments
+  (data.payments || []).forEach(pay => {
+    if (pay.payer !== customerId) return;
+    const date = pay.date || '';
+    if (start || end) {
+      const d = parseISODate(date);
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
+    }
+    const amt = safeNumber(pay.amount) + safeNumber(pay.tax);
+    const pol = (data.policies || []).find(p => p.id === (pay.policy || pay.policyId)) || {};
+    entries.push({
+      date,
+      description: `Payment received • ${pol.policyNumber || ''}${pay.mode ? ' • ' + pay.mode : ''}`,
+      policyId: pay.policy || pay.policyId || '',
+      debit: 0,
+      credit: amt,
+      source: 'payment'
+    });
+  });
+  // Manual adjustments
+  (data.ledgerAdjustments || []).forEach(adj => {
+    if (adj.scope !== 'customer') return;
+    if (adj.customerId !== customerId) return;
+    const date = adj.date || '';
+    if (start || end) {
+      const d = parseISODate(date);
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
+    }
+    const amt = safeNumber(adj.amount);
+    entries.push({
+      date,
+      description: `Adjustment • ${adj.notes || ''}`.trim(),
+      policyId: adj.policyId || '',
+      debit: adj.direction === 'debit' ? amt : 0,
+      credit: adj.direction === 'credit' ? amt : 0,
+      source: 'adjustment'
+    });
+  });
+
+  entries.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  // Running balance (debit - credit)
+  let bal = 0;
+  entries.forEach(e => {
+    bal += safeNumber(e.debit) - safeNumber(e.credit);
+    e.balance = +bal.toFixed(2);
+  });
+  return entries;
+}
+
+function renderCustomerLedgerTab() {
+  const content = document.getElementById('finance-content');
+  if (!content) return;
+
+  const customers = (data.customers || []).slice().sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''));
+  if (!financeState.customerId && customers.length) financeState.customerId = customers[0].id;
+
+  const startId = 'finance-ledger-start';
+  const endId = 'finance-ledger-end';
+  const custSelId = 'finance-ledger-customer';
+  const startVal = document.getElementById(startId)?.value || '';
+  const endVal = document.getElementById(endId)?.value || '';
+
+  const entries = financeState.customerId ? computeCustomerLedgerEntries(financeState.customerId, startVal, endVal) : [];
+  const balance = entries.length ? entries[entries.length - 1].balance : 0;
+
+  content.innerHTML = `
+    <div class="finance-toolbar">
+      <label>Customer
+        <select id="${custSelId}">
+          ${customers.map(c => `<option value="${c.id}" ${c.id === financeState.customerId ? 'selected' : ''}>${escapeHtml(c.fullName || '(Unnamed)')}</option>`).join('')}
+        </select>
+      </label>
+      <label>From <input id="${startId}" type="date" value="${escapeHtml(startVal)}"></label>
+      <label>To <input id="${endId}" type="date" value="${escapeHtml(endVal)}"></label>
+      <span class="spacer"></span>
+      <span class="badge ${balance > 0.01 ? 'bad' : 'good'}">Balance: ${formatINR(balance)}</span>
+      <button id="add-ledger-adjustment-btn" type="button">Add Adjustment</button>
+    </div>
+
+    <div class="table-container">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th style="width:120px;">Date</th>
+            <th>Description</th>
+            <th style="width:140px;">Debit</th>
+            <th style="width:140px;">Credit</th>
+            <th style="width:140px;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${entries.map(e => `
+            <tr>
+              <td>${escapeHtml(formatDate(e.date) || '')}</td>
+              <td>${escapeHtml(e.description || '')}${e.policyId ? ` <span class="muted mono">(${escapeHtml((data.policies.find(p => p.id === e.policyId) || {}).policyNumber || '')})</span>` : ''}</td>
+              <td>${e.debit ? formatINR(e.debit) : ''}</td>
+              <td>${e.credit ? formatINR(e.credit) : ''}</td>
+              <td>${formatINR(e.balance)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${entries.length === 0 ? `<div class="empty-state"><p>No ledger entries for the selected filters.</p></div>` : ''}
+  `;
+
+  const custSel = document.getElementById(custSelId);
+  if (custSel && !custSel.dataset.bound) {
+    custSel.dataset.bound = 'true';
+    custSel.addEventListener('change', () => {
+      financeState.customerId = custSel.value;
+      renderCustomerLedgerTab();
+    });
+  }
+  [startId, endId].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.bound) {
+      el.dataset.bound = 'true';
+      el.addEventListener('change', () => renderCustomerLedgerTab());
+    }
+  });
+
+  const addAdjBtn = document.getElementById('add-ledger-adjustment-btn');
+  if (addAdjBtn && !addAdjBtn.dataset.bound) {
+    addAdjBtn.dataset.bound = 'true';
+    addAdjBtn.addEventListener('click', () => openLedgerAdjustmentModal({ scope: 'customer', customerId: financeState.customerId }));
+  }
+}
+
+function computeCompanyPremiumLedgerEntries(companyId, startIso, endIso) {
+  const start = startIso ? parseISODate(startIso) : null;
+  const end = endIso ? parseISODate(endIso) : null;
+  if (end) end.setHours(23, 59, 59, 999);
+  const entries = [];
+
+  (data.policies || []).forEach(p => {
+    if (p.company !== companyId) return;
+    const date = p.startDate || p.endDate || '';
+    if (start || end) {
+      const d = parseISODate(date);
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
+    }
+    const amt = policyTotalDue(p);
+    entries.push({ date, description: `Premium payable • ${p.policyNumber || ''}`, policyId: p.id, debit: amt, credit: 0, source: 'policy' });
+  });
+
+  (data.payments || []).forEach(pay => {
+    const receiverType = pay.receiverType || 'Company';
+    if (receiverType === 'Company' && pay.receiver === companyId) {
+      const date = pay.date || '';
+      if (start || end) {
+        const d = parseISODate(date);
+        if (!d) return;
+        if (start && d < start) return;
+        if (end && d > end) return;
+      }
+      const amt = safeNumber(pay.amount) + safeNumber(pay.tax);
+      const pol = (data.policies || []).find(p => p.id === (pay.policy || pay.policyId)) || {};
+      entries.push({ date, description: `Payment to company • ${pol.policyNumber || ''}${pay.mode ? ' • ' + pay.mode : ''}`, policyId: pay.policy || pay.policyId || '', debit: 0, credit: amt, source: 'payment' });
+    }
+    // optionally include broker payments as settled against company payable
+    if (financeState.includeBrokerAsCompanyPaid && receiverType === 'Broker') {
+      const pol = (data.policies || []).find(p => p.id === (pay.policy || pay.policyId));
+      if (pol && pol.company === companyId) {
+        const date = pay.date || '';
+        if (start || end) {
+          const d = parseISODate(date);
+          if (!d) return;
+          if (start && d < start) return;
+          if (end && d > end) return;
+        }
+        const amt = safeNumber(pay.amount) + safeNumber(pay.tax);
+        entries.push({ date, description: `Payment via broker • ${(pol.policyNumber || '')}${pay.mode ? ' • ' + pay.mode : ''}`, policyId: pol.id, debit: 0, credit: amt, source: 'payment' });
+      }
+    }
+  });
+
+  (data.ledgerAdjustments || []).forEach(adj => {
+    if (adj.scope !== 'company') return;
+    if (adj.companyId !== companyId) return;
+    const date = adj.date || '';
+    if (start || end) {
+      const d = parseISODate(date);
+      if (!d) return;
+      if (start && d < start) return;
+      if (end && d > end) return;
+    }
+    const amt = safeNumber(adj.amount);
+    entries.push({
+      date,
+      description: `Adjustment • ${adj.notes || ''}`.trim(),
+      policyId: adj.policyId || '',
+      debit: adj.direction === 'debit' ? amt : 0,
+      credit: adj.direction === 'credit' ? amt : 0,
+      source: 'adjustment'
+    });
+  });
+
+  entries.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  let bal = 0;
+  entries.forEach(e => {
+    bal += safeNumber(e.debit) - safeNumber(e.credit);
+    e.balance = +bal.toFixed(2);
+  });
+  return entries;
+}
+
+function renderCompanyLedgerTab() {
+  const content = document.getElementById('finance-content');
+  if (!content) return;
+
+  const companies = (data.companies || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  if (!financeState.companyId && companies.length) financeState.companyId = companies[0].id;
+
+  const startId = 'finance-company-start';
+  const endId = 'finance-company-end';
+  const compSelId = 'finance-ledger-company';
+  const modeId = 'finance-company-mode';
+  const includeBrokerId = 'finance-company-include-broker';
+
+  const startVal = document.getElementById(startId)?.value || '';
+  const endVal = document.getElementById(endId)?.value || '';
+
+  const entries = financeState.companyId ? computeCompanyPremiumLedgerEntries(financeState.companyId, startVal, endVal) : [];
+  const balance = entries.length ? entries[entries.length - 1].balance : 0;
+
+  content.innerHTML = `
+    <div class="finance-toolbar">
+      <label>Company
+        <select id="${compSelId}">
+          ${companies.map(c => `<option value="${c.id}" ${c.id === financeState.companyId ? 'selected' : ''}>${escapeHtml(c.name || '(Unnamed)')}</option>`).join('')}
+        </select>
+      </label>
+      <label>From <input id="${startId}" type="date" value="${escapeHtml(startVal)}"></label>
+      <label>To <input id="${endId}" type="date" value="${escapeHtml(endVal)}"></label>
+      <label class="muted"><input id="${includeBrokerId}" type="checkbox" ${financeState.includeBrokerAsCompanyPaid ? 'checked' : ''}/> include broker payments</label>
+      <span class="spacer"></span>
+      <span class="badge ${balance > 0.01 ? 'bad' : 'good'}">Payable Balance: ${formatINR(balance)}</span>
+      <button id="add-company-ledger-adjustment-btn" type="button">Add Adjustment</button>
+    </div>
+
+    <div class="table-container">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th style="width:120px;">Date</th>
+            <th>Description</th>
+            <th style="width:140px;">Debit</th>
+            <th style="width:140px;">Credit</th>
+            <th style="width:140px;">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${entries.map(e => `
+            <tr>
+              <td>${escapeHtml(formatDate(e.date) || '')}</td>
+              <td>${escapeHtml(e.description || '')}</td>
+              <td>${e.debit ? formatINR(e.debit) : ''}</td>
+              <td>${e.credit ? formatINR(e.credit) : ''}</td>
+              <td>${formatINR(e.balance)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${entries.length === 0 ? `<div class="empty-state"><p>No ledger entries for the selected filters.</p></div>` : ''}
+    <p class="small-note">This ledger tracks what you should remit to the insurer (debit) vs what you recorded as paid to the insurer (credit). Record payments to insurer using Payments → Receiver Type “Insurance Company”.</p>
+  `;
+
+  const compSel = document.getElementById(compSelId);
+  if (compSel && !compSel.dataset.bound) {
+    compSel.dataset.bound = 'true';
+    compSel.addEventListener('change', () => {
+      financeState.companyId = compSel.value;
+      renderCompanyLedgerTab();
+    });
+  }
+  [startId, endId].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.dataset.bound) {
+      el.dataset.bound = 'true';
+      el.addEventListener('change', () => renderCompanyLedgerTab());
+    }
+  });
+  const includeBroker = document.getElementById(includeBrokerId);
+  if (includeBroker && !includeBroker.dataset.bound) {
+    includeBroker.dataset.bound = 'true';
+    includeBroker.addEventListener('change', () => {
+      financeState.includeBrokerAsCompanyPaid = includeBroker.checked;
+      renderCompanyLedgerTab();
+    });
+  }
+  const addAdjBtn = document.getElementById('add-company-ledger-adjustment-btn');
+  if (addAdjBtn && !addAdjBtn.dataset.bound) {
+    addAdjBtn.dataset.bound = 'true';
+    addAdjBtn.addEventListener('click', () => openLedgerAdjustmentModal({ scope: 'company', companyId: financeState.companyId }));
+  }
+}
+
+function renderCommissionReconciliationTab() {
+  const content = document.getElementById('finance-content');
+  if (!content) return;
+
+  const companies = (data.companies || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const companyOptions = ['<option value="">All companies</option>'].concat(companies.map(c => `<option value="${c.id}" ${c.id === financeState.reconCompanyId ? 'selected' : ''}>${escapeHtml(c.name || '(Unnamed)')}</option>`)).join('');
+
+  const statusOptions = [
+    { v: 'all', l: 'All' },
+    { v: 'outstanding', l: 'Outstanding' },
+    { v: 'matched', l: 'Matched' },
+    { v: 'overpaid', l: 'Overpaid' },
+    { v: 'reconciled', l: 'Manually Reconciled' }
+  ].map(o => `<option value="${o.v}" ${o.v === financeState.reconStatus ? 'selected' : ''}>${o.l}</option>`).join('');
+
+  const rows = [];
+  (data.policies || []).forEach(p => {
+    if (p.commissionEligibility && p.commissionEligibility !== 'Eligible') return;
+    if (financeState.reconCompanyId && p.company !== financeState.reconCompanyId) return;
+    const mode = (p.commissionType || '').toLowerCase();
+    const expected = computeExpectedCommissionForPolicy(p);
+    const received = computeCommissionReceivedForPolicy(p.id, mode);
+    const diff = +(expected - received).toFixed(2);
+    const isMatched = Math.abs(diff) <= 0.01;
+    const isOverpaid = diff < -0.01;
+    const reconciled = !!p.commissionReconciledAt;
+
+    let status = reconciled ? 'reconciled' : (isMatched ? 'matched' : (isOverpaid ? 'overpaid' : 'outstanding'));
+    if (financeState.reconStatus !== 'all' && financeState.reconStatus !== status) return;
+
+    rows.push({ policy: p, expected, received, diff, status });
+  });
+
+  // sort: outstanding biggest first
+  rows.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+
+  content.innerHTML = `
+    <div class="finance-toolbar">
+      <label>Company
+        <select id="finance-recon-company">${companyOptions}</select>
+      </label>
+      <label>Status
+        <select id="finance-recon-status">${statusOptions}</select>
+      </label>
+      <span class="spacer"></span>
+      <span class="muted">${rows.length} policy${rows.length === 1 ? '' : 'ies'}</span>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Policy</th>
+            <th>Customer</th>
+            <th>Company</th>
+            <th>Expected</th>
+            <th>Received</th>
+            <th>Diff</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => {
+            const p = r.policy;
+            const cust = getCustomerForPolicy(p) || {};
+            const comp = (data.companies || []).find(c => c.id === p.company) || {};
+            const badgeClass = r.status === 'matched' ? 'good' : (r.status === 'overpaid' ? 'warn' : (r.status === 'reconciled' ? 'good' : 'bad'));
+            const metric = (p.commissionType || '').toLowerCase() === 'points' ? 'pts' : '₹';
+            const fmt = (v) => metric === 'pts' ? (safeNumber(v).toFixed(2) + ' pts') : formatINR(v);
+            return `
+              <tr>
+                <td class="mono">${escapeHtml(p.policyNumber || '')}</td>
+                <td>${escapeHtml(cust.fullName || '')}</td>
+                <td>${escapeHtml(comp.name || '')}</td>
+                <td>${fmt(r.expected)}</td>
+                <td>${fmt(r.received)}</td>
+                <td><span class="badge ${badgeClass}">${fmt(r.diff)}</span></td>
+                <td>${escapeHtml(r.status)}</td>
+                <td class="actions">
+                  <button class="view-policy" data-id="${p.id}" title="View">${ICONS.eye}</button>
+                  <button class="add-commission" data-id="${p.id}" title="Add Commission">${ICONS.award}</button>
+                  <button class="mark-reconciled" data-id="${p.id}" title="Mark Reconciled">✓</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    ${rows.length === 0 ? `<div class="empty-state"><p>No matching reconciliation rows.</p></div>` : ''}
+    <p class="small-note">“Manually Reconciled” is a user mark on the policy. Matched/outstanding/overpaid are computed from recorded commission entries.</p>
+  `;
+
+  const compSel = document.getElementById('finance-recon-company');
+  if (compSel && !compSel.dataset.bound) {
+    compSel.dataset.bound = 'true';
+    compSel.addEventListener('change', () => {
+      financeState.reconCompanyId = compSel.value;
+      renderCommissionReconciliationTab();
+    });
+  }
+  const statusSel = document.getElementById('finance-recon-status');
+  if (statusSel && !statusSel.dataset.bound) {
+    statusSel.dataset.bound = 'true';
+    statusSel.addEventListener('change', () => {
+      financeState.reconStatus = statusSel.value;
+      renderCommissionReconciliationTab();
+    });
+  }
+
+  content.querySelectorAll('.view-policy').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
+  content.querySelectorAll('.add-commission').forEach(btn => btn.addEventListener('click', () => {
+    const policyId = btn.dataset.id;
+    openCommissionForm();
+    setTimeout(() => {
+      const sel = document.getElementById('commission-policy');
+      if (sel) {
+        sel.value = policyId;
+        // trigger expected update if implemented
+        try { sel.dispatchEvent(new Event('change')); } catch (_) {}
+      }
+    }, 50);
+  }));
+  content.querySelectorAll('.mark-reconciled').forEach(btn => btn.addEventListener('click', () => {
+    const policyId = btn.dataset.id;
+    const pol = (data.policies || []).find(p => p.id === policyId);
+    if (!pol) return;
+    const oldPol = JSON.parse(JSON.stringify(pol));
+    pol.commissionReconciledAt = new Date().toISOString();
+    pol.commissionReconciledBy = (auth && auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : 'local';
+    addTimeline(pol, 'Marked commission reconciled');
+    logChange('policy', pol.id, oldPol, pol);
+    saveData();
+    renderCommissionReconciliationTab();
+  }));
+}
+
+function openLedgerAdjustmentModal(prefill = {}) {
+  const modal = document.getElementById('ledger-adjustment-modal');
+  const form = document.getElementById('ledger-adjustment-form');
+  if (!modal || !form) return;
+
+  // Populate selects
+  const custSel = document.getElementById('ledger-adjustment-customer');
+  const compSel = document.getElementById('ledger-adjustment-company');
+  const polSel = document.getElementById('ledger-adjustment-policy');
+  if (custSel) populateCustomerSelect(custSel);
+  if (compSel) populateCompanySelect(compSel);
+  if (polSel) {
+    polSel.innerHTML = '<option value="">None</option>';
+    (data.policies || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.policyNumber || p.id;
+      polSel.appendChild(opt);
+    });
+  }
+
+  // Defaults
+  form.reset();
+  document.getElementById('ledger-adjustment-id').value = '';
+  document.getElementById('ledger-adjustment-scope').value = prefill.scope || 'customer';
+  document.getElementById('ledger-adjustment-direction').value = prefill.direction || 'debit';
+  document.getElementById('ledger-adjustment-amount').value = prefill.amount || '';
+  document.getElementById('ledger-adjustment-date').value = prefill.date || isoToday();
+  document.getElementById('ledger-adjustment-notes').value = prefill.notes || '';
+  if (prefill.customerId && custSel) custSel.value = prefill.customerId;
+  if (prefill.companyId && compSel) compSel.value = prefill.companyId;
+  if (prefill.policyId && polSel) polSel.value = prefill.policyId;
+
+  // Toggle customer/company fields based on scope
+  function applyScopeVisibility() {
+    const scope = document.getElementById('ledger-adjustment-scope').value;
+    const custLabel = custSel ? custSel.closest('label') : null;
+    const compLabel = compSel ? compSel.closest('label') : null;
+    if (custLabel) custLabel.style.display = (scope === 'customer') ? 'block' : 'none';
+    if (compLabel) compLabel.style.display = (scope === 'company') ? 'block' : 'none';
+  }
+  applyScopeVisibility();
+  const scopeSel = document.getElementById('ledger-adjustment-scope');
+  if (scopeSel && !scopeSel.dataset.bound) {
+    scopeSel.dataset.bound = 'true';
+    scopeSel.addEventListener('change', applyScopeVisibility);
+  }
+
+  // Bind form submit once
+  if (!form.dataset.bound) {
+    form.dataset.bound = 'true';
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('ledger-adjustment-id').value;
+      const scope = document.getElementById('ledger-adjustment-scope').value;
+      const direction = document.getElementById('ledger-adjustment-direction').value;
+      const amount = safeNumber(document.getElementById('ledger-adjustment-amount').value);
+      const date = document.getElementById('ledger-adjustment-date').value;
+      const policyId = document.getElementById('ledger-adjustment-policy').value || '';
+      const notes = document.getElementById('ledger-adjustment-notes').value || '';
+      const customerId = custSel ? custSel.value : '';
+      const companyId = compSel ? compSel.value : '';
+
+      const record = { id: id || generateId(), scope, direction, amount, date, policyId, notes, customerId, companyId, createdAt: new Date().toISOString() };
+      if (id) {
+        const existing = (data.ledgerAdjustments || []).find(a => a.id === id);
+        if (!existing) return;
+        const old = JSON.parse(JSON.stringify(existing));
+        Object.assign(existing, record);
+        logChange('ledgerAdjustment', existing.id, old, existing);
+      } else {
+        data.ledgerAdjustments = data.ledgerAdjustments || [];
+        data.ledgerAdjustments.push(record);
+        logChange('ledgerAdjustment', record.id, null, record);
+      }
+      saveData();
+      modal.classList.add('hidden');
+      // re-render relevant tab
+      if (financeState.tab === 'customer') renderCustomerLedgerTab();
+      if (financeState.tab === 'company') renderCompanyLedgerTab();
+    });
+  }
+
+  // Close handler
+  const close = document.getElementById('close-ledger-adjustment');
+  if (close && !close.dataset.bound) {
+    close.dataset.bound = 'true';
+    close.addEventListener('click', () => modal.classList.add('hidden'));
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function exportFinanceCsv() {
+  let rows = [];
+  if (financeState.tab === 'customer') {
+    const start = document.getElementById('finance-ledger-start')?.value || '';
+    const end = document.getElementById('finance-ledger-end')?.value || '';
+    const entries = financeState.customerId ? computeCustomerLedgerEntries(financeState.customerId, start, end) : [];
+    rows = entries.map(e => ({
+      date: e.date,
+      description: e.description,
+      policy: (data.policies.find(p => p.id === e.policyId) || {}).policyNumber || '',
+      debit: e.debit,
+      credit: e.credit,
+      balance: e.balance
+    }));
+    downloadCsvFile(`customer_ledger_${financeState.customerId || 'all'}.csv`, rows);
+    return;
+  }
+  if (financeState.tab === 'company') {
+    const start = document.getElementById('finance-company-start')?.value || '';
+    const end = document.getElementById('finance-company-end')?.value || '';
+    const entries = financeState.companyId ? computeCompanyPremiumLedgerEntries(financeState.companyId, start, end) : [];
+    rows = entries.map(e => ({
+      date: e.date,
+      description: e.description,
+      policy: (data.policies.find(p => p.id === e.policyId) || {}).policyNumber || '',
+      debit: e.debit,
+      credit: e.credit,
+      balance: e.balance
+    }));
+    downloadCsvFile(`company_ledger_${financeState.companyId || 'all'}.csv`, rows);
+    return;
+  }
+  if (financeState.tab === 'recon') {
+    const list = [];
+    (data.policies || []).forEach(p => {
+      if (p.commissionEligibility && p.commissionEligibility !== 'Eligible') return;
+      if (financeState.reconCompanyId && p.company !== financeState.reconCompanyId) return;
+      const expected = computeExpectedCommissionForPolicy(p);
+      const received = computeCommissionReceivedForPolicy(p.id, (p.commissionType || '').toLowerCase());
+      const diff = +(expected - received).toFixed(2);
+      list.push({
+        policy: p.policyNumber || '',
+        company: (data.companies.find(c => c.id === p.company) || {}).name || '',
+        customer: (getCustomerForPolicy(p) || {}).fullName || '',
+        expected,
+        received,
+        diff,
+        reconciledAt: p.commissionReconciledAt || ''
+      });
+    });
+    downloadCsvFile('commission_reconciliation.csv', list);
+    return;
+  }
+  // default: outstanding
+  const outstanding = buildOutstandingPolicies().map(r => {
+    const p = r.policy;
+    return {
+      policy: p.policyNumber || '',
+      customer: (getCustomerForPolicy(p) || {}).fullName || '',
+      company: (data.companies.find(c => c.id === p.company) || {}).name || '',
+      totalDue: r.totals.totalDue,
+      paid: r.totals.totalPaid,
+      outstanding: r.totals.outstanding,
+      paymentStatus: p.paymentStatus || ''
+    };
+  });
+  downloadCsvFile('outstanding_premiums.csv', outstanding);
+}
+
+function downloadCsvFile(filename, rows) {
+  try {
+    if (!rows || rows.length === 0) {
+      alert('Nothing to export for the current view.');
+      return;
+    }
+    const headers = Object.keys(rows[0]);
+    const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => escapeCsvValue(r[h])).join(','))).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (e) {
+    console.error('CSV export failed', e);
+    alert('CSV export failed. Check console.');
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Phase 4: Compliance (Policy-level checklists + alerts)
+// -----------------------------------------------------------------------------
+
+function getComplianceTemplates() {
+  return (data.settings && data.settings.complianceTemplates) ? data.settings.complianceTemplates : {};
+}
+
+function getComplianceTemplateForType(policyType) {
+  const templates = getComplianceTemplates();
+  if (!policyType) return templates.Default || [];
+  return templates[policyType] || templates.Default || [];
+}
+
+function normalizeTemplateItem(it) {
+  if (!it) return null;
+  const id = (it.id || (it.label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_')).slice(0, 40);
+  return {
+    id,
+    label: it.label || '',
+    required: !!it.required,
+    dueDays: (it.dueDays === undefined || it.dueDays === null) ? '' : it.dueDays
+  };
+}
+
+function ensurePolicyCompliance(policy) {
+  if (!policy) return;
+  const type = policy.policyType || 'Default';
+  const tmpl = (getComplianceTemplateForType(type) || []).map(normalizeTemplateItem).filter(Boolean);
+
+  if (!policy.compliance || typeof policy.compliance !== 'object') {
+    policy.compliance = { type, items: [], createdAt: new Date().toISOString(), lastUpdated: new Date().toISOString() };
+  }
+  if (!Array.isArray(policy.compliance.items)) policy.compliance.items = [];
+  policy.compliance.type = type;
+
+  const existingById = {};
+  policy.compliance.items.forEach(it => { if (it && it.id) existingById[it.id] = it; });
+
+  tmpl.forEach(t => {
+    const ex = existingById[t.id];
+    if (ex) {
+      // merge non-destructively: keep done fields
+      ex.label = t.label;
+      ex.required = t.required;
+      if (t.dueDays !== '' && t.dueDays !== undefined) ex.dueDays = t.dueDays;
+      if (ex.done === undefined) ex.done = false;
+      if (ex.doneAt === undefined) ex.doneAt = '';
+      if (ex.doneBy === undefined) ex.doneBy = '';
+    } else {
+      policy.compliance.items.push({ id: t.id, label: t.label, required: t.required, dueDays: t.dueDays, done: false, doneAt: '', doneBy: '' });
+    }
+  });
+
+  // Remove duplicates by id (keep first)
+  const seen = new Set();
+  policy.compliance.items = policy.compliance.items.filter(it => {
+    if (!it || !it.id) return false;
+    if (seen.has(it.id)) return false;
+    seen.add(it.id);
+    return true;
+  });
+
+  policy.compliance.lastUpdated = policy.compliance.lastUpdated || new Date().toISOString();
+}
+
+function computeComplianceDueInfo(policy, item) {
+  if (!policy || !item) return null;
+  const start = policy.startDate || '';
+  const dueDays = item.dueDays;
+  if (!start || dueDays === '' || dueDays === undefined || dueDays === null) return { dueDate: '', overdue: false, dueSoon: false };
+  const base = parseISODate(start);
+  if (!base) return { dueDate: '', overdue: false, dueSoon: false };
+  const dd = parseInt(dueDays, 10);
+  if (isNaN(dd)) return { dueDate: '', overdue: false, dueSoon: false };
+  const due = new Date(base);
+  due.setDate(due.getDate() + dd);
+  const dueIso = due.toISOString().split('T')[0];
+  const now = new Date();
+  const todayIso = now.toISOString().split('T')[0];
+  const overdue = !item.done && dueIso < todayIso;
+  const horizon = parseInt((data.settings && data.settings.complianceAlertWindowDays) || 3, 10) || 3;
+  const soon = !item.done && !overdue && dueIso <= addDaysISO(todayIso, horizon);
+  return { dueDate: dueIso, overdue, dueSoon: soon };
+}
+
+function getPolicyComplianceStats(policy) {
+  ensurePolicyCompliance(policy);
+  const items = (policy && policy.compliance && Array.isArray(policy.compliance.items)) ? policy.compliance.items : [];
+  let requiredTotal = 0, requiredDone = 0, pendingRequired = 0, overdueRequired = 0;
+  items.forEach(it => {
+    if (!it) return;
+    if (it.required) {
+      requiredTotal++;
+      if (it.done) requiredDone++;
+      else pendingRequired++;
+      const due = computeComplianceDueInfo(policy, it);
+      if (!it.done && due && due.overdue) overdueRequired++;
+    }
+  });
+  return { requiredTotal, requiredDone, pendingRequired, overdueRequired };
+}
+
+function getPolicyComplianceBadgeHtml(policy) {
+  try {
+    const stats = getPolicyComplianceStats(policy);
+    if (stats.requiredTotal === 0) return '<span class="badge">—</span>';
+    const cls = stats.overdueRequired > 0 ? 'bad' : (stats.pendingRequired > 0 ? 'warn' : 'good');
+    const label = (stats.overdueRequired > 0) ? `${stats.requiredDone}/${stats.requiredTotal} • ${stats.overdueRequired} overdue` : `${stats.requiredDone}/${stats.requiredTotal}`;
+    return `<span class="badge ${cls}">${label}</span>`;
+  } catch (_) {
+    return '<span class="badge">—</span>';
+  }
+}
+
+function renderComplianceSummary() {
+  const container = document.getElementById('compliance-summary');
+  if (!container) return;
+  const policies = data.policies || [];
+  let compliant = 0, pending = 0, overdue = 0;
+  policies.forEach(p => {
+    const s = getPolicyComplianceStats(p);
+    if (s.requiredTotal === 0) return;
+    if (s.overdueRequired > 0) overdue++;
+    else if (s.pendingRequired > 0) pending++;
+    else compliant++;
+  });
+  const cards = [
+    { label: 'Policies', value: policies.length },
+    { label: 'Compliant', value: compliant },
+    { label: 'Pending', value: pending },
+    { label: 'Overdue', value: overdue }
+  ];
+  container.innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="summary-label">${c.label}</div>
+      <div class="summary-value">${c.value}</div>
+    </div>
+  `).join('');
+}
+
+function renderComplianceList() {
+  const container = document.getElementById('compliance-list');
+  if (!container) return;
+  const term = (pageSearchTerms.compliance || '').trim().toLowerCase();
+
+  const policies = (data.policies || []).slice().sort((a, b) => (a.endDate || '').localeCompare(b.endDate || ''));
+  const filtered = term ? policies.filter(p => {
+    const cust = getCustomerForPolicy(p) || {};
+    const comp = (data.companies || []).find(c => c.id === p.company) || {};
+    const s = `${p.policyNumber || ''} ${p.policyType || ''} ${cust.fullName || ''} ${comp.name || ''}`.toLowerCase();
+    return s.includes(term);
+  }) : policies;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${ICONS['shield-check']}</div><p>No policies match the filter.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => {
+    const cust = getCustomerForPolicy(p) || {};
+    const comp = (data.companies || []).find(c => c.id === p.company) || {};
+    const stats = getPolicyComplianceStats(p);
+    const pct = stats.requiredTotal > 0 ? Math.round((stats.requiredDone / stats.requiredTotal) * 100) : 0;
+    const badgeCls = stats.overdueRequired > 0 ? 'bad' : (stats.pendingRequired > 0 ? 'warn' : 'good');
+    return `
+      <div class="card" style="margin-bottom:0.75rem;">
+        <div class="card-header">
+          <span class="card-title">Policy <span class="mono">${escapeHtml(p.policyNumber || '')}</span></span>
+          <span class="badge ${badgeCls}">${stats.requiredTotal ? `${stats.requiredDone}/${stats.requiredTotal}` : '—'}</span>
+        </div>
+        <div class="card-body">
+          <p><strong>Customer:</strong> ${escapeHtml(cust.fullName || '')}</p>
+          <p><strong>Company:</strong> ${escapeHtml(comp.name || '')}</p>
+          <p class="muted">${escapeHtml(p.policyType || '')} • Expiry: ${escapeHtml(formatDate(p.endDate) || '')}</p>
+          <div class="progress"><div style="width:${pct}%;"></div></div>
+          <p class="muted" style="margin-top:0.4rem;">Pending: ${stats.pendingRequired} • Overdue: ${stats.overdueRequired}</p>
+        </div>
+        <div class="card-actions">
+          <button class="view-policy" data-id="${p.id}">View</button>
+          <button class="open-checklist" data-id="${p.id}">Checklist</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.view-policy').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
+  container.querySelectorAll('.open-checklist').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
+}
+
+function openComplianceTemplatesModal() {
+  const modal = document.getElementById('compliance-templates-modal');
+  const typeSel = document.getElementById('compliance-template-type');
+  if (!modal || !typeSel) return;
+
+  const knownTypes = new Set(['Default', 'Motor', 'Health', 'Life', 'Travel', 'Home', 'Commercial']);
+  (data.policies || []).forEach(p => { if (p.policyType) knownTypes.add(p.policyType); });
+  Object.keys(getComplianceTemplates() || {}).forEach(t => knownTypes.add(t));
+
+  const types = Array.from(knownTypes).sort((a, b) => a.localeCompare(b));
+  typeSel.innerHTML = types.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  // Default to the currently selected policy type if any exists
+  if (typeSel.value === '' && types.includes('Default')) typeSel.value = 'Default';
+
+  renderComplianceTemplateEditor(typeSel.value);
+
+  if (!typeSel.dataset.bound) {
+    typeSel.dataset.bound = 'true';
+    typeSel.addEventListener('change', () => renderComplianceTemplateEditor(typeSel.value));
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function renderComplianceTemplateEditor(type) {
+  const container = document.getElementById('compliance-template-items');
+  if (!container) return;
+  const tmpl = (getComplianceTemplateForType(type) || []).map(normalizeTemplateItem).filter(Boolean);
+
+  container.innerHTML = `
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:40%;">Label</th>
+            <th>Required</th>
+            <th>Due Days</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tmpl.map((it, idx) => `
+            <tr data-idx="${idx}">
+              <td><input type="text" class="tmpl-label" value="${escapeHtml(it.label)}" style="width:100%;"></td>
+              <td><input type="checkbox" class="tmpl-required" ${it.required ? 'checked' : ''}></td>
+              <td><input type="number" class="tmpl-due" value="${escapeHtml(it.dueDays)}" style="width:100px;"></td>
+              <td><button class="tmpl-del" type="button">Delete</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="small-note">Due Days are relative to the policy start date. Leave blank to disable due tracking for an item.</p>
+  `;
+
+  // Bind delete
+  container.querySelectorAll('.tmpl-del').forEach(btn => btn.addEventListener('click', () => {
+    const tr = btn.closest('tr');
+    if (!tr) return;
+    tr.remove();
+  }));
+}
+
+function saveComplianceTemplateFromEditor() {
+  const type = document.getElementById('compliance-template-type')?.value || 'Default';
+  const container = document.getElementById('compliance-template-items');
+  if (!container) return;
+
+  const rows = Array.from(container.querySelectorAll('tbody tr'));
+  const items = rows.map(tr => {
+    const label = tr.querySelector('.tmpl-label')?.value || '';
+    const required = !!tr.querySelector('.tmpl-required')?.checked;
+    const dueDaysVal = tr.querySelector('.tmpl-due')?.value;
+    const dueDays = (dueDaysVal === '' || dueDaysVal === null || dueDaysVal === undefined) ? '' : parseInt(dueDaysVal, 10);
+    return normalizeTemplateItem({ id: '', label, required, dueDays });
+  }).filter(it => it && it.label);
+
+  const oldSettings = JSON.parse(JSON.stringify(data.settings));
+  data.settings.complianceTemplates = data.settings.complianceTemplates || {};
+  data.settings.complianceTemplates[type] = items;
+  logChange('settings', 'complianceTemplates', oldSettings, data.settings);
+  saveData();
+
+  // Recompute compliance structures (non-destructive)
+  try { (data.policies || []).forEach(p => ensurePolicyCompliance(p)); } catch (_) {}
+  try { renderComplianceList(); renderComplianceSummary(); } catch (_) {}
+}
+
+function renderComplianceAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (!container) return;
+
+  const rows = [];
+  (data.policies || []).forEach(p => {
+    const stats = getPolicyComplianceStats(p);
+    if (stats.requiredTotal === 0) return;
+    if (stats.pendingRequired === 0 && stats.overdueRequired === 0) return;
+    // Determine soonest due/overdue required item
+    let best = null;
+    (p.compliance.items || []).forEach(it => {
+      if (!it.required || it.done) return;
+      const due = computeComplianceDueInfo(p, it);
+      if (!due || !due.dueDate) return;
+      if (!best) best = { it, due };
+      else {
+        // prioritize overdue then earlier due date
+        const aOver = !!best.due.overdue;
+        const bOver = !!due.overdue;
+        if (bOver && !aOver) best = { it, due };
+        else if (aOver === bOver && due.dueDate < best.due.dueDate) best = { it, due };
+      }
+    });
+    rows.push({ policy: p, stats, best });
+  });
+  // overdue first, then due soon, then by due date
+  rows.sort((a, b) => (b.stats.overdueRequired - a.stats.overdueRequired) || ((a.best?.due?.dueDate || '').localeCompare(b.best?.due?.dueDate || '')));
+
+  if (rows.length === 0) return;
+
+  const heading = document.createElement('h3');
+  heading.textContent = 'Compliance Alerts';
+  container.appendChild(heading);
+
+  rows.slice(0, 25).forEach(r => {
+    const p = r.policy;
+    const cust = getCustomerForPolicy(p) || {};
+    const comp = (data.companies || []).find(c => c.id === p.company) || {};
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '0.5rem';
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (r.stats.overdueRequired > 0 ? 'bad' : 'warn');
+    badge.textContent = r.stats.overdueRequired > 0 ? `${r.stats.overdueRequired} overdue` : `${r.stats.pendingRequired} pending`;
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">Policy <span class="mono">${escapeHtml(p.policyNumber || '')}</span></span>
+      </div>
+      <div class="card-body">
+        <p>Customer: ${escapeHtml(cust.fullName || '')}</p>
+        <p>Company: ${escapeHtml(comp.name || '')}</p>
+        ${r.best && r.best.it ? `<p class="muted">Next: ${escapeHtml(r.best.it.label)} • Due: ${escapeHtml(formatDate(r.best.due.dueDate) || '')}${r.best.due.overdue ? ' (Overdue)' : ''}</p>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="view-policy" data-id="${p.id}">View</button>
+      </div>
+    `;
+    card.querySelector('.card-header')?.appendChild(badge);
+    card.querySelector('.view-policy')?.addEventListener('click', () => openPolicyDetail(p.id));
+    container.appendChild(card);
+  });
+}
+
+function renderOutstandingPremiumAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (!container) return;
+  const rows = buildOutstandingPolicies().slice(0, 15);
+  if (rows.length === 0) return;
+
+  const heading = document.createElement('h3');
+  heading.textContent = 'Outstanding Premiums';
+  container.appendChild(heading);
+
+  rows.forEach(r => {
+    const p = r.policy;
+    const cust = getCustomerForPolicy(p) || {};
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '0.5rem';
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">Policy <span class="mono">${escapeHtml(p.policyNumber || '')}</span></span>
+        <span class="badge bad">${formatINR(r.totals.outstanding)}</span>
+      </div>
+      <div class="card-body">
+        <p>Customer: ${escapeHtml(cust.fullName || '')}</p>
+        <p class="muted">Paid: ${formatINR(r.totals.totalPaid)} • Due: ${formatINR(r.totals.totalDue)}</p>
+      </div>
+      <div class="card-actions">
+        <button class="view-policy" data-id="${p.id}">View</button>
+        <button class="add-payment" data-id="${p.id}">Add Payment</button>
+      </div>
+    `;
+    card.querySelector('.view-policy')?.addEventListener('click', () => openPolicyDetail(p.id));
+    card.querySelector('.add-payment')?.addEventListener('click', () => {
+      openPaymentForm();
+      setTimeout(() => {
+        const sel = document.getElementById('payment-policy');
+        if (sel) sel.value = p.id;
+      }, 50);
+    });
+    container.appendChild(card);
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Leads (CRM)
+// -----------------------------------------------------------------------------
+
+function getLeadStages() {
+  return (data.settings.leadStages && data.settings.leadStages.length) ? data.settings.leadStages : ['New', 'Contacted', 'Interested', 'Quoted', 'Negotiating', 'Won', 'Lost'];
+}
+function getLeadSources() {
+  return (data.settings.leadSources && data.settings.leadSources.length) ? data.settings.leadSources : ['Walk-in', 'Referral', 'Online', 'Partner', 'Cold Call'];
+}
+
+function populateLeadSelect(selectEl, opts = {}) {
+  if (!selectEl) return;
+  const includeConverted = !!opts.includeConverted;
+  const leads = (data.leads || []).slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  selectEl.innerHTML = `<option value="">Select</option>`;
+  leads.forEach(l => {
+    if (!includeConverted && l.status === 'Converted') return;
+    const opt = document.createElement('option');
+    opt.value = l.id;
+    const label = `${l.name || 'Unnamed'}${l.phone ? ' • ' + l.phone : ''}${l.stage ? ' • ' + l.stage : ''}`;
+    opt.textContent = label;
+    selectEl.appendChild(opt);
+  });
+}
+
+function populateLeadStageSourceControls() {
+  // Form dropdowns
+  const stageSel = document.getElementById('lead-stage');
+  const sourceSel = document.getElementById('lead-source');
+  if (stageSel) {
+    const cur = stageSel.value;
+    stageSel.innerHTML = '';
+    getLeadStages().forEach(st => {
+      const opt = document.createElement('option');
+      opt.value = st;
+      opt.textContent = st;
+      stageSel.appendChild(opt);
+    });
+    if (cur) stageSel.value = cur;
+  }
+  if (sourceSel) {
+    const cur = sourceSel.value;
+    sourceSel.innerHTML = '<option value="">—</option>';
+    getLeadSources().forEach(src => {
+      const opt = document.createElement('option');
+      opt.value = src;
+      opt.textContent = src;
+      sourceSel.appendChild(opt);
+    });
+    if (cur) sourceSel.value = cur;
+  }
+
+  // Filters
+  const stageFilter = document.getElementById('leads-stage-filter');
+  if (stageFilter) {
+    const cur = stageFilter.value;
+    stageFilter.innerHTML = '<option value="">All stages</option>';
+    getLeadStages().forEach(st => {
+      const opt = document.createElement('option');
+      opt.value = st;
+      opt.textContent = st;
+      stageFilter.appendChild(opt);
+    });
+    stageFilter.value = cur || '';
+  }
+  const sourceFilter = document.getElementById('leads-source-filter');
+  if (sourceFilter) {
+    const cur = sourceFilter.value;
+    sourceFilter.innerHTML = '<option value="">All sources</option>';
+    getLeadSources().forEach(src => {
+      const opt = document.createElement('option');
+      opt.value = src;
+      opt.textContent = src;
+      sourceFilter.appendChild(opt);
+    });
+    sourceFilter.value = cur || '';
+  }
+}
+
+function renderLeadsSummary() {
+  const container = document.getElementById('leads-summary');
+  if (!container) return;
+  const leads = data.leads || [];
+  const total = leads.length;
+  const openCount = leads.filter(l => (l.status || 'Open') === 'Open').length;
+  const convertedCount = leads.filter(l => l.status === 'Converted').length;
+  const lostCount = leads.filter(l => l.status === 'Lost').length;
+  const overdueFollowups = (data.tasks || []).filter(t => (t.linkedType === 'lead') && t.dueDate && t.status !== 'Completed' && t.dueDate < isoToday()).length;
+  const conversionRate = total ? Math.round((convertedCount / total) * 100) : 0;
+
+  container.innerHTML = `
+    <div class="summary-card"><span class="summary-value">${total}</span><span class="summary-label">Total Leads</span></div>
+    <div class="summary-card"><span class="summary-value">${openCount}</span><span class="summary-label">Open</span></div>
+    <div class="summary-card"><span class="summary-value">${convertedCount}</span><span class="summary-label">Converted</span></div>
+    <div class="summary-card"><span class="summary-value">${lostCount}</span><span class="summary-label">Lost</span></div>
+    <div class="summary-card"><span class="summary-value">${overdueFollowups}</span><span class="summary-label">Overdue Follow-ups</span></div>
+    <div class="summary-card"><span class="summary-value">${conversionRate}%</span><span class="summary-label">Conversion Rate</span></div>
+  `;
+}
+
+function leadMatchesTerm(lead, term) {
+  if (!term) return true;
+  const t = term.toLowerCase();
+  const str = `${lead.name || ''} ${lead.phone || ''} ${lead.email || ''} ${lead.city || ''} ${lead.source || ''} ${lead.stage || ''} ${lead.status || ''} ${lead.notes || ''}`.toLowerCase();
+  return str.includes(t);
+}
+
+function renderLeadsView() {
+  const container = document.getElementById('leads-view');
+  if (!container) return;
+
+  populateLeadStageSourceControls();
+
+  const mode = data.settings.leadsViewMode || 'pipeline';
+  const toggleBtn = document.getElementById('toggle-leads-view-btn');
+  if (toggleBtn) toggleBtn.textContent = (mode === 'pipeline') ? 'List' : 'Pipeline';
+
+  const term = (pageSearchTerms.leads || '').trim().toLowerCase();
+  const stageFilter = document.getElementById('leads-stage-filter')?.value || '';
+  const sourceFilter = document.getElementById('leads-source-filter')?.value || '';
+
+  let leads = (data.leads || []).slice();
+  leads = leads.filter(l => leadMatchesTerm(l, term));
+  if (stageFilter) leads = leads.filter(l => (l.stage || '') === stageFilter);
+  if (sourceFilter) leads = leads.filter(l => (l.source || '') === sourceFilter);
+
+  // sort by updatedAt/createdAt desc
+  leads.sort((a, b) => ((b.updatedAt || b.createdAt || '')).localeCompare(a.updatedAt || a.createdAt || ''));
+
+  if (leads.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${ICONS.target}</div><h3>No leads found</h3><p>Click “Add Lead” to create your first lead.</p></div>`;
+    return;
+  }
+
+  if (mode === 'pipeline') {
+    renderLeadsPipeline(container, leads);
+  } else {
+    renderLeadsList(container, leads);
+  }
+
+  // bind click handlers once (event delegation)
+  if (!container.dataset.boundClicks) {
+    container.dataset.boundClicks = 'true';
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      const action = btn.getAttribute('data-action');
+      if (!id || !action) return;
+      e.stopPropagation();
+      if (action === 'view') openLeadDetail(id);
+      if (action === 'edit') openLeadForm(id);
+      if (action === 'delete') deleteLead(id);
+      if (action === 'convert') convertLeadToCustomer(id);
+      if (action === 'task') openTaskFormWithDefaults({ linkedType: 'lead', linkedId: id, title: 'Follow-up', dueDate: isoToday() });
+      if (action === 'quote') openQuoteForm(null, { prospectType: 'lead', leadId: id });
+    });
+  }
+}
+
+function renderLeadsList(container, leads) {
+  let html = `<div class="table-container"><table class="data-table"><thead>
+    <tr>
+      <th>Name</th><th>Phone</th><th>Stage</th><th>Source</th><th>Next Follow-up</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>`;
+  leads.forEach(l => {
+    const nextFU = l.nextFollowUpDate ? formatDate(l.nextFollowUpDate) : '';
+    html += `<tr>
+      <td>${escapeHtml(l.name || '')}</td>
+      <td>${escapeHtml(l.phone || '')}</td>
+      <td>${escapeHtml(l.stage || '')}</td>
+      <td>${escapeHtml(l.source || '')}</td>
+      <td>${escapeHtml(nextFU)}</td>
+      <td>${escapeHtml(l.status || 'Open')}</td>
+      <td>
+        <button data-action="view" data-id="${l.id}">${ICONS.eye}</button>
+        <button data-action="edit" data-id="${l.id}">${ICONS.pencil}</button>
+        <button data-action="task" data-id="${l.id}" title="Add follow-up task">${ICONS.checklist}</button>
+        <button data-action="quote" data-id="${l.id}" title="Create quote">${ICONS['file-text']}</button>
+        <button data-action="convert" data-id="${l.id}" title="Convert to customer">${ICONS.users}</button>
+        <button data-action="delete" data-id="${l.id}">${ICONS.trash}</button>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+}
+
+function renderLeadsPipeline(container, leads) {
+  const stages = getLeadStages();
+  let html = `<div class="pipeline-board">`;
+  stages.forEach(stage => {
+    const stageLeads = leads.filter(l => (l.stage || stages[0]) === stage);
+    html += `<div class="pipeline-column" data-stage="${escapeHtml(stage)}">
+      <h4><span>${escapeHtml(stage)}</span><span class="count-badge">${stageLeads.length}</span></h4>
+      <div class="pipeline-cards" data-drop-stage="${escapeHtml(stage)}">`;
+    stageLeads.forEach(l => {
+      const followUps = (data.tasks || []).filter(t => t.linkedType === 'lead' && t.linkedId === l.id && t.status !== 'Completed').length;
+      html += `<div class="pipeline-card" draggable="true" data-id="${l.id}">
+        <div class="title">${escapeHtml(l.name || 'Unnamed')}</div>
+        <div class="meta">${escapeHtml(l.phone || '')}${l.source ? ' • ' + escapeHtml(l.source) : ''}</div>
+        <div class="meta">${followUps ? `Open follow-ups: ${followUps}` : ''}${l.nextFollowUpDate ? ` • Next: ${escapeHtml(formatDate(l.nextFollowUpDate))}` : ''}</div>
+        <div class="actions">
+          <button data-action="view" data-id="${l.id}">View</button>
+          <button data-action="task" data-id="${l.id}" title="Add follow-up">Task</button>
+          <button data-action="quote" data-id="${l.id}" title="Quote">Quote</button>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // drag/drop binding for pipeline columns
+  container.querySelectorAll('.pipeline-card').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', card.getAttribute('data-id'));
+    });
+  });
+  container.querySelectorAll('.pipeline-cards').forEach(zone => {
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    zone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const leadId = e.dataTransfer.getData('text/plain');
+      const stage = zone.getAttribute('data-drop-stage');
+      if (!leadId || !stage) return;
+      const lead = (data.leads || []).find(l => l.id === leadId);
+      if (!lead) return;
+      const oldStage = lead.stage || '';
+      if (oldStage === stage) return;
+      const oldCopy = JSON.parse(JSON.stringify(lead));
+      lead.stage = stage;
+      lead.updatedAt = new Date().toISOString();
+      addTimeline(lead, `Stage changed: ${oldStage || '(none)'} → ${stage}`);
+      logChange('lead', lead.id, oldCopy, lead);
+      // Fire automation event
+      await applyAutomationRules('leadStageChanged', { lead, oldStage, newStage: stage });
+      saveData();
+      renderLeadsView();
+      renderLeadsSummary();
+    });
+  });
+}
+
+function openLeadForm(id) {
+  populateLeadStageSourceControls();
+  const modal = document.getElementById('lead-form-modal');
+  const title = document.getElementById('lead-form-title');
+  const form = document.getElementById('lead-form');
+  if (!modal || !title || !form) return;
+  form.reset();
+  document.getElementById('lead-id').value = '';
+  if (id) {
+    const lead = (data.leads || []).find(l => l.id === id);
+    if (!lead) return;
+    title.textContent = 'Edit Lead';
+    document.getElementById('lead-id').value = lead.id;
+    document.getElementById('lead-name').value = lead.name || '';
+    document.getElementById('lead-phone').value = lead.phone || '';
+    document.getElementById('lead-email').value = lead.email || '';
+    document.getElementById('lead-city').value = lead.city || '';
+    document.getElementById('lead-source').value = lead.source || '';
+    document.getElementById('lead-stage').value = lead.stage || getLeadStages()[0];
+    document.getElementById('lead-status').value = lead.status || 'Open';
+    document.getElementById('lead-product').value = lead.productType || lead.expectedProductType || '';
+    document.getElementById('lead-next-followup').value = lead.nextFollowUpDate || '';
+    document.getElementById('lead-notes').value = lead.notes || '';
+  } else {
+    title.textContent = 'Add Lead';
+    document.getElementById('lead-stage').value = getLeadStages()[0];
+    document.getElementById('lead-status').value = 'Open';
+  }
+  modal.classList.remove('hidden');
+}
+
+function handleLeadForm() {
+  const form = document.getElementById('lead-form');
+  if (!form) return;
+  if (form.dataset.bound) return;
+  form.dataset.bound = 'true';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('lead-id').value;
+    const name = (document.getElementById('lead-name').value || '').trim();
+    if (!name) return;
+    const now = new Date().toISOString();
+    const leadObj = {
+      id: id || generateId(),
+      name,
+      phone: (document.getElementById('lead-phone').value || '').trim(),
+      email: (document.getElementById('lead-email').value || '').trim(),
+      city: (document.getElementById('lead-city').value || '').trim(),
+      source: (document.getElementById('lead-source').value || '').trim(),
+      stage: (document.getElementById('lead-stage').value || getLeadStages()[0]).trim(),
+      status: (document.getElementById('lead-status').value || 'Open').trim(),
+      productType: (document.getElementById('lead-product').value || '').trim(),
+      nextFollowUpDate: document.getElementById('lead-next-followup').value || '',
+      notes: (document.getElementById('lead-notes').value || '').trim(),
+      updatedAt: now
+    };
+
+    const modal = document.getElementById('lead-form-modal');
+    let oldStage = null;
+    if (id) {
+      const existing = (data.leads || []).find(l => l.id === id);
+      if (!existing) return;
+      oldStage = existing.stage || '';
+      const oldCopy = JSON.parse(JSON.stringify(existing));
+      Object.assign(existing, leadObj);
+      addTimeline(existing, 'Updated lead');
+      logChange('lead', existing.id, oldCopy, existing);
+      // Stage change automation
+      if (oldStage !== existing.stage) {
+        await applyAutomationRules('leadStageChanged', { lead: existing, oldStage, newStage: existing.stage });
+      }
+      // next follow-up task helper
+      maybeCreateLeadFollowUpTask(existing);
+    } else {
+      leadObj.createdAt = now;
+      leadObj.timeline = [];
+      addTimeline(leadObj, 'Created lead');
+      data.leads.push(leadObj);
+      logChange('lead', leadObj.id, null, leadObj);
+      await applyAutomationRules('leadCreated', { lead: leadObj });
+      maybeCreateLeadFollowUpTask(leadObj);
+    }
+
+    saveData();
+    renderLeadsView();
+    renderLeadsSummary();
+    if (modal) modal.classList.add('hidden');
+  });
+}
+
+function maybeCreateLeadFollowUpTask(lead) {
+  if (!lead || !lead.id) return;
+  if (!lead.nextFollowUpDate) return;
+  const due = lead.nextFollowUpDate;
+  // Avoid duplicates: same linked lead + due date + not completed
+  const existing = (data.tasks || []).find(t =>
+    t.linkedType === 'lead' &&
+    t.linkedId === lead.id &&
+    t.dueDate === due &&
+    t.status !== 'Completed' &&
+    (t.title || '').toLowerCase().includes('follow')
+  );
+  if (existing) return;
+
+  const task = {
+    id: generateId(),
+    title: `Follow-up: ${lead.name || 'Lead'}`,
+    description: `Auto-created from Lead next follow-up date.`,
+    dueDate: due,
+    priority: 'Medium',
+    status: 'Pending',
+    linkedType: 'lead',
+    linkedId: lead.id,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    timeline: []
+  };
+  addTimeline(task, 'Created follow-up task (auto)');
+  data.tasks.push(task);
+  logChange('task', task.id, null, task);
+}
+
+function deleteLead(id) {
+  const lead = (data.leads || []).find(l => l.id === id);
+  if (!lead) return;
+  if (!confirm(`Delete lead "${lead.name || ''}"? This cannot be undone.`)) return;
+  const idx = data.leads.findIndex(l => l.id === id);
+  if (idx >= 0) {
+    logChange('lead', id, JSON.parse(JSON.stringify(data.leads[idx])), null);
+    data.leads.splice(idx, 1);
+    saveData();
+    renderLeadsView();
+    renderLeadsSummary();
+  }
+}
+
+function convertLeadToCustomer(id) {
+  const lead = (data.leads || []).find(l => l.id === id);
+  if (!lead) return;
+  if (lead.status === 'Converted' && lead.customerId) {
+    alert('This lead is already converted.');
+    return;
+  }
+  if (!confirm(`Convert "${lead.name || ''}" into a Customer?`)) return;
+
+  const cust = {
+    id: generateId(),
+    fullName: lead.name || '',
+    mobileNumber: lead.phone || '',
+    email: lead.email || '',
+    city: lead.city || '',
+    dob: '',
+    gender: '',
+    pan: '',
+    aadhaar: '',
+    address: '',
+    remarks: `Converted from lead ${lead.id}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    timeline: []
+  };
+  addTimeline(cust, 'Created customer (converted from lead)');
+  data.customers.push(cust);
+  logChange('customer', cust.id, null, cust);
+
+  const oldCopy = JSON.parse(JSON.stringify(lead));
+  lead.status = 'Converted';
+  lead.customerId = cust.id;
+  lead.stage = lead.stage || 'Won';
+  lead.updatedAt = new Date().toISOString();
+  addTimeline(lead, `Converted to customer (${cust.id})`);
+  logChange('lead', lead.id, oldCopy, lead);
+
+  saveData();
+  renderCustomersList();
+  renderLeadsView();
+  renderLeadsSummary();
+  alert('Lead converted. Customer created.');
+}
+
+function openLeadDetail(id) {
+  const lead = (data.leads || []).find(l => l.id === id);
+  if (!lead) return;
+  const modal = document.getElementById('lead-detail-modal');
+  const titleEl = document.getElementById('lead-detail-title');
+  const content = document.getElementById('lead-detail-content');
+  if (!modal || !titleEl || !content) return;
+  titleEl.textContent = lead.name || 'Lead';
+  content.innerHTML = '';
+
+  const header = document.createElement('div');
+  header.className = 'profile-header';
+  header.innerHTML = `
+    <div class="header-top">
+      <h3>${escapeHtml(lead.name || '')}</h3>
+      <span class="status-badge">${escapeHtml(lead.stage || '')}</span>
+    </div>
+    <div class="info">
+      ${lead.phone ? `<p>Phone: ${escapeHtml(lead.phone)}</p>` : ''}
+      ${lead.email ? `<p>Email: ${escapeHtml(lead.email)}</p>` : ''}
+      ${lead.city ? `<p>City: ${escapeHtml(lead.city)}</p>` : ''}
+      ${lead.source ? `<p>Source: ${escapeHtml(lead.source)}</p>` : ''}
+      ${lead.status ? `<p>Status: ${escapeHtml(lead.status)}</p>` : ''}
+      ${lead.nextFollowUpDate ? `<p>Next Follow-up: ${escapeHtml(formatDate(lead.nextFollowUpDate))}</p>` : ''}
+    </div>
+  `;
+  content.appendChild(header);
+
+  // Actions row
+  const actions = document.createElement('div');
+  actions.className = 'section-actions';
+  actions.innerHTML = `
+    <button id="lead-detail-edit">Edit</button>
+    <button id="lead-detail-task">Add Follow-up Task</button>
+    <button id="lead-detail-quote">Create Quote</button>
+    <button id="lead-detail-convert">Convert to Customer</button>
+  `;
+  content.appendChild(actions);
+
+  document.getElementById('lead-detail-edit').onclick = () => openLeadForm(lead.id);
+  document.getElementById('lead-detail-task').onclick = () => openTaskFormWithDefaults({ linkedType: 'lead', linkedId: lead.id, title: `Follow-up: ${lead.name}`, dueDate: lead.nextFollowUpDate || isoToday() });
+  document.getElementById('lead-detail-quote').onclick = () => openQuoteForm(null, { prospectType: 'lead', leadId: lead.id });
+  document.getElementById('lead-detail-convert').onclick = () => convertLeadToCustomer(lead.id);
+
+  // Linked tasks
+  const linkedTasks = (data.tasks || [])
+    .filter(t => t.linkedType === 'lead' && t.linkedId === lead.id)
+    .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+
+  if (linkedTasks.length) {
+    const sec = document.createElement('div');
+    sec.className = 'profile-section';
+    sec.innerHTML = `<div class="section-header"><h4>Tasks</h4></div>`;
+    const list = document.createElement('div');
+    list.className = 'section-content';
+    linkedTasks.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'profile-item';
+      const overdue = (t.dueDate && t.status !== 'Completed' && t.dueDate < isoToday());
+      row.innerHTML = `<span>${escapeHtml(t.title || '')}${overdue ? ' (Overdue)' : ''}</span><span>${escapeHtml(t.status || '')}${t.dueDate ? ' • ' + escapeHtml(formatDate(t.dueDate)) : ''}</span>`;
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => openTaskDetail(t.id));
+      list.appendChild(row);
+    });
+    sec.appendChild(list);
+    content.appendChild(sec);
+  }
+
+  // Notes
+  if (lead.notes) {
+    const notesSec = document.createElement('div');
+    notesSec.className = 'profile-section';
+    notesSec.innerHTML = `<div class="section-header"><h4>Notes</h4></div><div class="section-content"><p>${escapeHtml(lead.notes)}</p></div>`;
+    content.appendChild(notesSec);
+  }
+
+  modal.classList.remove('hidden');
+}
+
+// -----------------------------------------------------------------------------
+// Task helper: openTaskForm with defaults
+function openTaskDetail(taskId) {
+  // No separate detail drawer yet; open editor
+  openTaskForm(taskId);
+}
+
+
+// -----------------------------------------------------------------------------
+function openTaskFormWithDefaults(defaults = {}) {
+  openTaskForm();
+  const form = document.getElementById('task-form');
+  if (!form) return;
+  if (defaults.title) form.elements['task-title'].value = defaults.title;
+  if (defaults.description) form.elements['task-description'].value = defaults.description;
+  if (defaults.dueDate) form.elements['task-due-date'].value = defaults.dueDate;
+  if (defaults.priority) form.elements['task-priority'].value = defaults.priority;
+  if (defaults.status) form.elements['task-status'].value = defaults.status;
+  if (defaults.linkedType) form.elements['task-linked-type'].value = defaults.linkedType;
+  if (defaults.linkedId) form.elements['task-linked-id'].value = defaults.linkedId;
+}
+
+// -----------------------------------------------------------------------------
+// Daily Planner
+// -----------------------------------------------------------------------------
+
+function savePlannerNotes() {
+  const dateStr = document.getElementById('planner-date')?.value || isoToday();
+  const notes = document.getElementById('planner-notes')?.value || '';
+  data.plannerNotes[dateStr] = { text: notes, updatedAt: new Date().toISOString() };
+  saveData();
+  const status = document.getElementById('planner-notes-status');
+  if (status) status.textContent = `Saved • ${formatDateTime(new Date().toISOString())}`;
+}
+
+function renderPlanner(dateStr) {
+  const dateInput = document.getElementById('planner-date');
+  if (!dateInput) return;
+  const d = dateStr || dateInput.value || isoToday();
+  dateInput.value = d;
+
+  // Summary cards
+  const summary = document.getElementById('planner-summary');
+  if (summary) {
+    const dueToday = (data.tasks || []).filter(t => t.dueDate === d && t.status !== 'Completed').length;
+    const overdue = (data.tasks || []).filter(t => t.dueDate && t.dueDate < d && t.status !== 'Completed').length;
+    const highPri = (data.tasks || []).filter(t => (t.priority === 'High' || t.priority === 'Urgent') && t.status !== 'Completed').length;
+    const renewalsSoon = (data.policies || []).filter(p => p.endDate && p.endDate >= d && p.endDate <= addDaysISO(d, 30)).length;
+    summary.innerHTML = `
+      <div class="summary-card"><span class="summary-value">${dueToday}</span><span class="summary-label">Tasks Due</span></div>
+      <div class="summary-card"><span class="summary-value">${overdue}</span><span class="summary-label">Overdue</span></div>
+      <div class="summary-card"><span class="summary-value">${renewalsSoon}</span><span class="summary-label">Renewals (30d)</span></div>
+      <div class="summary-card"><span class="summary-value">${highPri}</span><span class="summary-label">High Priority</span></div>
+    `;
+  }
+
+  // Tasks list
+  const tasksContainer = document.getElementById('planner-tasks');
+  if (tasksContainer) {
+    const tasks = (data.tasks || [])
+      .filter(t => t.status !== 'Completed')
+      .filter(t => (t.dueDate === d) || (t.dueDate && t.dueDate < d))
+      .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''));
+
+    if (tasks.length === 0) {
+      tasksContainer.innerHTML = `<p class="small-note">No due / overdue tasks.</p>`;
+    } else {
+      const html = tasks.map(t => {
+        const overdue = t.dueDate && t.dueDate < d;
+        const label = `${escapeHtml(t.title || '')}${overdue ? ' • <strong>Overdue</strong>' : ''}`;
+        return `<div class="card" style="margin-bottom:0.6rem;">
+          <div class="card-header">
+            <span class="card-title">${label}</span>
+            ${t.priority ? `<span class="status-badge">${escapeHtml(t.priority)}</span>` : ''}
+          </div>
+          <div class="card-body">
+            ${t.dueDate ? `<p>Due: ${escapeHtml(formatDate(t.dueDate))}</p>` : ''}
+            ${t.linkedType && t.linkedId ? `<p>Linked: ${escapeHtml(t.linkedType)} • ${escapeHtml(t.linkedId)}</p>` : ''}
+          </div>
+          <div class="card-actions">
+            <button class="planner-mark-done" data-id="${t.id}">Done</button>
+            <button class="planner-open-task" data-id="${t.id}">Open</button>
+          </div>
+        </div>`;
+      }).join('');
+      tasksContainer.innerHTML = html;
+
+      // bind buttons
+      tasksContainer.querySelectorAll('.planner-mark-done').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          const task = (data.tasks || []).find(t => t.id === id);
+          if (!task) return;
+          const oldCopy = JSON.parse(JSON.stringify(task));
+          task.status = 'Completed';
+          task.updatedAt = new Date().toISOString();
+          addTimeline(task, 'Marked completed (Planner)');
+          logChange('task', task.id, oldCopy, task);
+          saveData();
+          renderPlanner(d);
+        };
+      });
+      tasksContainer.querySelectorAll('.planner-open-task').forEach(btn => {
+        btn.onclick = () => openTaskDetail(btn.getAttribute('data-id'));
+      });
+    }
+  }
+
+  // Renewals & alerts
+  const renewalsContainer = document.getElementById('planner-renewals');
+  if (renewalsContainer) {
+    const policies = (data.policies || [])
+      .filter(p => p.endDate)
+      .filter(p => p.endDate >= d && p.endDate <= addDaysISO(d, 45))
+      .sort((a, b) => (a.endDate || '').localeCompare(b.endDate || ''));
+
+    if (policies.length === 0) {
+      renewalsContainer.innerHTML = `<p class="small-note">No upcoming expiries in the next 45 days.</p>`;
+    } else {
+      renewalsContainer.innerHTML = policies.map(p => {
+        const cust = data.customers.find(c => c.id === p.customerId) || {};
+        const daysTo = Math.ceil((new Date(p.endDate) - new Date(d)) / (1000 * 60 * 60 * 24));
+        return `<div class="card" style="margin-bottom:0.6rem;">
+          <div class="card-header">
+            <span class="card-title">${escapeHtml(p.policyType || 'Policy')} • ${escapeHtml(p.policyNumber || p.id)}</span>
+            <span class="status-badge">${daysTo}d</span>
+          </div>
+          <div class="card-body">
+            ${cust.fullName ? `<p>Customer: ${escapeHtml(cust.fullName)}</p>` : ''}
+            <p>Expiry: ${escapeHtml(formatDate(p.endDate))}</p>
+            ${p.premiumAmount ? `<p>Premium: ₹${escapeHtml(p.premiumAmount)}</p>` : ''}
+          </div>
+          <div class="card-actions">
+            <button onclick="openPolicyDetail('${p.id}')">Open</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Notes
+  const notes = document.getElementById('planner-notes');
+  if (notes) {
+    notes.value = (data.plannerNotes[d] && data.plannerNotes[d].text) ? data.plannerNotes[d].text : '';
+  }
+  const status = document.getElementById('planner-notes-status');
+  if (status) status.textContent = '';
+}
+
+// -----------------------------------------------------------------------------
+// Renewal Campaign Builder (copy-to-clipboard messages)
+// -----------------------------------------------------------------------------
+
+let campaignSelectedPolicyIds = new Set();
+
+const CAMPAIGN_TEMPLATES = [
+  {
+    id: 'renewal_reminder',
+    name: 'Renewal Reminder (simple)',
+    text: 'Hi {customerName}, your {policyType} policy {policyNumber} is expiring on {endDate}. Renewal support needed? — {agentName}'
+  },
+  {
+    id: 'renewal_quote',
+    name: 'Renewal with Premium',
+    text: 'Hi {customerName}, reminder: your {policyType} policy {policyNumber} expires on {endDate}. Renewal premium approx ₹{premium}. Reply YES to proceed. — {agentName}'
+  },
+  {
+    id: 'docs_pending',
+    name: 'Documents Pending',
+    text: 'Hi {customerName}, for renewal of {policyType} policy {policyNumber} (expiry {endDate}), please share pending documents. — {agentName}'
+  }
+];
+
+function applyTemplate(str, ctx) {
+  return (str || '').replace(/\{([a-zA-Z0-9_.]+)\}/g, (_, key) => {
+    const val = getValueByPath(ctx, key);
+    return (val === undefined || val === null) ? '' : String(val);
+  });
+}
+
+function renderCampaignBuilder() {
+  const fromEl = document.getElementById('campaign-from');
+  const toEl = document.getElementById('campaign-to');
+  const typeEl = document.getElementById('campaign-policy-type');
+  const companyEl = document.getElementById('campaign-company');
+  const templateEl = document.getElementById('campaign-template');
+
+  if (!fromEl || !toEl || !typeEl || !companyEl || !templateEl) return;
+
+  // defaults
+  if (!fromEl.value) fromEl.value = isoToday();
+  if (!toEl.value) toEl.value = addDaysISO(fromEl.value, 30);
+
+  // populate company filter
+  const curComp = companyEl.value;
+  companyEl.innerHTML = '<option value="">All</option>';
+  (data.companies || []).forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name || c.id;
+    companyEl.appendChild(opt);
+  });
+  if (curComp) companyEl.value = curComp;
+
+  // templates
+  const curTpl = templateEl.value;
+  templateEl.innerHTML = '';
+  CAMPAIGN_TEMPLATES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    templateEl.appendChild(opt);
+  });
+  if (curTpl) templateEl.value = curTpl;
+
+  refreshCampaignPolicyList();
+}
+
+function refreshCampaignPolicyList() {
+  const from = document.getElementById('campaign-from')?.value;
+  const to = document.getElementById('campaign-to')?.value;
+  const type = document.getElementById('campaign-policy-type')?.value || '';
+  const companyId = document.getElementById('campaign-company')?.value || '';
+  const listEl = document.getElementById('campaign-policy-list');
+  if (!listEl) return;
+
+  const policies = (data.policies || [])
+    .filter(p => p.endDate && (!from || p.endDate >= from) && (!to || p.endDate <= to))
+    .filter(p => !type || (p.policyType || '') === type)
+    .filter(p => !companyId || (p.companyId || '') === companyId)
+    .sort((a, b) => (a.endDate || '').localeCompare(b.endDate || ''));
+
+  if (policies.length === 0) {
+    listEl.innerHTML = `<p class="small-note">No policies found for the selected range.</p>`;
+    campaignSelectedPolicyIds = new Set();
+    return;
+  }
+
+  listEl.innerHTML = policies.map(p => {
+    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const checked = campaignSelectedPolicyIds.has(p.id) ? 'checked' : '';
+    return `<div class="card" style="margin-bottom:0.6rem;">
+      <div class="card-header">
+        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+          <input type="checkbox" class="campaign-policy-checkbox" data-id="${p.id}" ${checked}>
+          <span class="card-title">${escapeHtml(p.policyNumber || p.id)}</span>
+        </label>
+        <span class="status-badge">${escapeHtml(p.policyType || '')}</span>
+      </div>
+      <div class="card-body">
+        ${cust.fullName ? `<p>Customer: ${escapeHtml(cust.fullName)}</p>` : ''}
+        ${cust.mobileNumber ? `<p>Phone: ${escapeHtml(cust.mobileNumber)}</p>` : ''}
+        <p>Expiry: ${escapeHtml(formatDate(p.endDate))}</p>
+        ${p.premiumAmount ? `<p>Premium: ₹${escapeHtml(p.premiumAmount)}</p>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  // bind checkboxes
+  listEl.querySelectorAll('.campaign-policy-checkbox').forEach(cb => {
+    cb.onchange = () => {
+      const id = cb.getAttribute('data-id');
+      if (cb.checked) campaignSelectedPolicyIds.add(id);
+      else campaignSelectedPolicyIds.delete(id);
+    };
+  });
+
+  const status = document.getElementById('campaign-status');
+  if (status) status.textContent = `${policies.length} policies in range • ${campaignSelectedPolicyIds.size} selected`;
+}
+
+function campaignSelectAll(flag) {
+  const listEl = document.getElementById('campaign-policy-list');
+  if (!listEl) return;
+  const boxes = listEl.querySelectorAll('.campaign-policy-checkbox');
+  boxes.forEach(cb => {
+    cb.checked = !!flag;
+    const id = cb.getAttribute('data-id');
+    if (flag) campaignSelectedPolicyIds.add(id);
+    else campaignSelectedPolicyIds.delete(id);
+  });
+  refreshCampaignPolicyList();
+}
+
+function generateCampaignMessages() {
+  const templateId = document.getElementById('campaign-template')?.value;
+  const tpl = CAMPAIGN_TEMPLATES.find(t => t.id === templateId) || CAMPAIGN_TEMPLATES[0];
+  const agentName = (data.settings.agentDisplayName || '').trim();
+  const selected = Array.from(campaignSelectedPolicyIds);
+  const outputEl = document.getElementById('campaign-output');
+  if (!outputEl) return;
+
+  if (selected.length === 0) {
+    outputEl.value = '';
+    const status = document.getElementById('campaign-status');
+    if (status) status.textContent = 'Select at least 1 policy to generate messages.';
+    return;
+  }
+
+  const msgs = selected.map(pid => {
+    const p = data.policies.find(x => x.id === pid);
+    if (!p) return '';
+    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const ctx = {
+      customerName: cust.fullName || '',
+      phone: cust.mobileNumber || '',
+      policyType: p.policyType || '',
+      policyNumber: p.policyNumber || p.id,
+      endDate: p.endDate ? formatDate(p.endDate) : '',
+      premium: p.premiumAmount || '',
+      agentName: agentName
+    };
+    return applyTemplate(tpl.text, ctx);
+  }).filter(Boolean);
+
+  outputEl.value = msgs.join('\n\n');
+
+  // persist draft campaign
+  const campaign = {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    from: document.getElementById('campaign-from')?.value || '',
+    to: document.getElementById('campaign-to')?.value || '',
+    templateId: tpl.id,
+    policyIds: selected,
+    messageCount: msgs.length
+  };
+  data.campaigns.push(campaign);
+  logChange('campaign', campaign.id, null, campaign);
+
+  saveData();
+  const status = document.getElementById('campaign-status');
+  if (status) status.textContent = `Generated ${msgs.length} message(s). Draft saved.`;
+}
+
+async function copyCampaignToClipboard() {
+  const outputEl = document.getElementById('campaign-output');
+  if (!outputEl) return;
+  const text = outputEl.value || '';
+  const status = document.getElementById('campaign-status');
+  if (!text.trim()) {
+    if (status) status.textContent = 'Nothing to copy.';
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    if (status) status.textContent = 'Copied to clipboard.';
+  } catch (e) {
+    // fallback
+    try {
+      outputEl.select();
+      document.execCommand('copy');
+      if (status) status.textContent = 'Copied to clipboard.';
+    } catch (ex) {
+      if (status) status.textContent = 'Copy failed. Your browser may block clipboard access.';
+    }
+  }
+}
+
+function exportCampaignCSV() {
+  const outputEl = document.getElementById('campaign-output');
+  if (!outputEl) return;
+  const templateId = document.getElementById('campaign-template')?.value;
+  const tpl = CAMPAIGN_TEMPLATES.find(t => t.id === templateId) || CAMPAIGN_TEMPLATES[0];
+  const agentName = (data.settings.agentDisplayName || '').trim();
+  const selected = Array.from(campaignSelectedPolicyIds);
+  if (selected.length === 0) return;
+
+  const rows = [['CustomerName', 'Phone', 'PolicyNumber', 'PolicyType', 'EndDate', 'Premium', 'Message']];
+  selected.forEach(pid => {
+    const p = data.policies.find(x => x.id === pid);
+    if (!p) return;
+    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const ctx = {
+      customerName: cust.fullName || '',
+      phone: cust.mobileNumber || '',
+      policyType: p.policyType || '',
+      policyNumber: p.policyNumber || p.id,
+      endDate: p.endDate ? formatDate(p.endDate) : '',
+      premium: p.premiumAmount || '',
+      agentName: agentName
+    };
+    const msg = applyTemplate(tpl.text, ctx).replace(/\n/g, ' ');
+    rows.push([ctx.customerName, ctx.phone, ctx.policyNumber, ctx.policyType, ctx.endDate, ctx.premium, msg]);
+  });
+
+  const csv = rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `renewal_campaign_${isoToday()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const status = document.getElementById('campaign-status');
+  if (status) status.textContent = `Exported ${selected.length} rows as CSV.`;
+}
+
+// -----------------------------------------------------------------------------
+// Rules Engine v2 (conditions + actions)
+// -----------------------------------------------------------------------------
+
+function isRuleV2(rule) {
+  if (!rule) return false;
+  if (rule.version === 2) return true;
+  if (Array.isArray(rule.conditions)) return true;
+  if (Array.isArray(rule.actions) && rule.actions.length && typeof rule.actions[0] === 'object') return true;
+  return false;
+}
+
+function ensureDefaultAutomationRules() {
+  normalizeData();
+  // If user already has rules, do nothing
+  const v2 = (data.rules || []).filter(r => isRuleV2(r));
+  const hasLeadCreated = v2.some(r => r.trigger === 'leadCreated');
+  const hasPolicyExp = v2.some(r => r.trigger === 'policyExpiringSoon');
+  if (!hasLeadCreated) {
+    const rule = {
+      id: generateId(),
+      version: 2,
+      name: 'Default: Lead Created → Call follow-up task',
+      enabled: true,
+      trigger: 'leadCreated',
+      conditions: [],
+      actions: [
+        { type: 'createTask', title: 'Call {lead.name}', dueInDays: 1, priority: 'High', linkTo: 'lead' }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    data.rules.push(rule);
+    logChange('rule', rule.id, null, rule);
+  }
+  if (!hasPolicyExp) {
+    const rule = {
+      id: generateId(),
+      version: 2,
+      name: 'Default: Policy Expiring Soon (<=30 days) → Renewal follow-up task',
+      enabled: true,
+      trigger: 'policyExpiringSoon',
+      conditions: [{ field: 'daysToExpiry', op: 'lessThanOrEqual', value: '30' }],
+      actions: [
+        { type: 'createTask', title: 'Renewal follow-up: {policy.policyNumber}', dueDateFrom: 'policy.endDate', dueInDays: -7, priority: 'High', linkTo: 'policy' }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    data.rules.push(rule);
+    logChange('rule', rule.id, null, rule);
+  }
+  saveData();
+}
+
+function getValueByPath(obj, path) {
+  if (!path) return undefined;
+  const parts = String(path).split('.');
+  let cur = obj;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
+function evaluateCondition(ctx, cond) {
+  const field = cond.field || cond.path;
+  const op = cond.op || 'equals';
+  const rawVal = cond.value;
+
+  const actual = getValueByPath(ctx, field);
+  const actualStr = (actual === undefined || actual === null) ? '' : String(actual);
+
+  // numeric comparison support
+  const aNum = parseFloat(actualStr);
+  const vNum = parseFloat(rawVal);
+
+  switch (op) {
+    case 'equals':
+      return actualStr === String(rawVal ?? '');
+    case 'notEquals':
+      return actualStr !== String(rawVal ?? '');
+    case 'contains':
+      return actualStr.toLowerCase().includes(String(rawVal ?? '').toLowerCase());
+    case 'in':
+      return String(rawVal ?? '').split(',').map(s => s.trim()).filter(Boolean).includes(actualStr);
+    case 'greaterThan':
+      return !isNaN(aNum) && !isNaN(vNum) && aNum > vNum;
+    case 'lessThan':
+      return !isNaN(aNum) && !isNaN(vNum) && aNum < vNum;
+    case 'greaterThanOrEqual':
+      return !isNaN(aNum) && !isNaN(vNum) && aNum >= vNum;
+    case 'lessThanOrEqual':
+      return !isNaN(aNum) && !isNaN(vNum) && aNum <= vNum;
+    case 'isEmpty':
+      return actualStr.trim() === '';
+    case 'notEmpty':
+      return actualStr.trim() !== '';
+    default:
+      return actualStr === String(rawVal ?? '');
+  }
+}
+
+function shouldDedupeAutomationTask(ruleId, linkedType, linkedId, dueDate) {
+  return (data.tasks || []).some(t =>
+    t.automation &&
+    t.automation.ruleId === ruleId &&
+    t.linkedType === linkedType &&
+    t.linkedId === linkedId &&
+    (t.dueDate || '') === (dueDate || '') &&
+    t.status !== 'Completed'
+  );
+}
+
+async function applyRuleActions(rule, ctx) {
+  for (const action of (rule.actions || [])) {
+    if (!action) continue;
+    // legacy (string) - ignore here
+    if (typeof action === 'string') continue;
+
+    if (action.type === 'createTask') {
+      const titleTpl = action.title || 'Task';
+      const dueInDays = parseInt(action.dueInDays || '0', 10) || 0;
+      const priority = action.priority || 'Medium';
+      const descriptionTpl = action.description || '';
+
+      let baseDate = ctx.date || isoToday();
+      if (action.dueDateFrom) {
+        const v = getValueByPath(ctx, action.dueDateFrom);
+        if (v) baseDate = v;
+      }
+      const dueDate = addDaysISO(baseDate, dueInDays);
+
+      // linkTo: lead | policy | customer | quote | task | none
+      const linkTo = action.linkTo || '';
+      let linkedType = '';
+      let linkedId = '';
+      if (linkTo === 'lead' && ctx.lead) { linkedType = 'lead'; linkedId = ctx.lead.id; }
+      if (linkTo === 'policy' && ctx.policy) { linkedType = 'policy'; linkedId = ctx.policy.id; }
+      if (linkTo === 'customer' && ctx.customer) { linkedType = 'customer'; linkedId = ctx.customer.id; }
+      if (linkTo === 'quote' && ctx.quote) { linkedType = 'quote'; linkedId = ctx.quote.id; }
+      if (linkTo === 'task' && ctx.task) { linkedType = 'task'; linkedId = ctx.task.id; }
+
+      const title = applyTemplate(titleTpl, ctx);
+      const description = applyTemplate(descriptionTpl, ctx);
+
+      if (rule.id && linkedType && linkedId && shouldDedupeAutomationTask(rule.id, linkedType, linkedId, dueDate)) {
+        continue;
+      }
+
+      const task = {
+        id: generateId(),
+        title,
+        description,
+        dueDate,
+        priority,
+        status: 'Pending',
+        linkedType: linkedType,
+        linkedId: linkedId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        timeline: [],
+        automation: { ruleId: rule.id, trigger: rule.trigger, firedAt: new Date().toISOString() }
+      };
+      addTimeline(task, `Created by automation: ${rule.name || rule.id}`);
+      data.tasks.push(task);
+      logChange('task', task.id, null, task);
+      continue;
+    }
+
+    if (action.type === 'setLeadStage') {
+      const lead = ctx.lead;
+      if (!lead) continue;
+      const newStage = action.stage || '';
+      if (!newStage || lead.stage === newStage) continue;
+      const oldCopy = JSON.parse(JSON.stringify(lead));
+      lead.stage = newStage;
+      lead.updatedAt = new Date().toISOString();
+      addTimeline(lead, `Stage set by rule: ${newStage}`);
+      logChange('lead', lead.id, oldCopy, lead);
+      continue;
+    }
+
+    if (action.type === 'addTag') {
+      const lead = ctx.lead;
+      if (!lead) continue;
+      const tag = (action.tag || '').trim();
+      if (!tag) continue;
+      if (!Array.isArray(lead.tags)) lead.tags = [];
+      if (!lead.tags.includes(tag)) {
+        const oldCopy = JSON.parse(JSON.stringify(lead));
+        lead.tags.push(tag);
+        lead.updatedAt = new Date().toISOString();
+        addTimeline(lead, `Tag added by rule: ${tag}`);
+        logChange('lead', lead.id, oldCopy, lead);
+      }
+      continue;
+    }
+
+    if (action.type === 'setField') {
+      // very small generic setter (lead only for now)
+      const target = ctx.lead || ctx.policy || ctx.task;
+      if (!target) continue;
+      const path = action.path || action.field;
+      if (!path) continue;
+      const parts = String(path).split('.');
+      // allow paths without entity prefix by setting on target
+      let obj = target;
+      if (parts.length > 1 && ['lead','policy','task'].includes(parts[0])) {
+        obj = ctx[parts[0]];
+        parts.shift();
+      }
+      if (!obj) continue;
+      const oldCopy = JSON.parse(JSON.stringify(obj));
+      let cur = obj;
+      while (parts.length > 1) {
+        const p = parts.shift();
+        if (!cur[p] || typeof cur[p] !== 'object') cur[p] = {};
+        cur = cur[p];
+      }
+      cur[parts[0]] = action.value;
+      obj.updatedAt = new Date().toISOString();
+      addTimeline(obj, `Field set by rule: ${path}`);
+      logChange(obj === ctx.lead ? 'lead' : (obj === ctx.policy ? 'policy' : 'task'), obj.id, oldCopy, obj);
+      continue;
+    }
+  }
+}
+
+async function applyRulesV2(eventType, payload) {
+  const rules = (data.rules || []).filter(r => isRuleV2(r) && r.trigger === eventType && r.enabled !== false);
+  if (!rules.length) return;
+
+  const ctxBase = Object.assign({}, payload || {});
+  ctxBase.date = payload?.date || isoToday();
+  // convenience: infer customer from policy/quote
+  if (ctxBase.policy && !ctxBase.customer && ctxBase.policy.customerId) {
+    ctxBase.customer = data.customers.find(c => c.id === ctxBase.policy.customerId) || null;
+  }
+  if (ctxBase.quote && !ctxBase.customer && ctxBase.quote.customer) {
+    ctxBase.customer = data.customers.find(c => c.id === ctxBase.quote.customer) || null;
+  }
+
+  for (const rule of rules) {
+    const conds = Array.isArray(rule.conditions) ? rule.conditions : [];
+    const ok = conds.every(c => evaluateCondition(ctxBase, c));
+    if (!ok) continue;
+    await applyRuleActions(rule, ctxBase);
+    if (!Array.isArray(data.ruleFires)) data.ruleFires = [];
+    data.ruleFires.push({ id: generateId(), ruleId: rule.id, trigger: eventType, at: new Date().toISOString() });
+    logChange('ruleFire', data.ruleFires[data.ruleFires.length-1].id, null, data.ruleFires[data.ruleFires.length-1]);
+  }
+}
+
+// Extend existing automation runner to include rules engine v2
+const _legacyApplyAutomationRules = applyAutomationRules;
+applyAutomationRules = async function(eventType, payload) {
+  // Legacy rules (string actions)
+  await _legacyApplyAutomationRules(eventType, payload);
+  // v2 rules
+  try {
+    await applyRulesV2(eventType, payload);
+  } catch (e) {
+    console.warn('Rules v2 failed', e);
+  }
+};
+
+async function runScheduledAutomation(force = false, dateStr = isoToday()) {
+  normalizeData();
+  if (!force && data.settings.lastAutomationRunDate === dateStr) return;
+  data.settings.lastAutomationRunDate = dateStr;
+
+  // Policy expiring soon triggers per policy
+  for (const p of (data.policies || [])) {
+    if (!p.endDate) continue;
+    const daysToExpiry = Math.ceil((new Date(p.endDate) - new Date(dateStr)) / (1000 * 60 * 60 * 24));
+    if (daysToExpiry < 0) continue; // already expired
+    await applyAutomationRules('policyExpiringSoon', { policy: p, daysToExpiry, date: dateStr });
+  }
+
+  // Task overdue triggers per task
+  for (const t of (data.tasks || [])) {
+    if (!t.dueDate) continue;
+    if (t.status === 'Completed') continue;
+    if (t.dueDate >= dateStr) continue;
+    const daysOverdue = Math.ceil((new Date(dateStr) - new Date(t.dueDate)) / (1000 * 60 * 60 * 24));
+    await applyAutomationRules('taskOverdue', { task: t, daysOverdue, date: dateStr });
+  }
+
+  // Daily catch-all
+  await applyAutomationRules('daily', { date: dateStr });
+
+  saveData();
+}
+
+// -----------------------------------------------------------------------------
+// Automation Rules UI
+// -----------------------------------------------------------------------------
+
+function commonConditionFields() {
+  return [
+    { value: 'lead.stage', label: 'Lead Stage' },
+    { value: 'lead.source', label: 'Lead Source' },
+    { value: 'lead.status', label: 'Lead Status' },
+    { value: 'daysToExpiry', label: 'Days to Expiry' },
+    { value: 'policy.policyType', label: 'Policy Type' },
+    { value: 'task.priority', label: 'Task Priority' },
+    { value: 'daysOverdue', label: 'Days Overdue' }
+  ];
+}
+function commonOperators() {
+  return [
+    { value: 'equals', label: 'Equals' },
+    { value: 'notEquals', label: 'Not Equals' },
+    { value: 'contains', label: 'Contains' },
+    { value: 'in', label: 'In (comma list)' },
+    { value: 'greaterThan', label: '>' },
+    { value: 'greaterThanOrEqual', label: '>=' },
+    { value: 'lessThan', label: '<' },
+    { value: 'lessThanOrEqual', label: '<=' },
+    { value: 'isEmpty', label: 'Is empty' },
+    { value: 'notEmpty', label: 'Is not empty' }
+  ];
+}
+
+function renderAutomationRulesList() {
+  const container = document.getElementById('automation-list');
+  if (!container) return;
+
+  normalizeData();
+
+  const term = (pageSearchTerms.automation || '').toLowerCase();
+  const rules = (data.rules || [])
+    .filter(r => isRuleV2(r))
+    .filter(r => !term || `${r.name || ''} ${r.trigger || ''}`.toLowerCase().includes(term))
+    .sort((a, b) => (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || ''));
+
+  if (rules.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${ICONS.zap}</div><h3>No rules</h3><p>Click “New Rule” to create your first automation rule.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = rules.map(r => {
+    const condCount = (r.conditions || []).length;
+    const actCount = (r.actions || []).length;
+    return `<div class="card" style="margin-bottom:0.75rem;">
+      <div class="card-header">
+        <span class="card-title">${escapeHtml(r.name || 'Rule')}</span>
+        <span class="status-badge">${r.enabled === false ? 'Disabled' : 'Enabled'}</span>
+      </div>
+      <div class="card-body">
+        <p><strong>Trigger:</strong> ${escapeHtml(r.trigger || '')}</p>
+        <p><strong>Conditions:</strong> ${condCount} • <strong>Actions:</strong> ${actCount}</p>
+        ${r.updatedAt ? `<p class="small-note">Updated: ${escapeHtml(formatDateTime(r.updatedAt))}</p>` : ''}
+      </div>
+      <div class="card-actions">
+        <button class="rule-edit" data-id="${r.id}">${ICONS.pencil}</button>
+        <button class="rule-dup" data-id="${r.id}" title="Duplicate">⧉</button>
+        <button class="rule-del" data-id="${r.id}">${ICONS.trash}</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // bind buttons once per render
+  container.querySelectorAll('.rule-edit').forEach(btn => btn.onclick = () => openRuleForm(btn.getAttribute('data-id')));
+  container.querySelectorAll('.rule-dup').forEach(btn => btn.onclick = () => duplicateRule(btn.getAttribute('data-id')));
+  container.querySelectorAll('.rule-del').forEach(btn => btn.onclick = () => deleteRule(btn.getAttribute('data-id')));
+}
+
+function addConditionRow(container, cond = {}) {
+  const row = document.createElement('div');
+  row.className = 'rule-row';
+  row.dataset.type = 'condition';
+  const fieldSel = document.createElement('select');
+  fieldSel.className = 'rule-cond-field';
+  commonConditionFields().forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.value;
+    opt.textContent = f.label;
+    fieldSel.appendChild(opt);
+  });
+  fieldSel.value = cond.field || 'lead.stage';
+
+  const opSel = document.createElement('select');
+  opSel.className = 'rule-cond-op';
+  commonOperators().forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.value;
+    opt.textContent = o.label;
+    opSel.appendChild(opt);
+  });
+  opSel.value = cond.op || 'equals';
+
+  const valInput = document.createElement('input');
+  valInput.className = 'rule-cond-val';
+  valInput.type = 'text';
+  valInput.placeholder = 'value';
+  valInput.value = (cond.value !== undefined && cond.value !== null) ? String(cond.value) : '';
+
+  const rm = document.createElement('button');
+  rm.type = 'button';
+  rm.className = 'small-btn';
+  rm.textContent = 'Remove';
+  rm.onclick = () => row.remove();
+
+  row.appendChild(fieldSel);
+  row.appendChild(opSel);
+  row.appendChild(valInput);
+  row.appendChild(rm);
+  container.appendChild(row);
+}
+
+function renderActionInputs(row, action = {}) {
+  row.innerHTML = '';
+  row.className = 'rule-row';
+  row.dataset.type = 'action';
+
+  const typeSel = document.createElement('select');
+  typeSel.className = 'rule-action-type';
+  [
+    { value: 'createTask', label: 'Create Task' },
+    { value: 'setLeadStage', label: 'Set Lead Stage' },
+    { value: 'addTag', label: 'Add Tag (Lead)' },
+    { value: 'setField', label: 'Set Field (advanced)' }
+  ].forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.value;
+    opt.textContent = t.label;
+    typeSel.appendChild(opt);
+  });
+  typeSel.value = action.type || 'createTask';
+
+  const rm = document.createElement('button');
+  rm.type = 'button';
+  rm.className = 'small-btn';
+  rm.textContent = 'Remove';
+  rm.onclick = () => row.remove();
+
+  row.appendChild(typeSel);
+
+  function renderFields() {
+    // remove any inputs except typeSel and rm
+    [...row.querySelectorAll('input, select')].forEach(el => {
+      if (el === typeSel) return;
+      el.remove();
+    });
+
+    const t = typeSel.value;
+    if (t === 'createTask') {
+      const title = document.createElement('input');
+      title.className = 'rule-action-title';
+      title.placeholder = 'Title template (e.g., Call {lead.name})';
+      title.value = action.title || 'Task';
+
+      const due = document.createElement('input');
+      due.className = 'rule-action-due';
+      due.type = 'number';
+      due.placeholder = 'Due in days';
+      due.value = (action.dueInDays !== undefined) ? action.dueInDays : 0;
+
+      const baseDate = document.createElement('select');
+      baseDate.className = 'rule-action-basedate';
+      [
+        { value: '', label: 'Base: Today' },
+        { value: 'policy.endDate', label: 'Base: Policy End Date' },
+        { value: 'lead.nextFollowUpDate', label: 'Base: Lead Next Follow-up' }
+      ].forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x.value;
+        opt.textContent = x.label;
+        baseDate.appendChild(opt);
+      });
+      baseDate.value = action.dueDateFrom || '';
+
+      const pri = document.createElement('select');
+      pri.className = 'rule-action-priority';
+      ['Low','Medium','High','Urgent'].forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        pri.appendChild(opt);
+      });
+      pri.value = action.priority || 'Medium';
+
+      const linkTo = document.createElement('select');
+      linkTo.className = 'rule-action-link';
+      [
+        { value: '', label: 'No link' },
+        { value: 'lead', label: 'Link to Lead' },
+        { value: 'policy', label: 'Link to Policy' },
+        { value: 'customer', label: 'Link to Customer' },
+        { value: 'quote', label: 'Link to Quote' },
+        { value: 'task', label: 'Link to Task' }
+      ].forEach(x => {
+        const opt = document.createElement('option');
+        opt.value = x.value;
+        opt.textContent = x.label;
+        linkTo.appendChild(opt);
+      });
+      linkTo.value = action.linkTo || 'lead';
+
+      row.appendChild(title);
+      row.appendChild(due);
+      row.appendChild(baseDate);
+      row.appendChild(pri);
+      row.appendChild(linkTo);
+    } else if (t === 'setLeadStage') {
+      const stage = document.createElement('select');
+      stage.className = 'rule-action-stage';
+      getLeadStages().forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        stage.appendChild(opt);
+      });
+      stage.value = action.stage || getLeadStages()[0];
+      row.appendChild(stage);
+    } else if (t === 'addTag') {
+      const tag = document.createElement('input');
+      tag.className = 'rule-action-tag';
+      tag.placeholder = 'Tag name';
+      tag.value = action.tag || '';
+      row.appendChild(tag);
+    } else if (t === 'setField') {
+      const path = document.createElement('input');
+      path.className = 'rule-action-path';
+      path.placeholder = 'Path (e.g., lead.status)';
+      path.value = action.path || '';
+      const val = document.createElement('input');
+      val.className = 'rule-action-value';
+      val.placeholder = 'Value';
+      val.value = action.value || '';
+      row.appendChild(path);
+      row.appendChild(val);
+    }
+
+    row.appendChild(rm);
+  }
+
+  typeSel.onchange = () => {
+    action = { type: typeSel.value };
+    renderFields();
+  };
+
+  renderFields();
+}
+
+function addActionRow(container, action = {}) {
+  const row = document.createElement('div');
+  renderActionInputs(row, action);
+  container.appendChild(row);
+}
+
+function openRuleForm(id) {
+  normalizeData();
+  const modal = document.getElementById('rule-form-modal');
+  if (!modal) return;
+
+  const rule = id ? (data.rules || []).find(r => r.id === id) : null;
+  document.getElementById('rule-id').value = rule ? rule.id : '';
+  document.getElementById('rule-name').value = rule ? (rule.name || '') : '';
+  document.getElementById('rule-enabled').checked = rule ? (rule.enabled !== false) : true;
+  document.getElementById('rule-trigger').value = rule ? (rule.trigger || 'leadCreated') : 'leadCreated';
+
+  // render conditions & actions
+  const condWrap = document.getElementById('rule-conditions');
+  const actWrap = document.getElementById('rule-actions');
+  condWrap.innerHTML = '';
+  actWrap.innerHTML = '';
+
+  (rule && rule.conditions ? rule.conditions : []).forEach(c => addConditionRow(condWrap, c));
+  (rule && rule.actions ? rule.actions : []).forEach(a => addActionRow(actWrap, a));
+
+  if (!condWrap.childElementCount) addConditionRow(condWrap, {});
+  if (!actWrap.childElementCount) addActionRow(actWrap, { type: 'createTask', title: 'Task', dueInDays: 0, priority: 'Medium', linkTo: 'lead' });
+
+  // bind add buttons
+  const addCondBtn = document.getElementById('add-rule-condition-btn');
+  if (addCondBtn && !addCondBtn.dataset.bound) {
+    addCondBtn.dataset.bound = 'true';
+    addCondBtn.onclick = () => addConditionRow(condWrap, {});
+  }
+  const addActBtn = document.getElementById('add-rule-action-btn');
+  if (addActBtn && !addActBtn.dataset.bound) {
+    addActBtn.dataset.bound = 'true';
+    addActBtn.onclick = () => addActionRow(actWrap, { type: 'createTask', title: 'Task', dueInDays: 0, priority: 'Medium', linkTo: 'lead' });
+  }
+
+  const title = document.getElementById('rule-form-title');
+  if (title) title.textContent = rule ? 'Edit Rule' : 'New Rule';
+
+  modal.classList.remove('hidden');
+}
+
+function handleRuleForm() {
+  const form = document.getElementById('rule-form');
+  if (!form) return;
+  if (form.dataset.bound) return;
+  form.dataset.bound = 'true';
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    normalizeData();
+
+    const id = document.getElementById('rule-id').value;
+    const existing = id ? data.rules.find(r => r.id === id) : null;
+
+    const name = (document.getElementById('rule-name').value || '').trim();
+    if (!name) return;
+    const enabled = !!document.getElementById('rule-enabled').checked;
+    const trigger = document.getElementById('rule-trigger').value;
+
+    // conditions
+    const conds = Array.from(document.querySelectorAll('#rule-conditions .rule-row')).map(row => {
+      const field = row.querySelector('.rule-cond-field')?.value || '';
+      const op = row.querySelector('.rule-cond-op')?.value || 'equals';
+      const value = row.querySelector('.rule-cond-val')?.value || '';
+      return { field, op, value };
+    }).filter(c => c.field);
+
+    // actions
+    const actions = Array.from(document.querySelectorAll('#rule-actions .rule-row')).map(row => {
+      const type = row.querySelector('.rule-action-type')?.value || 'createTask';
+      if (type === 'createTask') {
+        return {
+          type,
+          title: row.querySelector('.rule-action-title')?.value || 'Task',
+          dueDateFrom: row.querySelector('.rule-action-basedate')?.value || '',
+          dueInDays: parseInt(row.querySelector('.rule-action-due')?.value || '0', 10) || 0,
+          priority: row.querySelector('.rule-action-priority')?.value || 'Medium',
+          linkTo: row.querySelector('.rule-action-link')?.value || ''
+        };
+      }
+      if (type === 'setLeadStage') {
+        return { type, stage: row.querySelector('.rule-action-stage')?.value || '' };
+      }
+      if (type === 'addTag') {
+        return { type, tag: row.querySelector('.rule-action-tag')?.value || '' };
+      }
+      if (type === 'setField') {
+        return { type, path: row.querySelector('.rule-action-path')?.value || '', value: row.querySelector('.rule-action-value')?.value || '' };
+      }
+      return { type };
+    }).filter(a => a.type);
+
+    const now = new Date().toISOString();
+    const ruleObj = {
+      id: existing ? existing.id : generateId(),
+      version: 2,
+      name,
+      enabled,
+      trigger,
+      conditions: conds,
+      actions: actions,
+      updatedAt: now,
+      createdAt: existing ? (existing.createdAt || now) : now
+    };
+
+    if (existing) {
+      const oldCopy = JSON.parse(JSON.stringify(existing));
+      Object.assign(existing, ruleObj);
+      logChange('rule', existing.id, oldCopy, existing);
+    } else {
+      data.rules.push(ruleObj);
+      logChange('rule', ruleObj.id, null, ruleObj);
+    }
+
+    saveData();
+    renderAutomationRulesList();
+    document.getElementById('rule-form-modal').classList.add('hidden');
+  });
+}
+
+function deleteRule(id) {
+  const rule = (data.rules || []).find(r => r.id === id);
+  if (!rule) return;
+  if (!confirm(`Delete rule "${rule.name}"?`)) return;
+  const idx = data.rules.findIndex(r => r.id === id);
+  if (idx >= 0) {
+    logChange('rule', id, JSON.parse(JSON.stringify(data.rules[idx])), null);
+    data.rules.splice(idx, 1);
+    saveData();
+    renderAutomationRulesList();
+  }
+}
+
+function duplicateRule(id) {
+  const rule = (data.rules || []).find(r => r.id === id);
+  if (!rule) return;
+  const clone = JSON.parse(JSON.stringify(rule));
+  clone.id = generateId();
+  clone.name = `${clone.name} (Copy)`;
+  clone.createdAt = new Date().toISOString();
+  clone.updatedAt = new Date().toISOString();
+  data.rules.push(clone);
+  logChange('rule', clone.id, null, clone);
+  saveData();
+  renderAutomationRulesList();
+}
+
+// -----------------------------------------------------------------------------
+// Quote versioning helper
+// -----------------------------------------------------------------------------
+function createNewQuoteVersion(quoteId) {
+  const base = (data.quotes || []).find(q => q.id === quoteId);
+  if (!base) return null;
+  const groupId = base.quoteGroupId || base.groupId || base.id;
+  const maxV = (data.quotes || [])
+    .filter(q => (q.quoteGroupId || q.groupId || q.id) === groupId)
+    .reduce((m, q) => Math.max(m, parseInt(q.version || q.versionNumber || '1', 10) || 1), 0);
+  const newV = (maxV || 1) + 1;
+
+  const clone = JSON.parse(JSON.stringify(base));
+  clone.id = generateId();
+  clone.quoteGroupId = groupId;
+  clone.version = newV;
+  clone.status = 'Draft';
+  clone.quoteDate = isoToday();
+  clone.updatedAt = new Date().toISOString();
+  clone.timeline = clone.timeline || [];
+  addTimeline(clone, `Created new version v${newV} from ${base.id}`);
+  data.quotes.push(clone);
+  logChange('quote', clone.id, null, clone);
+  saveData();
+  return clone.id;
+}
+
+
 function setupEventListeners() {
   // Add customer
   document.getElementById('add-customer-btn').addEventListener('click', () => {
@@ -9166,12 +13285,176 @@ function setupEventListeners() {
     handleQuoteForm();
   }
 
+  // Leads
+  const addLeadBtn = document.getElementById('add-lead-btn');
+  if (addLeadBtn && !addLeadBtn.dataset.bound) {
+    addLeadBtn.dataset.bound = 'true';
+    addLeadBtn.addEventListener('click', () => openLeadForm());
+  }
+  handleLeadForm();
+  // Leads view controls
+  const toggleLeadsViewBtn = document.getElementById('toggle-leads-view-btn');
+  if (toggleLeadsViewBtn && !toggleLeadsViewBtn.dataset.bound) {
+    toggleLeadsViewBtn.dataset.bound = 'true';
+    toggleLeadsViewBtn.addEventListener('click', () => {
+      data.settings.leadsViewMode = (data.settings.leadsViewMode === 'pipeline') ? 'list' : 'pipeline';
+      saveData();
+      renderLeadsView();
+    });
+  }
+  const leadsStageFilter = document.getElementById('leads-stage-filter');
+  if (leadsStageFilter && !leadsStageFilter.dataset.bound) {
+    leadsStageFilter.dataset.bound = 'true';
+    leadsStageFilter.addEventListener('change', () => renderLeadsView());
+  }
+  const leadsSourceFilter = document.getElementById('leads-source-filter');
+  if (leadsSourceFilter && !leadsSourceFilter.dataset.bound) {
+    leadsSourceFilter.dataset.bound = 'true';
+    leadsSourceFilter.addEventListener('change', () => renderLeadsView());
+  }
+  const closeLeadForm = document.getElementById('close-lead-form');
+  if (closeLeadForm && !closeLeadForm.dataset.bound) {
+    closeLeadForm.dataset.bound = 'true';
+    closeLeadForm.addEventListener('click', () => document.getElementById('lead-form-modal').classList.add('hidden'));
+  }
+  const closeLeadDetail = document.getElementById('close-lead-detail');
+  if (closeLeadDetail && !closeLeadDetail.dataset.bound) {
+    closeLeadDetail.dataset.bound = 'true';
+    closeLeadDetail.addEventListener('click', () => document.getElementById('lead-detail-modal').classList.add('hidden'));
+  }
+
+  // Planner
+  const plannerDate = document.getElementById('planner-date');
+  if (plannerDate && !plannerDate.dataset.bound) {
+    plannerDate.dataset.bound = 'true';
+    plannerDate.addEventListener('change', () => renderPlanner());
+  }
+  const plannerTodayBtn = document.getElementById('planner-today-btn');
+  if (plannerTodayBtn && !plannerTodayBtn.dataset.bound) {
+    plannerTodayBtn.dataset.bound = 'true';
+    plannerTodayBtn.addEventListener('click', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('planner-date').value = today;
+      renderPlanner(today);
+    });
+  }
+  const plannerAddTaskBtn = document.getElementById('planner-add-task-btn');
+  if (plannerAddTaskBtn && !plannerAddTaskBtn.dataset.bound) {
+    plannerAddTaskBtn.dataset.bound = 'true';
+    plannerAddTaskBtn.addEventListener('click', () => {
+      const d = document.getElementById('planner-date')?.value || new Date().toISOString().split('T')[0];
+      openTaskFormWithDefaults({ dueDate: d });
+    });
+  }
+  const plannerSaveNotesBtn = document.getElementById('planner-save-notes-btn');
+  if (plannerSaveNotesBtn && !plannerSaveNotesBtn.dataset.bound) {
+    plannerSaveNotesBtn.dataset.bound = 'true';
+    plannerSaveNotesBtn.addEventListener('click', () => savePlannerNotes());
+  }
+  const plannerRunRulesBtn = document.getElementById('planner-run-rules-btn');
+  if (plannerRunRulesBtn && !plannerRunRulesBtn.dataset.bound) {
+    plannerRunRulesBtn.dataset.bound = 'true';
+    plannerRunRulesBtn.addEventListener('click', async () => {
+      const d = document.getElementById('planner-date')?.value || new Date().toISOString().split('T')[0];
+      await runScheduledAutomation(true, d);
+      renderPlanner(d);
+    });
+  }
+
+  // Campaign builder
+  const campaignRefreshBtn = document.getElementById('campaign-refresh');
+  if (campaignRefreshBtn && !campaignRefreshBtn.dataset.bound) {
+    campaignRefreshBtn.dataset.bound = 'true';
+    campaignRefreshBtn.addEventListener('click', () => renderCampaignBuilder());
+  }
+  const campaignSelectAllBtn = document.getElementById('campaign-select-all');
+  if (campaignSelectAllBtn && !campaignSelectAllBtn.dataset.bound) {
+    campaignSelectAllBtn.dataset.bound = 'true';
+    campaignSelectAllBtn.addEventListener('click', () => campaignSelectAll(true));
+  }
+  const campaignClearAllBtn = document.getElementById('campaign-clear-all');
+  if (campaignClearAllBtn && !campaignClearAllBtn.dataset.bound) {
+    campaignClearAllBtn.dataset.bound = 'true';
+    campaignClearAllBtn.addEventListener('click', () => campaignSelectAll(false));
+  }
+  const campaignGenerateBtn = document.getElementById('campaign-generate');
+  if (campaignGenerateBtn && !campaignGenerateBtn.dataset.bound) {
+    campaignGenerateBtn.dataset.bound = 'true';
+    campaignGenerateBtn.addEventListener('click', () => generateCampaignMessages());
+  }
+  const campaignCopyBtn = document.getElementById('campaign-copy');
+  if (campaignCopyBtn && !campaignCopyBtn.dataset.bound) {
+    campaignCopyBtn.dataset.bound = 'true';
+    campaignCopyBtn.addEventListener('click', () => copyCampaignToClipboard());
+  }
+  const campaignExportBtn = document.getElementById('campaign-export-csv');
+  if (campaignExportBtn && !campaignExportBtn.dataset.bound) {
+    campaignExportBtn.dataset.bound = 'true';
+    campaignExportBtn.addEventListener('click', () => exportCampaignCSV());
+  }
+
+  // Automation rules
+  const addRuleBtn = document.getElementById('add-rule-btn');
+  if (addRuleBtn && !addRuleBtn.dataset.bound) {
+    addRuleBtn.dataset.bound = 'true';
+    addRuleBtn.addEventListener('click', () => openRuleForm());
+  }
+  handleRuleForm();
+  const closeRuleFormBtn = document.getElementById('close-rule-form');
+  if (closeRuleFormBtn && !closeRuleFormBtn.dataset.bound) {
+    closeRuleFormBtn.dataset.bound = 'true';
+    closeRuleFormBtn.addEventListener('click', () => document.getElementById('rule-form-modal').classList.add('hidden'));
+  }
+
+
+
   // Tasks
   const addTaskBtn = document.getElementById('add-task-btn');
   if (addTaskBtn) {
     addTaskBtn.addEventListener('click', () => openTaskForm());
   }
   handleTaskForm();
+
+
+  // ---------------------------------------------------------------------------
+  // Phase 4: Finance + Compliance
+  // ---------------------------------------------------------------------------
+  const manageTplBtn = document.getElementById('manage-compliance-templates-btn');
+  if (manageTplBtn && !manageTplBtn.dataset.bound) {
+    manageTplBtn.dataset.bound = 'true';
+    manageTplBtn.addEventListener('click', () => openComplianceTemplatesModal());
+  }
+  const closeTplBtn = document.getElementById('close-compliance-templates');
+  if (closeTplBtn && !closeTplBtn.dataset.bound) {
+    closeTplBtn.dataset.bound = 'true';
+    closeTplBtn.addEventListener('click', () => document.getElementById('compliance-templates-modal')?.classList.add('hidden'));
+  }
+  const addTplItemBtn = document.getElementById('add-compliance-template-item-btn');
+  if (addTplItemBtn && !addTplItemBtn.dataset.bound) {
+    addTplItemBtn.dataset.bound = 'true';
+    addTplItemBtn.addEventListener('click', () => {
+      const tbody = document.querySelector('#compliance-template-items tbody');
+      if (!tbody) return;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="tmpl-label" value="" style="width:100%;"></td>
+        <td><input type="checkbox" class="tmpl-required"></td>
+        <td><input type="number" class="tmpl-due" value="" style="width:100px;"></td>
+        <td><button class="tmpl-del" type="button">Delete</button></td>
+      `;
+      tr.querySelector('.tmpl-del').addEventListener('click', () => tr.remove());
+      tbody.appendChild(tr);
+    });
+  }
+  const saveTplBtn = document.getElementById('save-compliance-template-btn');
+  if (saveTplBtn && !saveTplBtn.dataset.bound) {
+    saveTplBtn.dataset.bound = 'true';
+    saveTplBtn.addEventListener('click', () => {
+      saveComplianceTemplateFromEditor();
+      document.getElementById('compliance-templates-modal')?.classList.add('hidden');
+    });
+  }
+
 
   // Commissions
   const addCommissionBtn = document.getElementById('add-commission-btn');
@@ -9471,6 +13754,16 @@ async function init() {
   } catch (ex) {
     console.warn('Initial sync with cloud failed', ex);
   }
+  // Ensure newly introduced data domains exist after cloud sync
+  try {
+    normalizeData();
+    ensureDefaultAutomationRules();
+    // Run scheduled automation once per day (safe to run client-side)
+    await runScheduledAutomation(false);
+  } catch (e) {
+    console.warn('Post-sync normalisation/automation failed', e);
+  }
+
   // Initialise sidebar state and Firebase
   initSidebarState();
   initFirebase();

@@ -11,7 +11,7 @@
  * caching strategies (e.g. stale‑while‑revalidate) if needed.
  */
 
-const CACHE_NAME = 'hk-insurance-cache-v1';
+const CACHE_NAME = 'hk-insurance-cache-v2';
 
 // List of assets to cache. These are the core files that make up the app.
 const ASSETS_TO_CACHE = [
