@@ -1553,34 +1553,174 @@ function generateId() {
  * @param {File} file The file selected from the file input.
  * @returns {Promise<{id:string,size:string,mimeType:string}>}
  */
-async function uploadFileToDrive(file) {
-  // Read the file into an ArrayBuffer
+/**
+ * Upload a file to Firestore in chunks. This helper breaks the file into
+ * base64‑encoded segments small enough to fit within Firestore’s 1 MiB
+ * document limit and writes each segment as a document in the
+ * `hkInsurance/{currentDocId}/documents/{docId}/chunks` subcollection. The
+ * parent document is used to store metadata (name, size, mimeType and
+ * timestamps). A batch is used for up to 450 writes at a time (Firestore
+ * allows 500 per batch). Returns an object with id, size, mimeType and
+ * chunkCount on success.
+ *
+ * @param {File} file
+ * @param {string} docId
+ * @returns {Promise<{id:string,size:number,mimeType:string,chunkCount:number}>}
+ */
+async function uploadFileToChunks(file, docId) {
+  if (!firestoreDb) {
+    throw new Error('Firestore not configured');
+  }
+  // Ensure we have a cloud document ID to scope uploads. If none, load it.
+  if (!currentCloudDocId) {
+    loadCloudDocId();
+  }
   const arrayBuffer = await file.arrayBuffer();
-  // Convert to a binary string, then to base64
   let binary = '';
   const bytes = new Uint8Array(arrayBuffer);
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
   const base64 = btoa(binary);
-      // Use encodeURIComponent on the file name so it can safely round‑trip
-      const payload = {
-        fileName: encodeURIComponent(file.name),
-        mimeType: file.type || 'application/octet-stream',
-        data: base64
-      };
-      const response = await fetch('/.netlify/functions/uploadToDrive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) {
-        // Try to read the response text to surface a more useful message
-        const text = await response.text();
-        console.error('Drive upload failed:', text);
-        throw new Error(text || 'Drive upload failed');
-      }
-      return await response.json();
+  // Break base64 string into chunks. Each char ~1 byte. Use 700k chars to
+  // leave headroom for Firestore overhead (<1 MiB per doc). The expansion
+  // factor of base64 is 4/3, but we operate on the encoded string directly.
+  const chunkSize = 700000;
+  const totalChunks = Math.ceil(base64.length / chunkSize);
+  const userDocRef = firestoreDb.collection('hkInsurance').doc(currentCloudDocId);
+  const docRef = userDocRef.collection('documents').doc(docId);
+  // Write metadata to parent doc. Use merge so updates preserve other fields.
+  await docRef.set({
+    id: docId,
+    name: file.name,
+    mimeType: file.type || 'application/octet-stream',
+    size: file.size,
+    createdAt: new Date().toISOString(),
+    chunkCount: totalChunks
+  }, { merge: true });
+  // Write each chunk. Use batches of 450 writes to avoid exceeding limits.
+  let batch = firestoreDb.batch();
+  let counter = 0;
+  for (let i = 0; i < totalChunks; i++) {
+    const part = base64.slice(i * chunkSize, (i + 1) * chunkSize);
+    const chunkId = String(i).padStart(6, '0');
+    const chunkRef = docRef.collection('chunks').doc(chunkId);
+    batch.set(chunkRef, { index: i, data: part });
+    counter++;
+    if (counter === 450) {
+      await batch.commit();
+      batch = firestoreDb.batch();
+      counter = 0;
+    }
+  }
+  if (counter > 0) {
+    await batch.commit();
+  }
+  return { id: docId, size: file.size, mimeType: file.type || 'application/octet-stream', chunkCount: totalChunks };
+}
+
+/**
+ * Uploads a base64 encoded string (without data URI prefix) to Firestore chunks.
+ * This helper is used for migrating legacy documents that stored their data
+ * inline as a data URI. The caller must supply the mime type and file name.
+ *
+ * @param {string} base64Data Base64 encoded file contents (no prefix)
+ * @param {Object} meta Metadata including docId, name, mimeType
+ * @returns {Promise<Object>} Metadata (size, mimeType, chunkCount)
+ */
+async function uploadBlobToChunks(base64Data, meta) {
+  if (!firestoreDb) throw new Error('Firestore not configured');
+  if (!currentCloudDocId) loadCloudDocId();
+  const docId = meta.docId;
+  const userDocRef = firestoreDb.collection('hkInsurance').doc(currentCloudDocId);
+  const docRef = userDocRef.collection('documents').doc(docId);
+  // Calculate size from base64 length: each 4 chars represent 3 bytes
+  const rawLength = Math.floor(base64Data.length * 3 / 4);
+  const chunkSize = 700000;
+  const totalChunks = Math.ceil(base64Data.length / chunkSize);
+  await docRef.set({
+    id: docId,
+    name: meta.name,
+    mimeType: meta.mimeType || 'application/octet-stream',
+    size: rawLength,
+    createdAt: new Date().toISOString(),
+    chunkCount: totalChunks
+  }, { merge: true });
+  let batch = firestoreDb.batch();
+  let counter = 0;
+  for (let i = 0; i < totalChunks; i++) {
+    const part = base64Data.slice(i * chunkSize, (i + 1) * chunkSize);
+    const chunkId = String(i).padStart(6, '0');
+    const chunkRef = docRef.collection('chunks').doc(chunkId);
+    batch.set(chunkRef, { index: i, data: part });
+    counter++;
+    if (counter === 450) {
+      await batch.commit();
+      batch = firestoreDb.batch();
+      counter = 0;
+    }
+  }
+  if (counter > 0) await batch.commit();
+  return { id: docId, size: rawLength, mimeType: meta.mimeType || 'application/octet-stream', chunkCount: totalChunks };
+}
+
+/**
+ * Delete all existing chunks for a document. Useful when replacing a file
+ * during edit. Handles batching and commits in groups of 450 writes.
+ *
+ * @param {string} docId The document ID whose chunks should be deleted.
+ */
+async function deleteChunksForDoc(docId) {
+  if (!firestoreDb) return;
+  if (!currentCloudDocId) loadCloudDocId();
+  const docRef = firestoreDb.collection('hkInsurance').doc(currentCloudDocId)
+    .collection('documents').doc(docId);
+  const snapshot = await docRef.collection('chunks').get();
+  let batch = firestoreDb.batch();
+  let counter = 0;
+  snapshot.forEach(docSnap => {
+    batch.delete(docSnap.ref);
+    counter++;
+    if (counter === 450) {
+      batch.commit();
+      batch = firestoreDb.batch();
+      counter = 0;
+    }
+  });
+  if (counter > 0) {
+    await batch.commit();
+  }
+}
+
+/**
+ * Download a chunked document and return a Data URL. Fetches all chunk
+ * documents for the given doc from Firestore, concatenates their data
+ * strings in order and prepends the appropriate MIME type. If the user
+ * is offline, this will use cached chunks if previously fetched.
+ *
+ * @param {Object} doc The document metadata from data.documents
+ * @returns {Promise<string>} Data URI for preview/download
+ */
+async function downloadChunkedFile(doc) {
+  if (!firestoreDb) {
+    throw new Error('Firestore not configured');
+  }
+  if (!currentCloudDocId) {
+    loadCloudDocId();
+  }
+  const docRef = firestoreDb.collection('hkInsurance').doc(currentCloudDocId)
+    .collection('documents').doc(doc.id);
+  // Order by index ascending
+  const chunksSnap = await docRef.collection('chunks').orderBy('index').get();
+  let base64Combined = '';
+  chunksSnap.forEach(chunkSnap => {
+    const data = chunkSnap.data();
+    if (data && data.data) {
+      base64Combined += data.data;
+    }
+  });
+  const mime = doc.mimeType || 'application/octet-stream';
+  return `data:${mime};base64,${base64Combined}`;
 }
 
 /**
@@ -4496,10 +4636,14 @@ function renderDocumentsList() {
     const name = doc.name || '(Untitled)';
     const type = doc.type || '';
     const tags = Array.isArray(doc.tags) ? doc.tags.join(', ') : (doc.tags || '');
-    // Prefer Google Drive file download link. If unavailable, use storageUrl (legacy) or base64 data as fallback.
+    // Build a download link. For chunked documents, we will attach a click handler
+    // to fetch and download the concatenated file. For other docs, build a direct link.
     let downloadLink = '';
-    if (doc.driveFileId) {
-      // Use Google Drive direct download link. uc endpoint triggers download.
+    let downloadClass = '';
+    if (doc.chunkCount) {
+      downloadLink = '#';
+      downloadClass = 'download-chunked';
+    } else if (doc.driveFileId) {
       downloadLink = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
     } else if (doc.storageUrl) {
       downloadLink = doc.storageUrl;
@@ -4514,7 +4658,7 @@ function renderDocumentsList() {
       `<button class="view-document" data-id="${doc.id}" title="View">${ICONS.eye}</button>` +
       `<button class="edit-document" data-id="${doc.id}" title="Edit">${ICONS.pencil}</button>` +
       `<button class="delete-document" data-id="${doc.id}" title="Delete">${ICONS.trash}</button>` +
-      `<a href="${downloadLink}" download="${name}" title="Download">${ICONS.download}</a>` +
+      `<a href="${downloadLink}" ${downloadClass ? `class="${downloadClass}" data-id="${doc.id}"` : ''} download="${name}" title="Download">${ICONS.download}</a>` +
       `</td></tr>`;
   });
   htmlTable += '</tbody></table></div>';
@@ -4539,6 +4683,28 @@ function renderDocumentsList() {
       e.stopPropagation();
       if (confirm('Delete this document?')) {
         deleteDocument(btn.getAttribute('data-id'));
+      }
+    });
+  });
+  // attach download handler for chunked documents. This uses downloadChunkedFile to
+  // reconstruct the file and triggers a download in the browser
+  container.querySelectorAll('a.download-chunked').forEach(anchor => {
+    anchor.addEventListener('click', async e => {
+      e.preventDefault();
+      const id = anchor.getAttribute('data-id');
+      const doc = data.documents.find(d => d.id === id);
+      if (!doc || !doc.chunkCount) return;
+      try {
+        const uri = await downloadChunkedFile(doc);
+        const tempLink = document.createElement('a');
+        tempLink.href = uri;
+        tempLink.download = doc.name || 'document';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+      } catch (err) {
+        console.error('Download failed:', err);
+        alert('Failed to download file. Please try again.');
       }
     });
   });
@@ -4651,11 +4817,15 @@ function handleDocumentForm() {
         alert('Document not found');
         return;
       }
-      // Upload new file if provided, otherwise keep existing
+      // Upload new file if provided, otherwise keep existing file/chunks
       let uploadResult = null;
       if (file) {
         try {
-          uploadResult = await uploadFileToDrive(file);
+          // If the existing document was stored using chunks, delete old chunks
+          if (existing.chunkCount) {
+            await deleteChunksForDoc(existing.id);
+          }
+          uploadResult = await uploadFileToChunks(file, existing.id);
         } catch (err) {
           console.error('File upload failed:', err);
           alert('Failed to upload file. Please try again.');
@@ -4666,11 +4836,15 @@ function handleDocumentForm() {
       existing.type = docType;
       existing.tags = tags;
       existing.linkedEntities = linkedEntities;
+      // If a new file was uploaded, update metadata
       if (uploadResult) {
-        existing.driveFileId = uploadResult.id;
         existing.size = uploadResult.size;
         existing.mimeType = uploadResult.mimeType;
-        if (existing.data) delete existing.data;
+        existing.chunkCount = uploadResult.chunkCount;
+        // Remove any legacy storage identifiers
+        delete existing.driveFileId;
+        delete existing.storageUrl;
+        delete existing.data;
       }
       addTimeline(existing, 'Updated document');
       saveData();
@@ -4684,11 +4858,11 @@ function handleDocumentForm() {
       alert('Please choose a file');
       return;
     }
-    // Generate an ID up front so storage path is deterministic
+    // Generate an ID up front so chunk storage path is deterministic
     const docId = generateId();
     let uploadResultNew;
     try {
-      uploadResultNew = await uploadFileToDrive(file);
+      uploadResultNew = await uploadFileToChunks(file, docId);
     } catch (err) {
       console.error('File upload failed:', err);
       alert('Failed to upload file. Please try again.');
@@ -4700,9 +4874,9 @@ function handleDocumentForm() {
       type: docType,
       tags: tags,
       linkedEntities: linkedEntities,
-      driveFileId: uploadResultNew.id,
       size: uploadResultNew.size,
       mimeType: uploadResultNew.mimeType,
+      chunkCount: uploadResultNew.chunkCount,
       createdAt: new Date().toISOString(),
       timeline: []
     };
@@ -4719,7 +4893,7 @@ function handleDocumentForm() {
 }
 
 // Document preview
-function previewDocument(id) {
+async function previewDocument(id) {
   const doc = data.documents.find(d => d.id === id);
   if (!doc) return;
   const modal = document.getElementById('document-preview-modal');
@@ -4729,7 +4903,25 @@ function previewDocument(id) {
   // Show image or embed PDF from storage or inline data. Prefer the
   // external storage URL when available; fall back to legacy base64 data.
   let html = '';
-  if (doc.driveFileId) {
+  // If the document is stored in chunks in Firestore, load the data URI
+  if (doc.chunkCount) {
+    try {
+      const dataUri = await downloadChunkedFile(doc);
+      const mime = doc.mimeType || '';
+      const isImage = mime.startsWith('image/');
+      const isPdf = mime === 'application/pdf';
+      if (isImage) {
+        html = `<img src="${dataUri}" alt="${doc.name}" style="max-width:100%; height:auto;" />`;
+      } else if (isPdf) {
+        html = `<embed src="${dataUri}" type="application/pdf" width="100%" height="600px" />`;
+      } else {
+        html = '<p>Cannot preview this file type.</p>';
+      }
+    } catch (err) {
+      console.error('Failed to load chunked file:', err);
+      html = '<p>Error loading file preview.</p>';
+    }
+  } else if (doc.driveFileId) {
     // Derive a view link for Drive: use export=preview for PDF and images, rely on embed fallback otherwise
     const url = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
     const mime = doc.mimeType || '';
@@ -4795,10 +4987,21 @@ function previewDocument(id) {
     });
     html += '</ul>';
   }
-  // Append download link to allow saving the file locally
-  // Always offer a download link. Prefer the storageUrl; fallback to inline data.
-  const downloadLink = doc.storageUrl || doc.data || '';
-  html += `<p class="download-link"><a href="${downloadLink}" download="${doc.name}">${ICONS.download} Download</a></p>`;
+  // Append download link to allow saving the file locally.
+  // For chunked documents, the link will be wired up dynamically to reconstruct the file on demand.
+  let downloadHref = '';
+  let downloadClass = '';
+  if (doc.chunkCount) {
+    downloadHref = '#';
+    downloadClass = 'download-chunked-preview';
+  } else if (doc.driveFileId) {
+    downloadHref = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
+  } else if (doc.storageUrl) {
+    downloadHref = doc.storageUrl;
+  } else if (doc.data) {
+    downloadHref = doc.data;
+  }
+  html += `<p class="download-link"><a href="${downloadHref}" ${downloadClass ? `class="${downloadClass}" data-id="${doc.id}"` : ''} download="${doc.name}">${ICONS.download} Download</a></p>`;
   content.innerHTML = html;
   // Set up edit button with icon and click handler
   const editBtn = document.getElementById('edit-document-btn');
@@ -4818,6 +5021,28 @@ function previewDocument(id) {
     modal.classList.add('hidden');
     modal.classList.remove('open');
   });
+  // Attach download handler for preview if chunked
+  const previewLink = content.querySelector('a.download-chunked-preview');
+  if (previewLink) {
+    previewLink.addEventListener('click', async e => {
+      e.preventDefault();
+      const docId = previewLink.getAttribute('data-id');
+      const docObj = data.documents.find(d => d.id === docId);
+      if (!docObj || !docObj.chunkCount) return;
+      try {
+        const uri = await downloadChunkedFile(docObj);
+        const tempLink = document.createElement('a');
+        tempLink.href = uri;
+        tempLink.download = docObj.name || 'document';
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+      } catch (err) {
+        console.error('Download failed:', err);
+        alert('Failed to download file. Please try again.');
+      }
+    });
+  }
 }
 
 // Commissions
