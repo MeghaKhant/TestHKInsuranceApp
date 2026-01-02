@@ -4696,12 +4696,18 @@ function renderDocumentsList() {
       if (!doc || !doc.chunkCount) return;
       try {
         const uri = await downloadChunkedFile(doc);
+        // Convert data URI to Blob via fetch to avoid URI length limits
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
         const tempLink = document.createElement('a');
-        tempLink.href = uri;
+        tempLink.href = url;
         tempLink.download = doc.name || 'document';
         document.body.appendChild(tempLink);
         tempLink.click();
         document.body.removeChild(tempLink);
+        // Revoke object URL after download to free memory
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } catch (err) {
         console.error('Download failed:', err);
         alert('Failed to download file. Please try again.');
@@ -5031,12 +5037,16 @@ async function previewDocument(id) {
       if (!docObj || !docObj.chunkCount) return;
       try {
         const uri = await downloadChunkedFile(docObj);
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
         const tempLink = document.createElement('a');
-        tempLink.href = uri;
+        tempLink.href = url;
         tempLink.download = docObj.name || 'document';
         document.body.appendChild(tempLink);
         tempLink.click();
         document.body.removeChild(tempLink);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } catch (err) {
         console.error('Download failed:', err);
         alert('Failed to download file. Please try again.');
