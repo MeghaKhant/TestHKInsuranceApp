@@ -6155,6 +6155,166 @@ function renderSettings() {
       reader.readAsText(file);
     };
   }
+  // Datadump (full export) button: assemble a zip file containing the entire data object and all documents
+  const datadumpBtn = document.getElementById('settings-datadump');
+  if (datadumpBtn && !datadumpBtn.dataset.bound) {
+    datadumpBtn.dataset.bound = 'true';
+    datadumpBtn.onclick = async () => {
+      try {
+        if (typeof JSZip === 'undefined') {
+          alert('Unable to load JSZip library. Please ensure you have an internet connection.');
+          return;
+        }
+        const zip = new JSZip();
+        // Add the entire data object as JSON
+        zip.file('data.json', JSON.stringify(data, null, 2));
+        const docsFolder = zip.folder('documents');
+        for (const doc of data.documents) {
+          try {
+            let fileName = doc.name || doc.id || 'document';
+            fileName = fileName.replace(/[^a-zA-Z0-9_\.\-]/g, '_');
+            let ext = '';
+            if (fileName.includes('.')) {
+              ext = fileName.substring(fileName.lastIndexOf('.'));
+            } else if (doc.mimeType) {
+              const mt = doc.mimeType.split('/').pop();
+              ext = '.' + mt;
+              fileName += ext;
+            }
+            let blob;
+            if (doc.chunkCount) {
+              const uri = await downloadChunkedFile(doc);
+              const resp = await fetch(uri);
+              blob = await resp.blob();
+            } else if (doc.storageUrl) {
+              const resp = await fetch(doc.storageUrl);
+              blob = await resp.blob();
+            } else if (doc.driveFileId) {
+              const url = `https://drive.google.com/uc?id=${doc.driveFileId}&export=download`;
+              const resp = await fetch(url);
+              blob = await resp.blob();
+            } else if (doc.data) {
+              const resp = await fetch(doc.data);
+              blob = await resp.blob();
+            } else {
+              continue;
+            }
+            const buffer = await blob.arrayBuffer();
+            docsFolder.file(fileName, buffer);
+          } catch (err) {
+            console.warn('Could not add document', doc.id, err);
+          }
+        }
+        const zippedBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zippedBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'hk_insurance_datadump.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (err) {
+        console.error('Datadump generation failed', err);
+        alert('Failed to create datadump: ' + err.message);
+      }
+    };
+  }
+
+  // Import datadump: restore a ZIP archive containing data.json and document files.
+  const importDatadumpBtn = document.getElementById('settings-import-datadump');
+  const importDatadumpFile = document.getElementById('settings-import-datadump-file');
+  if (importDatadumpBtn && !importDatadumpBtn.dataset.bound) {
+    importDatadumpBtn.dataset.bound = 'true';
+    importDatadumpBtn.onclick = () => {
+      importDatadumpFile.click();
+    };
+  }
+  if (importDatadumpFile && !importDatadumpFile.dataset.bound) {
+    importDatadumpFile.dataset.bound = 'true';
+    importDatadumpFile.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        if (typeof JSZip === 'undefined') {
+          alert('Unable to load JSZip library. Please ensure you have an internet connection.');
+          return;
+        }
+        if (!confirm('Importing this datadump will overwrite your current data and re‑upload all documents. Continue?')) {
+          return;
+        }
+        // Load the ZIP archive
+        const zip = new JSZip();
+        const loaded = await zip.loadAsync(file);
+        // Extract data.json
+        const dataFile = loaded.file('data.json');
+        if (!dataFile) throw new Error('data.json missing from archive');
+        const jsonStr = await dataFile.async('string');
+        const importedData = JSON.parse(jsonStr);
+        // Restore documents: iterate through files in documents/ folder
+        const docsFolder = loaded.folder('documents');
+        if (!docsFolder) throw new Error('documents folder missing from archive');
+        // Build a map of sanitized names to entries in importedData.documents for quick lookup
+        const sanitizeName = (name) => name.replace(/[^a-zA-Z0-9_\.\-]/g, '_');
+        const docMap = {};
+        if (Array.isArray(importedData.documents)) {
+          for (const d of importedData.documents) {
+            const key = sanitizeName(d.name || d.id || 'document');
+            docMap[key] = d;
+          }
+        }
+        // Iterate over each file in the documents folder
+        const docFiles = Object.values(docsFolder.files);
+        for (const filePathObj of docFiles) {
+          const fileEntry = filePathObj;
+          if (!fileEntry || fileEntry.dir) continue;
+          const fileName = fileEntry.name.split('/').pop();
+          const buffer = await fileEntry.async('arraybuffer');
+          const mimeType = '';
+          const blob = new Blob([buffer]);
+          // Find matching document metadata
+          const metaDoc = docMap[fileName] || null;
+          // Determine docId: reuse existing id if found, else generate new
+          let docId;
+          if (metaDoc) {
+            docId = metaDoc.id || generateId();
+          } else {
+            docId = generateId();
+          }
+          // Create a File object to reuse existing upload helper
+          const uploadFile = new File([blob], fileName, { type: metaDoc && metaDoc.mimeType ? metaDoc.mimeType : '' });
+          const uploadMeta = await uploadFileToChunks(uploadFile, docId);
+          // Update metadata in importedData
+          if (metaDoc) {
+            delete metaDoc.data;
+            delete metaDoc.storageUrl;
+            delete metaDoc.driveFileId;
+            metaDoc.id = docId;
+            metaDoc.chunkCount = uploadMeta.chunkCount;
+            metaDoc.size = uploadMeta.size;
+            metaDoc.mimeType = uploadMeta.mimeType;
+          } else {
+            // If no metadata found, push new entry
+            importedData.documents.push({
+              id: docId,
+              name: fileName,
+              mimeType: uploadMeta.mimeType,
+              size: uploadMeta.size,
+              createdAt: new Date().toISOString(),
+              chunkCount: uploadMeta.chunkCount
+            });
+          }
+        }
+        // Replace current data and save
+        data = importedData;
+        saveData();
+        location.reload();
+      } catch (err) {
+        console.error('Datadump import failed', err);
+        alert('Failed to import datadump: ' + err.message);
+      }
+    };
+  }
   // Reset
   const resetBtn = document.getElementById('settings-reset');
   if (resetBtn && !resetBtn.dataset.bound) {

@@ -13,6 +13,8 @@
   <meta name="theme-color" content="#00436e">
   <!-- Chart.js for modern reports visuals -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- JSZip for exporting full data with documents as a zip file -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <!-- Firebase libraries for optional cloud sync. The compat version simplifies integration with the existing code base.
        Populate firebaseConfig in app.js with your project's credentials if you want to enable cloud sync.
        Auth compat is included to enable Google sign‑in. -->
@@ -1037,9 +1039,14 @@
       </div>
       <h3>Backup & Restore</h3>
       <button id="settings-export">Export Backup</button>
+      <!-- Hidden file inputs for imports. The JSON backup importer accepts a .json file, the datadump importer accepts a .zip file. -->
       <input type="file" id="settings-import-file" accept="application/json" style="display:none;">
       <button id="settings-import">Import Backup</button>
+      <!-- Datadump import allows you to restore a full ZIP archive (data.json plus documents). -->
+      <input type="file" id="settings-import-datadump-file" accept="application/zip" style="display:none;">
+      <button id="settings-import-datadump">Import Datadump</button>
       <button id="settings-reset">Reset App</button>
+      <button id="settings-datadump">Download Datadump</button>
       <p id="settings-message" style="color:green;"></p>
 
       <h3>Cloud Sync</h3>
@@ -1061,9 +1068,13 @@
     <!-- Guide section -->
     <section id="guide" class="section">
       <h2>How to Use HK Insurance App</h2>
-      <p>This application is your personal insurance operating system. It helps you manage every part of the insurance customer journey—from initial quote to policy issuance, payments, commissions, renewals and documentation—all in one place.</p>
+      <p>The HK Insurance Hub is your all‑in‑one back office for managing customers, policies and financial records. It handles the entire lifecycle—creating quotes and policies, tracking payments and commissions, managing vehicle and customer documents, and keeping you on schedule with renewals and alerts.</p>
+
+      <h3>Architecture &amp; Security</h3>
+      <p>This application runs entirely in your browser. It stores your data locally using <strong>IndexedDB</strong> so you can continue working offline, then automatically synchronises changes to the cloud when you reconnect. Each user’s data lives in a private Firestore document identified by their email. Documents larger than 1&nbsp;MiB are chunked and stored in a <code>chunks</code> subcollection to avoid Firestore limits. Authentication is handled by Firebase Auth and strict Firestore rules ensure that only you can read or write your records. All communication is encrypted over HTTPS. You can export your entire dataset—including documents—as a ZIP archive for safekeeping and import it on another device at any time.</p>
+
       <h3>Key Features</h3>
-      <!-- Replace the simple list with collapsible details blocks. Each key module is explained in depth when expanded. -->
+      <!-- Collapsible details blocks explaining each module. Click to expand for more information. -->
       <div class="guide-collapsibles">
         <details>
           <summary><strong>Dashboard</strong></summary>
@@ -1091,7 +1102,7 @@
         </details>
         <details>
           <summary><strong>Documents</strong></summary>
-          <p>Upload and manage documents such as PAN, Aadhaar, RC, policy copies and quotes. Tag documents for easy retrieval and link them to customers, policies, quotes and vehicles.</p>
+          <p>Upload and manage all document types such as KYC proofs, RC books, policy schedules and scanned quotes. Files are stored offline first and uploaded to Firestore in chunks behind the scenes. Add tags for quick retrieval and link files to customers, policies, quotes and vehicles. Preview images and PDFs directly in the app and download any file when needed. A full datadump export backs up both the metadata and the binary file content.</p>
         </details>
         <details>
           <summary><strong>Vehicles</strong></summary>
@@ -1107,15 +1118,15 @@
         </details>
         <details>
           <summary><strong>Timeline</strong></summary>
-          <p>See a global activity feed of everything happening in your business. Customer and policy profiles also contain their own timelines so you can trace all interactions at a glance.</p>
+          <p>See a global activity feed of everything happening in your business—from quotes created and policies issued to payments received and documents uploaded. Each customer and policy also has its own timeline so you can trace all interactions at a glance. Filters let you focus on specific event types.</p>
         </details>
         <details>
           <summary><strong>Alerts</strong></summary>
-          <p>Stay on top of renewals, overdue payments and other tasks. Alerts are colour‑coded by urgency and link directly to the relevant policy or customer so you can take action quickly.</p>
+          <p>Stay on top of renewals, overdue payments and follow‑ups. Alerts are colour‑coded by urgency and link directly to the relevant policy or customer so you can act quickly. Configure your preferred lead time for renewal reminders in Settings.</p>
         </details>
         <details>
           <summary><strong>Settings</strong></summary>
-          <p>Configure your safe give‑back range, add bank accounts/UPI IDs/wallets for receipt of commissions, export or import backups and reset the app. Settings are stored locally for privacy.</p>
+          <p>Configure your safe give‑back range, add bank accounts/UPI IDs/wallets for receipt of commissions, and manage your data. You can export or import a JSON backup of your database, reset the app entirely, or download/import a full datadump (including documents). Cloud synchronisation is automatic—just set your Firestore document ID once and forget about manual syncing.</p>
         </details>
       </div>
       <h3>Getting Started</h3>
