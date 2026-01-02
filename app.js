@@ -496,6 +496,12 @@ let data = {
   commissions: [],
   vehicles: []
   ,
+  // Rules for workflow automation
+  rules: [],
+  // Tasks and follow‑ups
+  tasks: [],
+  // Immutable audit logs
+  auditLogs: [],
   settings: {}
 };
 
@@ -1023,6 +1029,8 @@ const pageSearchTerms = {
   quotes: '',
   commissions: '',
   vehicles: ''
+  ,
+  tasks: ''
 };
 
 // Page‑level sort configuration for each list.  Each entry stores the
@@ -1391,7 +1399,8 @@ function setupPageSearches() {
     companies: { id: 'companies-search', render: renderCompaniesList },
     quotes: { id: 'quotes-search', render: renderQuotesList },
     commissions: { id: 'commissions-search', render: renderCommissionsList },
-    vehicles: { id: 'vehicles-search', render: renderVehiclesList }
+    vehicles: { id: 'vehicles-search', render: renderVehiclesList },
+    tasks: { id: 'tasks-search', render: renderTasksList }
   };
   Object.keys(mapping).forEach(key => {
     const info = mapping[key];
@@ -1569,6 +1578,54 @@ function saveData() {
 // Generate a pseudo‑unique ID
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+}
+
+/**
+ * Escape HTML special characters in a string to prevent injection attacks when
+ * inserting user‑controlled values into innerHTML. Use this helper when
+ * rendering names, notes or any other free‑form text.
+ *
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  if (str === undefined || str === null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Record an immutable audit log entry whenever an entity is created, updated or
+ * deleted. The audit log captures the user identity, timestamp, entity type,
+ * entity ID, previous value and new value. Audit entries are appended to the
+ * data.auditLogs array and never removed. This assists in dispute resolution
+ * and transparency.
+ *
+ * @param {string} entityType The type of entity changed (e.g. 'task','customer')
+ * @param {string} entityId The ID of the entity
+ * @param {*} oldValue The previous state (may be null)
+ * @param {*} newValue The new state (may be null on deletion)
+ */
+function logChange(entityType, entityId, oldValue, newValue) {
+  try {
+    const userEmail = (auth && auth.currentUser && auth.currentUser.email) || 'local';
+    data.auditLogs = data.auditLogs || [];
+    data.auditLogs.push({
+      id: generateId(),
+      timestamp: new Date().toISOString(),
+      user: userEmail,
+      entityType,
+      entityId,
+      oldValue: oldValue ? JSON.parse(JSON.stringify(oldValue)) : null,
+      newValue: newValue ? JSON.parse(JSON.stringify(newValue)) : null
+    });
+  } catch (err) {
+    console.warn('Failed to record audit log', err);
+  }
 }
 
 /**
@@ -2262,6 +2319,9 @@ function showSection(sectionId) {
   } else if (sectionId === 'reports') {
     // Render the reports section when selected
     renderReports();
+  } else if (sectionId === 'tasks') {
+    renderTasksList();
+    renderTasksSummary();
   }
 }
 
@@ -4669,11 +4729,17 @@ function handlePaymentForm() {
     };
     if (id) {
       const existing = data.payments.find(p => p.id === id);
+      // Capture old version for audit
+      const oldPay = Object.assign({}, existing);
       Object.assign(existing, paymentObj);
       addTimeline(existing, 'Updated payment');
+      logChange('payment', existing.id, oldPay, existing);
     } else {
       addTimeline(paymentObj, 'Recorded payment');
       data.payments.push(paymentObj);
+      logChange('payment', paymentObj.id, null, paymentObj);
+      // Fire automation rule for new payment
+      applyAutomationRules('paymentReceived', { payment: paymentObj });
     }
     // update policy payment status and pending amounts
     updatePolicyPaymentStatus(paymentObj.policy);
@@ -5435,6 +5501,282 @@ function renderVehiclesList() {
   renderVehiclesSummary();
 }
 
+// -----------------------------------------------------------------------------
+// Tasks & Follow‑Up Management
+//
+// A simple task manager that allows agents to track to‑dos and follow‑ups. Tasks
+// can be linked to customers, policies, quotes or payments and will appear in
+// calendar and alerts when due. Overdue tasks are highlighted in the list and
+// alert module. Tasks support priority and status fields to aid triage.
+
+function renderTasksSummary() {
+  const container = document.getElementById('tasks-summary');
+  if (!container) return;
+  const total = data.tasks.length;
+  const now = new Date();
+  const overdue = data.tasks.filter(t => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) < now).length;
+  const completed = data.tasks.filter(t => t.status === 'Completed').length;
+  const pending = data.tasks.filter(t => t.status === 'Pending').length;
+  const cards = [];
+  cards.push(`<div class="summary-card"><span class="summary-value">${total}</span><span class="summary-label">Total</span></div>`);
+  cards.push(`<div class="summary-card"><span class="summary-value">${pending}</span><span class="summary-label">Pending</span></div>`);
+  cards.push(`<div class="summary-card"><span class="summary-value">${completed}</span><span class="summary-label">Completed</span></div>`);
+  cards.push(`<div class="summary-card"><span class="summary-value">${overdue}</span><span class="summary-label">Overdue</span></div>`);
+  container.innerHTML = cards.join('');
+}
+
+function renderTasksList() {
+  const container = document.getElementById('tasks-list');
+  if (!container) return;
+  const term = (pageSearchTerms.tasks || '').toLowerCase();
+  const list = (!term ? data.tasks.slice() : data.tasks.filter(t => {
+    return (t.title || '').toLowerCase().includes(term) || (t.description || '').toLowerCase().includes(term);
+  }));
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">${ICONS.checklist}</div><p>No tasks yet.</p><p class="small-note">Click the Add Task button to create your first task.</p></div>`;
+    renderTasksSummary();
+    return;
+  }
+  let html = '<div class="table-container"><table class="data-table"><thead><tr><th>Title</th><th>Due</th><th>Priority</th><th>Status</th><th>Linked</th><th>Actions</th></tr></thead><tbody>';
+  const now = new Date();
+  list.forEach(t => {
+    const due = t.dueDate ? new Date(t.dueDate) : null;
+    const dueStr = due ? due.toLocaleDateString() : '';
+    const isOverdue = due && due < now && t.status !== 'Completed';
+    let linked = '';
+    if (t.linkedType && t.linkedId) linked = `${t.linkedType}#${t.linkedId}`;
+    html += `<tr data-id="${t.id}" class="${isOverdue ? 'overdue-row' : ''}">
+      <td>${escapeHtml(t.title)}</td>
+      <td>${dueStr}</td>
+      <td>${t.priority || ''}</td>
+      <td>${t.status || ''}</td>
+      <td>${linked}</td>
+      <td class="actions">
+        <button class="edit-task" data-id="${t.id}" title="Edit">${ICONS.pencil}</button>
+        <button class="delete-task" data-id="${t.id}" title="Delete">${ICONS.trash}</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+  // Attach handlers
+  container.querySelectorAll('.edit-task').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      openTaskForm(id);
+    });
+  });
+  container.querySelectorAll('.delete-task').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.getAttribute('data-id');
+      if (confirm('Delete this task?')) {
+        const idx = data.tasks.findIndex(t => t.id === id);
+        if (idx >= 0) data.tasks.splice(idx, 1);
+        saveData();
+        renderTasksList();
+        renderTasksSummary();
+      }
+    });
+  });
+  renderTasksSummary();
+}
+
+function openTaskForm(taskId) {
+  const modal = document.getElementById('task-form-modal');
+  const form = document.getElementById('task-form');
+  if (!modal || !form) return;
+  const idInput = document.getElementById('task-id');
+  const titleInput = document.getElementById('task-title');
+  const descInput = document.getElementById('task-desc');
+  const dueInput = document.getElementById('task-due');
+  const prioSelect = document.getElementById('task-priority');
+  const statusSelect = document.getElementById('task-status');
+  const linkedTypeSelect = document.getElementById('task-linked-type');
+  const linkedIdInput = document.getElementById('task-linked-id');
+  const notesInput = document.getElementById('task-notes');
+  const titleEl = document.getElementById('task-form-title');
+  if (taskId) {
+    // Edit existing
+    const task = data.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    idInput.value = task.id;
+    titleInput.value = task.title || '';
+    descInput.value = task.description || '';
+    dueInput.value = task.dueDate || '';
+    prioSelect.value = task.priority || 'Medium';
+    statusSelect.value = task.status || 'Pending';
+    linkedTypeSelect.value = task.linkedType || '';
+    linkedIdInput.value = task.linkedId || '';
+    notesInput.value = task.notes || '';
+    titleEl.textContent = 'Edit Task';
+  } else {
+    // New task
+    idInput.value = '';
+    titleInput.value = '';
+    descInput.value = '';
+    dueInput.value = '';
+    prioSelect.value = 'Medium';
+    statusSelect.value = 'Pending';
+    linkedTypeSelect.value = '';
+    linkedIdInput.value = '';
+    notesInput.value = '';
+    titleEl.textContent = 'Add Task';
+  }
+  modal.classList.remove('hidden');
+}
+
+function handleTaskForm() {
+  const form = document.getElementById('task-form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const idInput = document.getElementById('task-id');
+    const titleInput = document.getElementById('task-title');
+    const descInput = document.getElementById('task-desc');
+    const dueInput = document.getElementById('task-due');
+    const prioSelect = document.getElementById('task-priority');
+    const statusSelect = document.getElementById('task-status');
+    const linkedTypeSelect = document.getElementById('task-linked-type');
+    const linkedIdInput = document.getElementById('task-linked-id');
+    const notesInput = document.getElementById('task-notes');
+    const taskId = idInput.value;
+    const newTask = {
+      id: taskId || generateId(),
+      title: titleInput.value.trim(),
+      description: descInput.value.trim(),
+      dueDate: dueInput.value || '',
+      priority: prioSelect.value,
+      status: statusSelect.value,
+      linkedType: linkedTypeSelect.value || '',
+      linkedId: linkedIdInput.value.trim() || '',
+      notes: notesInput.value.trim(),
+      createdAt: new Date().toISOString()
+    };
+    const existingIndex = data.tasks.findIndex(t => t.id === newTask.id);
+    if (existingIndex >= 0) {
+      // push audit log
+      logChange('task', newTask.id, data.tasks[existingIndex], newTask);
+      data.tasks[existingIndex] = newTask;
+    } else {
+      logChange('task', newTask.id, null, newTask);
+      data.tasks.push(newTask);
+    }
+    saveData();
+    document.getElementById('task-form-modal').classList.add('hidden');
+    renderTasksList();
+    renderTasksSummary();
+  });
+  // close button
+  document.getElementById('close-task-form').addEventListener('click', () => {
+    document.getElementById('task-form-modal').classList.add('hidden');
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Workflow automation rule management and execution
+//
+// Rules are simple objects stored in data.rules. Each rule defines a trigger
+// event and a list of actions. When a trigger occurs (e.g. a payment is
+// recorded or a quote is accepted), applyAutomationRules() examines the
+// configured rules and executes the corresponding actions.
+
+/** Toggle a rule on or off. If enabled is true, a rule with the given trigger
+ * and actions is added. If false, any existing rule with that trigger is
+ * removed. Saves data after updating.
+ * @param {string} trigger The event type (e.g. 'paymentReceived')
+ * @param {string[]} actions List of action identifiers
+ * @param {boolean} enabled
+ */
+function toggleAutomationRule(trigger, actions, enabled) {
+  data.rules = data.rules || [];
+  // Remove existing rule with same trigger
+  data.rules = data.rules.filter(r => r.trigger !== trigger);
+  if (enabled) {
+    data.rules.push({ id: generateId(), trigger, actions });
+  }
+  saveData();
+}
+
+/** Execute automation rules for a given event type. The payload provides
+ * additional context such as the payment or quote involved. Supported actions
+ * include:
+ *  - markPolicyPaid: sets the associated policy payment status to 'Paid'
+ *  - createCommissionEntry: creates a commission record for the policy
+ *  - createDraftPolicy: creates a new policy based on an accepted quote
+ * @param {string} eventType
+ * @param {Object} payload
+ */
+async function applyAutomationRules(eventType, payload) {
+  if (!Array.isArray(data.rules)) return;
+  for (const rule of data.rules) {
+    if (rule.trigger !== eventType) continue;
+    for (const action of rule.actions || []) {
+      try {
+        if (action === 'markPolicyPaid' && eventType === 'paymentReceived') {
+          const payment = payload.payment;
+          if (!payment) continue;
+          const policyId = payment.policyId || payment.policy;
+          if (!policyId) continue;
+          const pol = data.policies.find(p => p.id === policyId);
+          if (pol) {
+            const oldPol = Object.assign({}, pol);
+            pol.paymentStatus = 'Paid';
+            logChange('policy', pol.id, oldPol, pol);
+          }
+        } else if (action === 'createCommissionEntry' && eventType === 'paymentReceived') {
+          const payment = payload.payment;
+          if (!payment) continue;
+          const policyId = payment.policyId || payment.policy;
+          if (!policyId) continue;
+          // Create a minimal commission record referencing the policy
+          const comm = {
+            id: generateId(),
+            policyId: policyId,
+            expectedAmount: '',
+            receivedAmount: '',
+            date: new Date().toISOString().split('T')[0],
+            companyId: '',
+            brokerId: '',
+            cashback: '',
+            notes: 'Auto‑generated commission entry'
+          };
+          data.commissions.push(comm);
+          logChange('commission', comm.id, null, comm);
+        } else if (action === 'createDraftPolicy' && eventType === 'quoteAccepted') {
+          const quote = payload.quote;
+          if (!quote) continue;
+          // Create a draft policy using quote data. Use generateId for new id.
+          const newPolicy = {
+            id: generateId(),
+            customerId: quote.customerId,
+            policyNumber: '',
+            policyType: quote.policyType,
+            startDate: '',
+            endDate: '',
+            premiumAmount: quote.premiumAmount || '',
+            taxAmount: quote.taxAmount || '',
+            paymentStatus: 'Pending',
+            companyId: quote.companyId || '',
+            brokerId: quote.brokerId || '',
+            vehicleId: quote.vehicleId || '',
+            quoteId: quote.id,
+            notes: 'Draft created from accepted quote',
+            createdAt: new Date().toISOString()
+          };
+          data.policies.push(newPolicy);
+          logChange('policy', newPolicy.id, null, newPolicy);
+        }
+      } catch (err) {
+        console.warn('Automation action failed', action, err);
+      }
+    }
+  }
+  saveData();
+  renderPoliciesList();
+  renderCommissionsList();
+}
+
 function openVehicleForm(id) {
   const modal = document.getElementById('vehicle-form-modal');
   const title = document.getElementById('vehicle-form-title');
@@ -5687,6 +6029,15 @@ function renderCalendar() {
       eventsByDate[key].push({ type: 'Quote Shared', label: q.policyType, id: q.id, entity: 'quote' });
     }
   });
+
+  // Collect task due events
+  data.tasks.forEach(t => {
+    if (!t.dueDate) return;
+    const d = new Date(t.dueDate);
+    const key = d.toISOString().split('T')[0];
+    if (!eventsByDate[key]) eventsByDate[key] = [];
+    eventsByDate[key].push({ type: 'Task Due', label: t.title || 'Task', id: t.id, entity: 'task', priority: t.priority, status: t.status });
+  });
   // Determine rendering based on view mode
   if (calendarViewMode === 'month') {
     monthLabel.textContent = `${monthNames[month]} ${year}`;
@@ -5718,6 +6069,7 @@ function renderCalendar() {
               else if (ev.type === 'Policy End') color = '#dc3545';
               else if (ev.type === 'Commission Expected') color = '#0d6efd';
               else if (ev.type === 'Quote Shared') color = '#ffc107';
+              else if (ev.type === 'Task Due') color = '#ff9800';
               html += `<li style="color:${color}" class="calendar-event" data-entity="${ev.entity}" data-id="${ev.id}">${ev.type}: ${ev.label}</li>`;
             });
             html += '</ul>';
@@ -5778,6 +6130,8 @@ function renderCalendar() {
         openPolicyDetail(entityId);
       } else if (entity === 'quote') {
         openQuoteDetail(entityId);
+      } else if (entity === 'task') {
+        openTaskForm(entityId);
       }
       e.stopPropagation();
     });
@@ -6081,6 +6435,31 @@ function renderSettings() {
         renderSettings();
       }
     });
+  }
+
+  // Workflow automation rules: initialise checkboxes based on current rules
+  const paymentRuleCheckbox = document.getElementById('rule-payment-commission');
+  const quoteRuleCheckbox = document.getElementById('rule-quote-to-policy');
+  if (paymentRuleCheckbox) {
+    // Determine if rule exists
+    const exists = Array.isArray(data.rules) && data.rules.some(r => r.trigger === 'paymentReceived');
+    paymentRuleCheckbox.checked = !!exists;
+    if (!paymentRuleCheckbox.dataset.bound) {
+      paymentRuleCheckbox.dataset.bound = 'true';
+      paymentRuleCheckbox.addEventListener('change', () => {
+        toggleAutomationRule('paymentReceived', ['markPolicyPaid', 'createCommissionEntry'], paymentRuleCheckbox.checked);
+      });
+    }
+  }
+  if (quoteRuleCheckbox) {
+    const existsQ = Array.isArray(data.rules) && data.rules.some(r => r.trigger === 'quoteAccepted');
+    quoteRuleCheckbox.checked = !!existsQ;
+    if (!quoteRuleCheckbox.dataset.bound) {
+      quoteRuleCheckbox.dataset.bound = 'true';
+      quoteRuleCheckbox.addEventListener('change', () => {
+        toggleAutomationRule('quoteAccepted', ['createDraftPolicy'], quoteRuleCheckbox.checked);
+      });
+    }
   }
   const upiForm = document.getElementById('settings-upi-form');
   if (upiForm && !upiForm.dataset.bound) {
@@ -6993,7 +7372,58 @@ function renderAlerts() {
 // ===== Alerts & Renewals wrapper =====
 // Delegate to the renewal renderer. See renderRenewals() for details.
 function renderAlerts() {
-  renderRenewals();
+  // Render upcoming and missed renewals
+  if (typeof renderRenewals === 'function') {
+    renderRenewals();
+  }
+  // Append overdue tasks to the alerts list
+  try {
+    renderTaskAlerts();
+  } catch (err) {
+    console.warn('Failed to render task alerts', err);
+  }
+}
+
+/**
+ * Render overdue tasks in the Alerts view. Tasks due today or past due and
+ * not yet completed will appear in a separate section below policy renewals.
+ */
+function renderTaskAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (!container) return;
+  const now = new Date();
+  const overdue = data.tasks.filter(t => t.dueDate && new Date(t.dueDate) <= now && t.status !== 'Completed');
+  if (overdue.length === 0) return;
+  // Remove any existing task alert section to avoid duplicates
+  const existing = container.querySelector('.task-alert-section');
+  if (existing) existing.remove();
+  const section = document.createElement('div');
+  section.className = 'task-alert-section';
+  const heading = document.createElement('h3');
+  heading.textContent = 'Overdue Tasks';
+  section.appendChild(heading);
+  overdue.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'card overdue-task-card';
+    card.setAttribute('data-id', t.id);
+    const title = document.createElement('div');
+    title.className = 'card-title';
+    title.textContent = t.title;
+    const due = document.createElement('div');
+    due.className = 'card-subtitle';
+    due.textContent = `Due ${new Date(t.dueDate).toLocaleDateString()}`;
+    const actions = document.createElement('div');
+    actions.className = 'card-actions';
+    const viewBtn = document.createElement('button');
+    viewBtn.textContent = 'View';
+    viewBtn.addEventListener('click', () => openTaskForm(t.id));
+    actions.appendChild(viewBtn);
+    card.appendChild(title);
+    card.appendChild(due);
+    card.appendChild(actions);
+    section.appendChild(card);
+  });
+  container.appendChild(section);
 }
 
 // ===== Business Timeline =====
@@ -8499,13 +8929,22 @@ function handleQuoteForm() {
       typeSpecific: ts,
       timeline: []
     };
+    let oldStatus = null;
     if (id) {
       const existing = data.quotes.find(q => q.id === id);
+      oldStatus = existing ? existing.status : null;
+      logChange('quote', existing.id, Object.assign({}, existing), quoteObj);
       Object.assign(existing, quoteObj);
       addTimeline(existing, 'Updated quote');
     } else {
       addTimeline(quoteObj, 'Created quote');
       data.quotes.push(quoteObj);
+      logChange('quote', quoteObj.id, null, quoteObj);
+    }
+    // Trigger rule if quote is newly accepted
+    const newStatus = quoteObj.status;
+    if (newStatus === 'Accepted' && oldStatus !== 'Accepted') {
+      applyAutomationRules('quoteAccepted', { quote: quoteObj });
     }
     saveData();
     renderQuotesList();
@@ -8726,6 +9165,13 @@ function setupEventListeners() {
     addQuoteBtn.addEventListener('click', () => openQuoteForm());
     handleQuoteForm();
   }
+
+  // Tasks
+  const addTaskBtn = document.getElementById('add-task-btn');
+  if (addTaskBtn) {
+    addTaskBtn.addEventListener('click', () => openTaskForm());
+  }
+  handleTaskForm();
 
   // Commissions
   const addCommissionBtn = document.getElementById('add-commission-btn');

@@ -50,6 +50,8 @@
         <li><a href="#" data-section="reports" data-icon="bar"><span class="icon"></span><span>Reports</span></a></li>
         <!-- Alerts & Renewals navigation -->
         <li><a href="#" data-section="alerts" data-icon="alerts"><span class="icon"></span><span>Alerts</span></a></li>
+        <!-- New Tasks module to track follow‑ups and activities -->
+        <li><a href="#" data-section="tasks" data-icon="checklist"><span class="icon"></span><span>Tasks</span></a></li>
         <li><a href="#" data-section="settings" data-icon="settings"><span class="icon"></span><span>Settings</span></a></li>
         <li><a href="#" data-section="guide" data-icon="info"><span class="icon"></span><span>Guide</span></a></li>
       </ul>
@@ -472,6 +474,56 @@
           <!-- Edit button inserted to allow editing uploaded documents -->
           <button id="edit-document-btn" class="icon-button" title="Edit Document">Edit</button>
           <div id="document-preview-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tasks section -->
+    <section id="tasks" class="section">
+      <h2>Tasks &amp; Follow‑Ups</h2>
+      <div class="summary-cards" id="tasks-summary"></div>
+      <div class="section-actions">
+        <button id="add-task-btn">Add Task</button>
+        <input type="text" id="tasks-search" class="section-search" placeholder="Search tasks…">
+      </div>
+      <div id="tasks-list"></div>
+      <!-- Task form modal -->
+      <div id="task-form-modal" class="modal hidden">
+        <div class="modal-content">
+          <span class="close" id="close-task-form">&times;</span>
+          <h3 id="task-form-title">Add Task</h3>
+          <form id="task-form">
+            <input type="hidden" id="task-id">
+            <label>Title*<input type="text" id="task-title" required></label>
+            <label>Description<textarea id="task-desc"></textarea></label>
+            <label>Due Date<input type="date" id="task-due"></label>
+            <label>Priority
+              <select id="task-priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </label>
+            <label>Status
+              <select id="task-status">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </label>
+            <label>Linked To
+              <select id="task-linked-type">
+                <option value="">None</option>
+                <option value="customer">Customer</option>
+                <option value="policy">Policy</option>
+                <option value="quote">Quote</option>
+                <option value="payment">Payment</option>
+              </select>
+              <input type="text" id="task-linked-id" placeholder="Enter ID (optional)">
+            </label>
+            <label>Notes<textarea id="task-notes"></textarea></label>
+            <button type="submit">Save</button>
+          </form>
         </div>
       </div>
     </section>
@@ -1049,6 +1101,15 @@
       <button id="settings-datadump">Download Datadump</button>
       <p id="settings-message" style="color:green;"></p>
 
+      <h3>Workflow Automation</h3>
+      <p class="small-note">Define simple rules to automate repetitive tasks. You can enable or disable each rule below.</p>
+      <div class="automation-rule">
+        <label><input type="checkbox" id="rule-payment-commission"> When a payment is recorded, mark the policy as paid and create a commission entry.</label>
+      </div>
+      <div class="automation-rule">
+        <label><input type="checkbox" id="rule-quote-to-policy"> When a quote is accepted, automatically create a draft policy populated with the quote details.</label>
+      </div>
+
       <h3>Cloud Sync</h3>
       <p class="small-note">Configure a single Firestore document ID here and never type it again. Your data now syncs automatically when online. You can change the document ID at any time or remove your data entirely. All entities including documents are synced.</p>
       <div class="cloud-sync-settings">
@@ -1103,6 +1164,16 @@
         <details>
           <summary><strong>Documents</strong></summary>
           <p>Upload and manage all document types such as KYC proofs, RC books, policy schedules and scanned quotes. Files are stored offline first and uploaded to Firestore in chunks behind the scenes. Add tags for quick retrieval and link files to customers, policies, quotes and vehicles. Preview images and PDFs directly in the app and download any file when needed. A full datadump export backs up both the metadata and the binary file content.</p>
+        </details>
+
+        <details>
+          <summary><strong>Tasks &amp; Follow‑Ups</strong></summary>
+          <p>Keep yourself organised with a dedicated task manager. Create tasks with due dates, priorities and notes, and link them to customers, policies, quotes or payments. Tasks appear in the calendar and alerts views; overdue tasks are highlighted. Use this to track follow‑ups, client callbacks and operational reminders.</p>
+        </details>
+
+        <details>
+          <summary><strong>Workflow Automation</strong></summary>
+          <p>Automate repetitive actions with simple rules. Enable auto‑marking a policy as paid and generating a commission entry whenever a payment is recorded. Automatically create a draft policy when a quote is accepted. These rules run locally in your browser and can be toggled on or off in the Settings &gt; Workflow Automation section.</p>
         </details>
         <details>
           <summary><strong>Vehicles</strong></summary>
