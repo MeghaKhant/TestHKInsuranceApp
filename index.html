@@ -43,6 +43,8 @@
         <li><a href="#" data-section="commissions" data-icon="award"><span class="icon"></span><span>Commissions</span></a></li>
         <li><a href="#" data-section="finance" data-icon="wallet"><span class="icon"></span><span>Finance</span></a></li>
         <li><a href="#" data-section="compliance" data-icon="shield-check"><span class="icon"></span><span>Compliance</span></a></li>
+        <li class="subnav"><a href="#" data-section="compliance" data-tab="docs" data-icon="folder"><span class="icon"></span><span>KYC &amp; Docs</span></a></li>
+        <li class="subnav"><a href="#" data-section="compliance" data-tab="expiry" data-icon="calendar"><span class="icon"></span><span>Expiry</span></a></li>
         <li><a href="#" data-section="documents" data-icon="folder"><span class="icon"></span><span>Documents</span></a></li>
         <li><a href="#" data-section="vehicles" data-icon="car"><span class="icon"></span><span>Vehicles</span></a></li>
         <li><a href="#" data-section="brokers" data-icon="handshake"><span class="icon"></span><span>Brokers</span></a></li>
@@ -540,13 +542,21 @@
                 <option value="Other">Other</option>
                 <option value="PAN">PAN</option>
                 <option value="Aadhaar">Aadhaar</option>
+                <option value="GST">GST</option>
+                <option value="Driving Licence">Driving Licence</option>
                 <option value="RC">RC</option>
+                <option value="PUC">PUC</option>
+                <option value="Fitness">Fitness</option>
                 <option value="Policy Copy">Policy Copy</option>
                 <option value="Quote">Quote</option>
               </select>
             </label>
             <label>Tags (comma separated)
               <input type="text" id="document-tags">
+            </label>
+            <label>Expiry Date (optional)
+              <input type="date" id="document-expiry">
+              <small class="note">Use this for Driving Licence, PUC, Fitness, or any document that needs renewal.</small>
             </label>
             <label>Linked To (multi‑select)
               <select id="document-linked-entities" multiple style="height:8em;"></select>
@@ -1045,11 +1055,28 @@
     <section id="compliance" class="section">
       <h2>Compliance</h2>
       <div class="summary-cards" id="compliance-summary"></div>
+
       <div class="section-actions">
+        <div class="tab-buttons" id="compliance-tabs">
+          <button class="tab-btn active" data-tab="checklists">Checklists</button>
+          <button class="tab-btn" data-tab="docs">KYC &amp; Docs</button>
+          <button class="tab-btn" data-tab="expiry">Expiry</button>
+        </div>
+        <span class="spacer"></span>
         <button id="manage-compliance-templates-btn">Templates</button>
-        <input type="text" id="compliance-search" class="section-search" placeholder="Search policies…">
+        <button id="compliance-upload-doc-btn">Upload Document</button>
+        <input type="text" id="compliance-search" class="section-search" placeholder="Search…">
       </div>
-      <div id="compliance-list"></div>
+
+      <div id="compliance-tab-checklists" class="tab-content active">
+        <div id="compliance-list"></div>
+      </div>
+      <div id="compliance-tab-docs" class="tab-content">
+        <div id="compliance-docs-list"></div>
+      </div>
+      <div id="compliance-tab-expiry" class="tab-content">
+        <div id="compliance-expiry-list"></div>
+      </div>
 
       <!-- Compliance templates modal -->
       <div id="compliance-templates-modal" class="modal hidden">
@@ -1073,8 +1100,7 @@
       </div>
     </section>
 
-
-    <!-- Vehicles section -->
+<!-- Vehicles section -->
     <section id="vehicles" class="section">
       <h2>Vehicles</h2>
       <div class="summary-cards" id="vehicles-summary"></div>
@@ -1117,6 +1143,12 @@
             </label>
             <label>Registration Date
               <input type="date" id="vehicle-registration">
+            </label>
+            <label>PUC Expiry Date
+              <input type="date" id="vehicle-puc-expiry">
+            </label>
+            <label>Fitness Expiry Date
+              <input type="date" id="vehicle-fitness-expiry">
             </label>
             <label>Insured Declared Value (IDV)
               <input type="number" id="vehicle-idv" step="0.01">
@@ -1587,6 +1619,16 @@
         </details>
 
         <details>
+          <summary><strong>Compliance</strong></summary>
+          <p>Use the Compliance module to ensure every policy file is complete and audit‑ready. It has three tabs:</p>
+          <ul>
+            <li><strong>Checklists:</strong> Policy-level checklist (Required/Optional items) with overdue tracking. Templates can be edited per policy type.</li>
+            <li><strong>KYC &amp; Docs:</strong> Shows customers/vehicles/policies that are missing key documents (PAN/Aadhaar/GST, RC, Policy Copy). Create tasks or upload documents directly.</li>
+            <li><strong>Expiry:</strong> Tracks expiring items like Driving Licence, PUC, Fitness, and any document where you set an expiry date. Expiries also appear in Alerts.</li>
+          </ul>
+        </details>
+
+        <details>
           <summary><strong>Tasks &amp; Follow‑Ups</strong></summary>
           <p>Keep yourself organised with a dedicated task manager. Create tasks with due dates, priorities and notes, and link them to customers, policies, quotes or payments. Tasks appear in the calendar and alerts views; overdue tasks are highlighted. Use this to track follow‑ups, client callbacks and operational reminders.</p>
         </details>
@@ -1597,7 +1639,7 @@
         </details>
         <details>
           <summary><strong>Vehicles</strong></summary>
-          <p>Add vehicles with detailed fields (registration number, chassis and engine numbers, make/model, fuel type). Link vehicles to motor policies and associated documents.</p>
+          <p>Add vehicles with detailed fields (registration number, chassis and engine numbers, make/model, fuel type) plus PUC &amp; Fitness expiry tracking. Link vehicles to motor policies and associated documents.</p>
         </details>
         <details>
           <summary><strong>Brokers &amp; Companies</strong></summary>
@@ -1613,7 +1655,7 @@
         </details>
         <details>
           <summary><strong>Alerts</strong></summary>
-          <p>Stay on top of renewals, overdue payments and follow‑ups. Alerts are colour‑coded by urgency and link directly to the relevant policy or customer so you can act quickly. Configure your preferred lead time for renewal reminders in Settings.</p>
+          <p>Stay on top of renewals, overdue payments and follow‑ups. Alerts are colour‑coded by urgency and link directly to the relevant policy or customer so you can act quickly. The app also flags expiring documents / PUC / Fitness in the Alerts screen. Configure lead times in Settings.</p>
         </details>
         <details>
           <summary><strong>Settings</strong></summary>

@@ -1470,7 +1470,7 @@ function setupPageSearches() {
     audit: { id: 'audit-search', render: renderAuditLogsList },
     leads: { id: 'leads-search', render: renderLeadsView },
     automation: { id: 'automation-search', render: renderAutomationRulesList },
-    compliance: { id: 'compliance-search', render: renderComplianceList }
+    compliance: { id: 'compliance-search', render: renderCompliance }
   };
   Object.keys(mapping).forEach(key => {
     const info = mapping[key];
@@ -1543,6 +1543,8 @@ function loadData() {
         leadStages: ['New', 'Contacted', 'Interested', 'Quoted', 'Negotiating', 'Won', 'Lost'],
         // Compliance templates and alert horizon (days before due date)
         complianceAlertWindowDays: 3,
+        // Expiry alert horizon for documents/PUC/Fitness (days)
+        docExpiryAlertWindowDays: 30,
         complianceTemplates: {
           Default: [
             { id: 'kyc', label: 'KYC (PAN/Aadhaar)', required: true, dueDays: 3 },
@@ -2469,6 +2471,11 @@ function setupNavigation() {
     link.addEventListener('click', e => {
       e.preventDefault();
       const section = link.getAttribute('data-section');
+      const tab = link.getAttribute('data-tab');
+      // Allow sub-navigation links (e.g., Compliance → Docs/Expiry)
+      if (section === 'compliance') {
+        complianceState.tab = tab || 'checklists';
+      }
       showSection(section);
       navLinks.forEach(l => l.classList.remove('active'));
       link.classList.add('active');
@@ -2532,9 +2539,7 @@ function showSection(sectionId) {
   } else if (sectionId === 'finance') {
     renderFinance();
   } else if (sectionId === 'compliance') {
-    renderComplianceList();
-    renderComplianceSummary();
-  
+    renderCompliance();
   } else if (sectionId === 'tasks') {
     renderTasksList();
     renderTasksSummary();
@@ -4773,7 +4778,7 @@ function openPolicyDetail(id) {
         saveData();
         // refresh badges + compliance screen
         try { renderPoliciesList(); } catch (_) {}
-        try { renderComplianceList(); renderComplianceSummary(); } catch (_) {}
+        try { renderCompliance(); } catch (_) {}
         // re-open to refresh UI quickly
         openPolicyDetail(policy.id);
       });
@@ -5274,11 +5279,19 @@ function renderDocumentsList() {
     return;
   }
   // Build a modern table view instead of cards
-  let htmlTable = '<div class="table-container"><table class="data-table"><thead><tr><th>Name</th><th>Type</th><th>Tags</th><th>Actions</th></tr></thead><tbody>';
+  let htmlTable = '<div class="table-container"><table class="data-table"><thead><tr><th>Name</th><th>Type</th><th>Tags</th><th>Expiry</th><th>Actions</th></tr></thead><tbody>';
     list.forEach(doc => {
     const name = doc.name || '(Untitled)';
     const type = doc.type || '';
     const tags = Array.isArray(doc.tags) ? doc.tags.join(', ') : (doc.tags || '');
+    const expiryIso = doc.expiryDate || '';
+    let expiryCell = '—';
+    if (expiryIso) {
+      const horizon = parseInt((data.settings && data.settings.docExpiryAlertWindowDays) || 30, 10) || 30;
+      const st = expiryStatus(expiryIso, horizon);
+      const badge = st && st.cls ? ` <span class="badge ${st.cls}">${escapeHtml(st.status || '')}</span>` : '';
+      expiryCell = `${escapeHtml(formatDate(expiryIso) || expiryIso)}${badge}`;
+    }
     // Determine whether this document is stored in chunks. We will attach a
     // click handler to the download button when chunkCount is defined. For
     // direct links (storageUrl/driveFileId/data), we store the URL on the
@@ -5299,6 +5312,7 @@ function renderDocumentsList() {
       `<td>${name}</td>` +
       `<td>${type}</td>` +
       `<td>${tags}</td>` +
+      `<td>${expiryCell}</td>` +
       `<td class="actions">` +
       `<button class="view-document" data-id="${doc.id}" title="View">${ICONS.eye}</button>` +
       `<button class="edit-document" data-id="${doc.id}" title="Edit">${ICONS.pencil}</button>` +
@@ -5394,81 +5408,111 @@ function deleteDocument(id) {
   renderDocumentsList();
 }
 
-function openDocumentForm(id = '') {
+function openDocumentForm(id = '', defaults = null) {
   const modal = document.getElementById('document-form-modal');
+  if (!modal) return;
   const fileInput = document.getElementById('document-file');
   const nameInput = document.getElementById('document-name');
   const typeSelect = document.getElementById('document-type');
   const tagsInput = document.getElementById('document-tags');
+  const expiryInput = document.getElementById('document-expiry');
   const multi = document.getElementById('document-linked-entities');
   const hiddenId = document.getElementById('document-id');
-  // repopulate multi-select options for customers, policies, quotes and vehicles
-  multi.innerHTML = '';
-  data.customers.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = 'customer:' + c.id;
-    opt.textContent = `Customer: ${c.fullName}`;
-    multi.appendChild(opt);
-  });
-  data.policies.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = 'policy:' + p.id;
-    opt.textContent = `Policy: ${p.policyNumber}`;
-    multi.appendChild(opt);
-  });
-  data.quotes.forEach(q => {
-    const opt = document.createElement('option');
-    opt.value = 'quote:' + q.id;
-    opt.textContent = `Quote: ${q.policyType} (${formatDate(q.quoteDate) || ''})`;
-    multi.appendChild(opt);
-  });
-  data.vehicles.forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = 'vehicle:' + v.id;
-    opt.textContent = `Vehicle: ${v.vehicleNumber}`;
-    multi.appendChild(opt);
-  });
-  // Update title based on whether editing or creating
+
+  // Repopulate multi-select options for customers, policies, quotes and vehicles
+  if (multi) {
+    multi.innerHTML = '';
+    (data.customers || []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = 'customer:' + c.id;
+      opt.textContent = `Customer: ${c.fullName || ''}`.trim();
+      multi.appendChild(opt);
+    });
+    (data.policies || []).forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = 'policy:' + p.id;
+      opt.textContent = `Policy: ${p.policyNumber || ''}`.trim();
+      multi.appendChild(opt);
+    });
+    (data.quotes || []).forEach(q => {
+      const opt = document.createElement('option');
+      opt.value = 'quote:' + q.id;
+      opt.textContent = `Quote: ${q.policyType || ''} (${formatDate(q.quoteDate) || ''})`;
+      multi.appendChild(opt);
+    });
+    (data.vehicles || []).forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = 'vehicle:' + v.id;
+      opt.textContent = `Vehicle: ${v.vehicleNumber || ''}`.trim();
+      multi.appendChild(opt);
+    });
+  }
+
   const titleEl = modal.querySelector('h3');
+
   if (!id) {
-    hiddenId.value = '';
-    nameInput.value = '';
-    typeSelect.value = 'Other';
-    tagsInput.value = '';
-    multi.selectedIndex = -1;
-    fileInput.value = '';
-    fileInput.required = true;
+    if (hiddenId) hiddenId.value = '';
+    if (nameInput) nameInput.value = (defaults && defaults.name) ? defaults.name : '';
+    if (typeSelect) typeSelect.value = (defaults && defaults.docType) ? defaults.docType : 'Other';
+    if (tagsInput) tagsInput.value = (defaults && Array.isArray(defaults.tags)) ? defaults.tags.join(', ') : '';
+    if (expiryInput) expiryInput.value = (defaults && defaults.expiryDate) ? defaults.expiryDate : '';
+
+    // Clear selection then apply defaults (if provided)
+    if (multi) {
+      Array.from(multi.options).forEach(opt => { opt.selected = false; });
+      if (defaults && Array.isArray(defaults.linkedEntities)) {
+        const selectedValues = defaults.linkedEntities
+          .filter(le => le && le.entity && le.id)
+          .map(le => `${le.entity}:${le.id}`);
+        Array.from(multi.options).forEach(opt => {
+          opt.selected = selectedValues.includes(opt.value);
+        });
+      }
+    }
+
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.required = true;
+    }
     if (titleEl) titleEl.textContent = 'Upload Document';
   } else {
-    hiddenId.value = id;
-    const doc = data.documents.find(d => d.id === id);
+    if (hiddenId) hiddenId.value = id;
+    const doc = (data.documents || []).find(d => d.id === id);
     if (doc) {
       if (titleEl) titleEl.textContent = 'Edit Document';
-      nameInput.value = doc.name || '';
-      typeSelect.value = doc.type || 'Other';
-      tagsInput.value = Array.isArray(doc.tags) ? doc.tags.join(', ') : '';
-      // pre-select linked entities
+      if (nameInput) nameInput.value = doc.name || '';
+      if (typeSelect) typeSelect.value = doc.type || 'Other';
+      if (tagsInput) tagsInput.value = Array.isArray(doc.tags) ? doc.tags.join(', ') : '';
+      if (expiryInput) expiryInput.value = doc.expiryDate || '';
+
       const selectedValues = [];
       if (Array.isArray(doc.linkedEntities)) {
         doc.linkedEntities.forEach(link => {
+          if (!link || !link.entity || !link.id) return;
           selectedValues.push(`${link.entity}:${link.id}`);
         });
       }
-      Array.from(multi.options).forEach(opt => {
-        opt.selected = selectedValues.includes(opt.value);
-      });
-      fileInput.value = '';
-      fileInput.required = false;
+      if (multi) {
+        Array.from(multi.options).forEach(opt => {
+          opt.selected = selectedValues.includes(opt.value);
+        });
+      }
+
+      if (fileInput) {
+        fileInput.value = '';
+        fileInput.required = false;
+      }
     }
   }
+
   modal.classList.remove('hidden');
   modal.classList.add('open');
-  // Focus the first field for accessibility
   setTimeout(() => {
     const firstField = modal.querySelector('input, select, textarea');
     if (firstField) firstField.focus();
   }, 50);
 }
+
 
 function handleDocumentForm() {
   const form = document.getElementById('document-form');
@@ -5480,6 +5524,7 @@ function handleDocumentForm() {
     const hiddenId = document.getElementById('document-id').value;
     const tags = document.getElementById('document-tags').value.split(',').map(t => t.trim()).filter(Boolean);
     const docType = document.getElementById('document-type').value || 'Other';
+    const expiryDate = document.getElementById('document-expiry')?.value || '';
     const multi = document.getElementById('document-linked-entities');
     const linkedEntities = [];
     Array.from(multi.selectedOptions).forEach(opt => {
@@ -5511,6 +5556,7 @@ function handleDocumentForm() {
       }
       existing.name = document.getElementById('document-name').value || existing.name;
       existing.type = docType;
+      existing.expiryDate = expiryDate;
       existing.tags = tags;
       existing.linkedEntities = linkedEntities;
       // If a new file was uploaded, update metadata
@@ -5550,6 +5596,7 @@ function handleDocumentForm() {
       id: docId,
       name: document.getElementById('document-name').value || file.name,
       type: docType,
+      expiryDate: expiryDate,
       tags: tags,
       linkedEntities: linkedEntities,
       size: uploadResultNew.size,
@@ -6516,6 +6563,8 @@ function openVehicleForm(id) {
     form.elements['vehicle-model'].value = veh.model || '';
     form.elements['vehicle-fuel'].value = veh.fuelType || '';
     form.elements['vehicle-registration'].value = veh.registrationDate || '';
+    form.elements['vehicle-puc-expiry'].value = veh.pucExpiry || '';
+    form.elements['vehicle-fitness-expiry'].value = veh.fitnessExpiry || '';
     form.elements['vehicle-idv'].value = veh.idv || '';
     form.elements['vehicle-remarks'].value = veh.remarks || '';
   } else {
@@ -6547,6 +6596,8 @@ function handleVehicleForm() {
       model: form.elements['vehicle-model'].value.trim(),
       fuelType: form.elements['vehicle-fuel'].value.trim(),
       registrationDate: form.elements['vehicle-registration'].value,
+      pucExpiry: form.elements['vehicle-puc-expiry'].value,
+      fitnessExpiry: form.elements['vehicle-fitness-expiry'].value,
       idv: form.elements['vehicle-idv'].value,
       remarks: form.elements['vehicle-remarks'].value.trim()
     };
@@ -6619,6 +6670,8 @@ function openVehicleDetail(id) {
   pushItem('Engine Number', veh.engineNumber);
   pushItem('Fuel Type', veh.fuelType);
   pushItem('Registration Date', formatDate(veh.registrationDate));
+  pushItem('PUC Expiry', formatDate(veh.pucExpiry));
+  pushItem('Fitness Expiry', formatDate(veh.fitnessExpiry));
   pushItem('IDV', veh.idv);
   pushItem('Remarks', veh.remarks);
   if (basicItems.length) {
@@ -8209,6 +8262,8 @@ function renderAlerts() {
   try { renderComplianceAlerts(); } catch (e) { console.warn('Failed to render compliance alerts', e); }
   // Outstanding premium (Phase 4)
   try { renderOutstandingPremiumAlerts(); } catch (e) { console.warn('Failed to render outstanding premium alerts', e); }
+  // Document / Vehicle expiry (Phase 5+)
+  try { renderDocumentExpiryAlerts(); } catch (e) { console.warn('Failed to render document expiry alerts', e); }
 }
 
 
@@ -10340,6 +10395,14 @@ const financeState = {
   reconStatus: 'all' // all | outstanding | matched | overpaid | reconciled
 };
 
+// UI state for the Compliance section (non-persisted)
+const complianceState = {
+  tab: 'checklists', // checklists | docs | expiry
+  expiryHorizonDays: 30,
+  showAllExpiries: false
+};
+
+
 function formatINR(amount) {
   const n = safeNumber(amount);
   try {
@@ -11409,6 +11472,535 @@ function renderComplianceList() {
   container.querySelectorAll('.open-checklist').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
 }
 
+
+
+// -----------------------------------------------------------------------------
+// Compliance tabs: Checklists / KYC & Docs / Expiry tracker
+// -----------------------------------------------------------------------------
+
+function setActiveComplianceTab(tab) {
+  const allowed = new Set(['checklists', 'docs', 'expiry']);
+  const next = allowed.has(tab) ? tab : 'checklists';
+  complianceState.tab = next;
+
+  document.querySelectorAll('#compliance-tabs .tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === next);
+  });
+
+  // Toggle tab panels
+  const panels = [
+    { tab: 'checklists', id: 'compliance-tab-checklists' },
+    { tab: 'docs', id: 'compliance-tab-docs' },
+    { tab: 'expiry', id: 'compliance-tab-expiry' }
+  ];
+  panels.forEach(p => {
+    const el = document.getElementById(p.id);
+    if (el) el.classList.toggle('active', p.tab === next);
+  });
+
+  // Toggle contextual actions
+  const tplBtn = document.getElementById('manage-compliance-templates-btn');
+  if (tplBtn) tplBtn.style.display = (next === 'checklists') ? '' : 'none';
+
+  const uploadBtn = document.getElementById('compliance-upload-doc-btn');
+  if (uploadBtn) uploadBtn.style.display = (next === 'checklists') ? 'none' : '';
+
+  const search = document.getElementById('compliance-search');
+  if (search) {
+    search.placeholder = next === 'checklists'
+      ? 'Search policies…'
+      : (next === 'docs' ? 'Search customers / vehicles / policies…' : 'Search expiring items…');
+  }
+}
+
+function normalizeDocType(t) {
+  return (t || '').toString().trim().toLowerCase();
+}
+
+function entityHasDocumentType(entityType, entityId, docType) {
+  const needleType = normalizeDocType(docType);
+  return (data.documents || []).some(d => {
+    if (!d) return false;
+    if (needleType && normalizeDocType(d.type) !== needleType) return false;
+    if (!Array.isArray(d.linkedEntities)) return false;
+    return d.linkedEntities.some(le => le && le.entity === entityType && le.id === entityId);
+  });
+}
+
+function requiredDocsForCustomer(customer) {
+  const t = (customer && customer.customerType) ? customer.customerType : 'Individual';
+  if ((t || '').toLowerCase() === 'business') return ['PAN', 'GST'];
+  return ['PAN', 'Aadhaar'];
+}
+
+function buildComplianceDocsRows() {
+  const rows = [];
+
+  // Customers: KYC document presence
+  (data.customers || []).forEach(c => {
+    if (!c || !c.id) return;
+    const req = requiredDocsForCustomer(c);
+    const missing = req.filter(dt => !entityHasDocumentType('customer', c.id, dt));
+    if (missing.length === 0) return;
+    rows.push({
+      entityType: 'customer',
+      entityId: c.id,
+      label: c.fullName || '(Unnamed customer)',
+      meta: `KYC: ${c.kycStatus || '—'}`,
+      missing
+    });
+  });
+
+  // Vehicles: RC presence
+  (data.vehicles || []).forEach(v => {
+    if (!v || !v.id) return;
+    const missing = [];
+    if (!entityHasDocumentType('vehicle', v.id, 'RC')) missing.push('RC');
+    if (missing.length === 0) return;
+    const ownerName = (data.customers || []).find(c => c.id === v.owner)?.fullName || '';
+    rows.push({
+      entityType: 'vehicle',
+      entityId: v.id,
+      label: v.vehicleNumber || '(Vehicle)',
+      meta: ownerName ? `Owner: ${ownerName}` : '',
+      missing
+    });
+  });
+
+  // Policies: Policy Copy presence
+  (data.policies || []).forEach(p => {
+    if (!p || !p.id) return;
+    const missing = [];
+    if (!entityHasDocumentType('policy', p.id, 'Policy Copy')) missing.push('Policy Copy');
+    if (missing.length === 0) return;
+    const cust = getCustomerForPolicy(p) || {};
+    rows.push({
+      entityType: 'policy',
+      entityId: p.id,
+      label: p.policyNumber || '(Policy)',
+      meta: cust.fullName ? `Customer: ${cust.fullName}` : '',
+      missing
+    });
+  });
+
+  // Stable sort: customers, vehicles, policies; then label
+  const order = { customer: 1, vehicle: 2, policy: 3 };
+  rows.sort((a, b) => (order[a.entityType] - order[b.entityType]) || (a.label || '').localeCompare(b.label || ''));
+  return rows;
+}
+
+function renderComplianceDocsSummary() {
+  const container = document.getElementById('compliance-summary');
+  if (!container) return;
+  const rows = buildComplianceDocsRows();
+  const missingCustomers = rows.filter(r => r.entityType === 'customer').length;
+  const missingVehicles = rows.filter(r => r.entityType === 'vehicle').length;
+  const missingPolicies = rows.filter(r => r.entityType === 'policy').length;
+  const missingDocsTotal = rows.reduce((sum, r) => sum + (r.missing ? r.missing.length : 0), 0);
+
+  const cards = [
+    { label: 'Entities with missing docs', value: rows.length },
+    { label: 'Missing documents', value: missingDocsTotal },
+    { label: 'Customers', value: missingCustomers },
+    { label: 'Vehicles', value: missingVehicles },
+    { label: 'Policies', value: missingPolicies }
+  ];
+
+  container.innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="summary-label">${c.label}</div>
+      <div class="summary-value">${c.value}</div>
+    </div>
+  `).join('');
+}
+
+function openTaskFormWithDefaults(defaults = {}) {
+  openTaskForm();
+  setTimeout(() => {
+    try {
+      if (defaults.title) document.getElementById('task-title').value = defaults.title;
+      if (defaults.description) document.getElementById('task-desc').value = defaults.description;
+      if (defaults.dueDate) document.getElementById('task-due').value = defaults.dueDate;
+      if (defaults.priority) document.getElementById('task-priority').value = defaults.priority;
+      if (defaults.status) document.getElementById('task-status').value = defaults.status;
+      if (defaults.linkedType) document.getElementById('task-linked-type').value = defaults.linkedType;
+      if (defaults.linkedId) document.getElementById('task-linked-id').value = defaults.linkedId;
+      if (defaults.notes) document.getElementById('task-notes').value = defaults.notes;
+    } catch (_) {}
+  }, 50);
+}
+
+function renderComplianceDocsList() {
+  const container = document.getElementById('compliance-docs-list');
+  if (!container) return;
+
+  const term = (pageSearchTerms.compliance || '').trim().toLowerCase();
+  const rows = buildComplianceDocsRows();
+  const filtered = term ? rows.filter(r => {
+    const s = `${r.entityType} ${r.label || ''} ${r.meta || ''} ${(r.missing || []).join(' ')}`.toLowerCase();
+    return s.includes(term);
+  }) : rows;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${ICONS['shield-check']}</div>
+        <p>No missing documents found.</p>
+        <p class="small-note">Tip: Upload KYC docs (PAN/Aadhaar/GST), RC, and Policy Copy to keep records clean.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="table-container">
+      <table class="data-table" id="compliance-docs-table">
+        <thead>
+          <tr>
+            <th>Entity</th>
+            <th>Missing</th>
+            <th style="width:340px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filtered.map((r, idx) => {
+            const badge = r.entityType === 'customer' ? 'Customer' : (r.entityType === 'vehicle' ? 'Vehicle' : 'Policy');
+            const selectId = `missing-doc-${idx}`;
+            const options = (r.missing || []).map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            return `
+              <tr data-etype="${r.entityType}" data-eid="${r.entityId}">
+                <td>
+                  <div><span class="badge">${badge}</span> <strong>${escapeHtml(r.label || '')}</strong></div>
+                  ${r.meta ? `<div class="muted" style="margin-top:0.2rem;">${escapeHtml(r.meta)}</div>` : ''}
+                </td>
+                <td>${(r.missing || []).map(t => `<span class="badge warn">${escapeHtml(t)}</span>`).join(' ')}</td>
+                <td class="actions">
+                  <select id="${selectId}" class="missing-doc-select">${options}</select>
+                  <button class="upload-missing-doc" data-select="${selectId}">Upload</button>
+                  <button class="create-missing-doc-task" data-select="${selectId}">Task</button>
+                  <button class="open-missing-doc-entity">Open</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // Bind row actions
+  container.querySelectorAll('tbody tr').forEach(tr => {
+    const etype = tr.dataset.etype;
+    const eid = tr.dataset.eid;
+    const uploadBtn = tr.querySelector('.upload-missing-doc');
+    const taskBtn = tr.querySelector('.create-missing-doc-task');
+    const openBtn = tr.querySelector('.open-missing-doc-entity');
+
+    const getSelectedDocType = () => {
+      const selId = uploadBtn?.dataset.select || '';
+      const sel = selId ? document.getElementById(selId) : null;
+      return sel ? sel.value : '';
+    };
+
+    if (uploadBtn) uploadBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dt = getSelectedDocType();
+      openDocumentForm('', {
+        docType: dt || 'Other',
+        linkedEntities: [{ entity: etype, id: eid }]
+      });
+    });
+
+    if (taskBtn) taskBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dt = getSelectedDocType();
+      const title = dt ? `Collect ${dt}` : 'Collect document';
+      const due = addDaysISO(isoToday(), 1);
+      openTaskFormWithDefaults({
+        title: `${title} • ${tr.querySelector('strong')?.textContent || ''}`.trim(),
+        description: `Missing document: ${dt || ''}`.trim(),
+        dueDate: due,
+        priority: 'High',
+        status: 'Pending',
+        linkedType: etype,
+        linkedId: eid
+      });
+    });
+
+    if (openBtn) openBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (etype === 'customer') openCustomerDetail(eid);
+      else if (etype === 'vehicle') openVehicleDetail(eid);
+      else if (etype === 'policy') openPolicyDetail(eid);
+    });
+  });
+}
+
+function expiryStatus(expiryIso, horizonDays) {
+  const exp = parseISODate(expiryIso);
+  if (!exp) return { status: 'Unknown', cls: '', daysLeft: null };
+  const today = parseISODate(isoToday());
+  if (!today) return { status: 'Unknown', cls: '', daysLeft: null };
+  today.setHours(0, 0, 0, 0);
+  exp.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return { status: 'Expired', cls: 'bad', daysLeft: diffDays };
+  if (diffDays <= (parseInt(horizonDays, 10) || 30)) return { status: 'Expiring Soon', cls: 'warn', daysLeft: diffDays };
+  return { status: 'OK', cls: 'good', daysLeft: diffDays };
+}
+
+function buildComplianceExpiryRows(horizonDays, showAll) {
+  const rows = [];
+
+  // Document expiries (manual field on documents)
+  (data.documents || []).forEach(d => {
+    if (!d || !d.expiryDate) return;
+    const st = expiryStatus(d.expiryDate, horizonDays);
+    if (!showAll && st.status === 'OK') return;
+
+    // Best-effort linked label
+    let linked = '';
+    if (Array.isArray(d.linkedEntities) && d.linkedEntities.length) {
+      const first = d.linkedEntities[0];
+      if (first && first.entity && first.id) {
+        if (first.entity === 'customer') linked = (data.customers || []).find(c => c.id === first.id)?.fullName || '';
+        else if (first.entity === 'policy') linked = (data.policies || []).find(p => p.id === first.id)?.policyNumber || '';
+        else if (first.entity === 'vehicle') linked = (data.vehicles || []).find(v => v.id === first.id)?.vehicleNumber || '';
+      }
+    }
+
+    rows.push({
+      kind: 'document',
+      id: d.id,
+      label: `${d.name || 'Document'}${d.type ? ' • ' + d.type : ''}`,
+      meta: linked ? `Linked: ${linked}` : '',
+      expiryDate: d.expiryDate,
+      status: st.status,
+      cls: st.cls,
+      daysLeft: st.daysLeft
+    });
+  });
+
+  // Vehicle expiry fields: PUC/Fitness
+  (data.vehicles || []).forEach(v => {
+    if (!v || !v.id) return;
+    const baseLabel = v.vehicleNumber || 'Vehicle';
+    const owner = (data.customers || []).find(c => c.id === v.owner)?.fullName || '';
+    const meta = owner ? `Owner: ${owner}` : '';
+
+    const pushVeh = (subtype, iso) => {
+      if (!iso) return;
+      const st = expiryStatus(iso, horizonDays);
+      if (!showAll && st.status === 'OK') return;
+      rows.push({
+        kind: 'vehicle',
+        subtype,
+        id: v.id,
+        label: `${subtype} • ${baseLabel}`,
+        meta,
+        expiryDate: iso,
+        status: st.status,
+        cls: st.cls,
+        daysLeft: st.daysLeft
+      });
+    };
+    pushVeh('PUC', v.pucExpiry);
+    pushVeh('Fitness', v.fitnessExpiry);
+  });
+
+  // Sort: expired first, then soonest
+  const statusOrder = { Expired: 1, 'Expiring Soon': 2, OK: 3, Unknown: 4 };
+  rows.sort((a, b) => {
+    const ao = statusOrder[a.status] || 9;
+    const bo = statusOrder[b.status] || 9;
+    if (ao !== bo) return ao - bo;
+    const ad = a.expiryDate || '';
+    const bd = b.expiryDate || '';
+    return ad.localeCompare(bd);
+  });
+
+  return rows;
+}
+
+function renderComplianceExpirySummary() {
+  const container = document.getElementById('compliance-summary');
+  if (!container) return;
+  const horizon = complianceState.expiryHorizonDays || 30;
+  const rows = buildComplianceExpiryRows(horizon, true);
+
+  const expired = rows.filter(r => r.status === 'Expired').length;
+  const soon = rows.filter(r => r.status === 'Expiring Soon').length;
+  const ok = rows.filter(r => r.status === 'OK').length;
+
+  const cards = [
+    { label: 'Expired', value: expired },
+    { label: `Expiring ≤ ${horizon}d`, value: soon },
+    { label: 'OK', value: ok },
+    { label: 'Tracked items', value: rows.length }
+  ];
+  container.innerHTML = cards.map(c => `
+    <div class="summary-card">
+      <div class="summary-label">${c.label}</div>
+      <div class="summary-value">${c.value}</div>
+    </div>
+  `).join('');
+}
+
+function renderComplianceExpiryList() {
+  const container = document.getElementById('compliance-expiry-list');
+  if (!container) return;
+
+  const term = (pageSearchTerms.compliance || '').trim().toLowerCase();
+  const horizon = parseInt(complianceState.expiryHorizonDays, 10) || 30;
+  const showAll = !!complianceState.showAllExpiries;
+
+  const rows = buildComplianceExpiryRows(horizon, showAll);
+  const filtered = term ? rows.filter(r => {
+    const s = `${r.kind} ${r.subtype || ''} ${r.label || ''} ${r.meta || ''} ${r.status || ''}`.toLowerCase();
+    return s.includes(term);
+  }) : rows;
+
+  container.innerHTML = `
+    <div class="finance-toolbar" style="margin-top:0;">
+      <label>Horizon (days)
+        <input id="compliance-expiry-horizon" type="number" min="1" step="1" value="${horizon}" style="width:110px;">
+      </label>
+      <label class="muted"><input id="compliance-expiry-showall" type="checkbox" ${showAll ? 'checked' : ''}/> show all</label>
+      <span class="spacer"></span>
+      <button id="compliance-expiry-refresh" type="button">Refresh</button>
+    </div>
+
+    ${filtered.length ? `
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th>Days</th>
+              <th style="width:260px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(r => `
+              <tr data-kind="${r.kind}" data-id="${r.id}" data-subtype="${escapeHtml(r.subtype || '')}">
+                <td>
+                  <div><strong>${escapeHtml(r.label || '')}</strong></div>
+                  ${r.meta ? `<div class="muted" style="margin-top:0.2rem;">${escapeHtml(r.meta)}</div>` : ''}
+                </td>
+                <td>${escapeHtml(formatDate(r.expiryDate) || r.expiryDate || '')}</td>
+                <td><span class="badge ${r.cls}">${escapeHtml(r.status)}</span></td>
+                <td class="mono">${(r.daysLeft === null || r.daysLeft === undefined) ? '' : escapeHtml(String(r.daysLeft))}</td>
+                <td class="actions">
+                  ${r.kind === 'document' ? `
+                    <button class="expiry-view">View</button>
+                    <button class="expiry-edit">Edit</button>
+                  ` : `
+                    <button class="expiry-open">Open</button>
+                  `}
+                  <button class="expiry-task">Task</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : `
+      <div class="empty-state">
+        <div class="empty-icon">${ICONS.calendar}</div>
+        <p>No expiry items found.</p>
+        <p class="small-note">Add expiry dates in Documents (Driving Licence, PUC, Fitness, etc.) or in Vehicle details.</p>
+      </div>
+    `}
+  `;
+
+  const horizonEl = document.getElementById('compliance-expiry-horizon');
+  if (horizonEl && !horizonEl.dataset.bound) {
+    horizonEl.dataset.bound = 'true';
+    horizonEl.addEventListener('change', () => {
+      complianceState.expiryHorizonDays = parseInt(horizonEl.value, 10) || 30;
+      renderCompliance();
+    });
+  }
+  const showAllEl = document.getElementById('compliance-expiry-showall');
+  if (showAllEl && !showAllEl.dataset.bound) {
+    showAllEl.dataset.bound = 'true';
+    showAllEl.addEventListener('change', () => {
+      complianceState.showAllExpiries = !!showAllEl.checked;
+      renderCompliance();
+    });
+  }
+  const refreshBtn = document.getElementById('compliance-expiry-refresh');
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.dataset.bound = 'true';
+    refreshBtn.addEventListener('click', () => renderCompliance());
+  }
+
+  // Bind row actions
+  container.querySelectorAll('tbody tr').forEach(tr => {
+    const kind = tr.dataset.kind;
+    const id = tr.dataset.id;
+    const subtype = tr.dataset.subtype || '';
+
+    const viewBtn = tr.querySelector('.expiry-view');
+    const editBtn = tr.querySelector('.expiry-edit');
+    const openBtn = tr.querySelector('.expiry-open');
+    const taskBtn = tr.querySelector('.expiry-task');
+
+    if (viewBtn) viewBtn.addEventListener('click', (e) => { e.stopPropagation(); previewDocument(id); });
+    if (editBtn) editBtn.addEventListener('click', (e) => { e.stopPropagation(); openDocumentForm(id); });
+    if (openBtn) openBtn.addEventListener('click', (e) => { e.stopPropagation(); openVehicleDetail(id); });
+    if (taskBtn) taskBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const title = kind === 'document' ? `Renew document${subtype ? ' • ' + subtype : ''}` : `Renew ${subtype}`;
+      const due = (tr.querySelector('td:nth-child(2)')?.textContent || '').trim();
+      openTaskFormWithDefaults({
+        title: `${title} • ${tr.querySelector('strong')?.textContent || ''}`.trim(),
+        description: 'Expiry follow-up',
+        dueDate: '',
+        priority: 'High',
+        status: 'Pending',
+        linkedType: kind === 'document' ? 'document' : 'vehicle',
+        linkedId: id
+      });
+    });
+  });
+}
+
+function renderCompliance() {
+  // Bind tab buttons once
+  const tabsEl = document.getElementById('compliance-tabs');
+  if (tabsEl && !tabsEl.dataset.bound) {
+    tabsEl.dataset.bound = 'true';
+    tabsEl.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setActiveComplianceTab(btn.dataset.tab);
+        renderCompliance();
+      });
+    });
+  }
+
+  // Bind upload button (docs/expiry tabs)
+  const uploadBtn = document.getElementById('compliance-upload-doc-btn');
+  if (uploadBtn && !uploadBtn.dataset.bound) {
+    uploadBtn.dataset.bound = 'true';
+    uploadBtn.addEventListener('click', () => openDocumentForm());
+  }
+
+  // Ensure a valid tab is active
+  setActiveComplianceTab(complianceState.tab || 'checklists');
+
+  if (complianceState.tab === 'docs') {
+    renderComplianceDocsSummary();
+    renderComplianceDocsList();
+  } else if (complianceState.tab === 'expiry') {
+    renderComplianceExpirySummary();
+    renderComplianceExpiryList();
+  } else {
+    renderComplianceSummary();
+    renderComplianceList();
+  }
+}
 function openComplianceTemplatesModal() {
   const modal = document.getElementById('compliance-templates-modal');
   const typeSel = document.getElementById('compliance-template-type');
@@ -11494,7 +12086,7 @@ function saveComplianceTemplateFromEditor() {
 
   // Recompute compliance structures (non-destructive)
   try { (data.policies || []).forEach(p => ensurePolicyCompliance(p)); } catch (_) {}
-  try { renderComplianceList(); renderComplianceSummary(); } catch (_) {}
+  try { renderCompliance(); } catch (_) {}
 }
 
 function renderComplianceAlerts() {
@@ -11602,6 +12194,83 @@ function renderOutstandingPremiumAlerts() {
     container.appendChild(card);
   });
 }
+
+
+
+function renderDocumentExpiryAlerts() {
+  const container = document.getElementById('alerts-list');
+  if (!container) return;
+
+  // Remove any existing expiry section to avoid duplicates when re-rendering
+  const existing = container.querySelector('.expiry-alert-section');
+  if (existing) existing.remove();
+
+  const horizon = parseInt((data.settings && data.settings.docExpiryAlertWindowDays) || 30, 10) || 30;
+  const rows = buildComplianceExpiryRows(horizon, false).slice(0, 15);
+  if (!rows.length) return;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'expiry-alert-section';
+
+  const heading = document.createElement('h3');
+  heading.textContent = `Expiries (≤ ${horizon} days)`;
+  wrap.appendChild(heading);
+
+  rows.forEach(r => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '0.5rem';
+    const badgeCls = r.cls || (r.status === 'Expired' ? 'bad' : (r.status === 'Expiring Soon' ? 'warn' : 'good'));
+    const daysText = (r.daysLeft === null || r.daysLeft === undefined) ? '' : `${r.daysLeft}d`;
+    card.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">${escapeHtml(r.label || '')}</span>
+        <span class="badge ${badgeCls}">${escapeHtml(r.status)} ${daysText ? '• ' + escapeHtml(daysText) : ''}</span>
+      </div>
+      <div class="card-body">
+        ${r.meta ? `<p class="muted">${escapeHtml(r.meta)}</p>` : ''}
+        <p><strong>Expiry:</strong> ${escapeHtml(formatDate(r.expiryDate) || r.expiryDate || '')}</p>
+      </div>
+      <div class="card-actions">
+        <button class="open-compliance">Open Compliance</button>
+        ${r.kind === 'document' ? `<button class="view-doc">View</button>` : `<button class="open-veh">Open</button>`}
+        <button class="create-task">Task</button>
+      </div>
+    `;
+
+    card.querySelector('.open-compliance')?.addEventListener('click', () => {
+      showSection('compliance');
+      setActiveComplianceTab('expiry');
+      renderCompliance();
+      // fill search with vehicle number or doc name for convenience
+      const input = document.getElementById('compliance-search');
+      if (input) {
+        const term = (r.label || '').split('•')[0].trim();
+        input.value = term;
+        pageSearchTerms.compliance = term;
+      }
+      renderCompliance();
+    });
+
+    card.querySelector('.view-doc')?.addEventListener('click', () => previewDocument(r.id));
+    card.querySelector('.open-veh')?.addEventListener('click', () => openVehicleDetail(r.id));
+    card.querySelector('.create-task')?.addEventListener('click', () => {
+      openTaskFormWithDefaults({
+        title: `Expiry follow-up • ${r.label || ''}`.trim(),
+        description: `Expiry: ${r.expiryDate || ''}`.trim(),
+        priority: 'High',
+        status: 'Pending',
+        linkedType: r.kind === 'document' ? 'document' : 'vehicle',
+        linkedId: r.id
+      });
+    });
+
+    wrap.appendChild(card);
+  });
+
+  container.appendChild(wrap);
+}
+
 
 // -----------------------------------------------------------------------------
 // Leads (CRM)
