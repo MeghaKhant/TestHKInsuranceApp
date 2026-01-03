@@ -195,6 +195,17 @@ body.dark-mode .section > h3 {
   margin: 0.25rem 0;
 }
 
+/* Sub-navigation items (used for Compliance: Docs / Expiry) */
+.sidebar-nav li.subnav a {
+  padding-left: 2.4rem;
+  font-size: 0.92rem;
+  opacity: 0.95;
+}
+.sidebar-nav li.subnav a:hover {
+  transform: translateX(6px);
+}
+
+
 .sidebar-nav a {
   display: flex;
   align-items: center;
@@ -2636,6 +2647,11 @@ body.dark-mode .chip {
   color: #fff;
   border-color: transparent;
 }
+
+/* Generic tab content helpers (used by Compliance tabs) */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
 
 .finance-toolbar {
   display: flex;
