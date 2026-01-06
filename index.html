@@ -1229,6 +1229,9 @@
           <label>Template
             <select id="campaign-template"></select>
           </label>
+          <div class="section-actions" style="margin-top:0.4rem;">
+            <button id="manage-campaign-templates-btn" type="button" class="secondary">Manage Templates</button>
+          </div>
           <label>Output
             <textarea id="campaign-output" rows="14" placeholder="Generated messages will appear here…"></textarea>
           </label>
@@ -1241,6 +1244,36 @@
         </div>
       </div>
     </section>
+
+    <!-- Campaign Template Manager Modal -->
+    <div id="campaign-templates-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close" id="close-campaign-templates-modal">&times;</span>
+        <h3>Message Templates</h3>
+        <p class="small-note">Create message templates for renewal campaigns. Use placeholders like <code>{customerName}</code>, <code>{policyNumber}</code>, <code>{endDate}</code>, <code>{premium}</code>, <code>{agentName}</code>.</p>
+
+        <div class="section-actions" style="margin: 0.5rem 0 0.75rem;">
+          <button id="add-campaign-template-btn" type="button">New Template</button>
+        </div>
+
+        <div id="campaign-templates-list"></div>
+
+        <h4 style="margin-top:1rem;">Editor</h4>
+        <form id="campaign-template-form">
+          <input type="hidden" id="campaign-template-id" />
+          <label>Name
+            <input id="campaign-template-name" required placeholder="e.g., Renewal Reminder (Hindi)" />
+          </label>
+          <label>Message
+            <textarea id="campaign-template-text" rows="6" required placeholder="Hi {customerName}, ..."></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="submit">Save Template</button>
+            <button type="button" class="secondary" id="cancel-campaign-template-btn">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
 
     <!-- Business timeline section -->

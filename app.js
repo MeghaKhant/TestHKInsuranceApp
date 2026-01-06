@@ -1480,6 +1480,10 @@ function setupPageSearches() {
         pageSearchTerms[key] = input.value.trim();
         try {
           info.render();
+          // Keep column filters available even after re-rendering lists.
+          try {
+            setTimeout(() => enhanceTablesInSection(key), 0);
+          } catch (_) {}
         } catch (e) {
           console.error('Search render error', key, e);
         }
@@ -2547,6 +2551,83 @@ function showSection(sectionId) {
     renderAuditLogsList();
     renderAuditLogsSummary();
   }
+
+  // Post-render UI enhancements (safe no-ops if section has no tables).
+  try {
+    setTimeout(() => enhanceTablesInSection(sectionId), 0);
+  } catch (_) {}
+}
+
+// -----------------------------------------------------------------------------
+// Table usability helpers: column-level filters
+//
+// Adds a lightweight filter row under table headers for quick per-column
+// filtering. This is client-side only (zero cost) and applies to major list
+// tables (customers, policies, payments, quotes, finance, compliance, etc.).
+// -----------------------------------------------------------------------------
+
+function makeTableFilterable(tableEl) {
+  if (!tableEl) return;
+  if (tableEl.dataset.filtersBound === 'true') return;
+  const thead = tableEl.querySelector('thead');
+  if (!thead) return;
+  const headerRow = thead.querySelector('tr');
+  if (!headerRow) return;
+  // Don't add filters to tiny tables
+  const headers = Array.from(headerRow.querySelectorAll('th'));
+  if (headers.length < 3) return;
+
+  const filterRow = document.createElement('tr');
+  filterRow.className = 'filter-row';
+
+  headers.forEach((th, idx) => {
+    const cell = document.createElement('th');
+
+    const noFilter = th.classList.contains('no-filter') || th.dataset.noFilter === 'true' || th.textContent.trim().toLowerCase() === 'actions' || th.textContent.trim().toLowerCase() === '';
+    if (noFilter) {
+      cell.innerHTML = '';
+    } else {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'column-filter-input';
+      input.placeholder = 'Filter…';
+      input.setAttribute('aria-label', `Filter ${th.textContent.trim()}`);
+      input.addEventListener('input', () => apply());
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          input.value = '';
+          apply();
+        }
+      });
+      cell.appendChild(input);
+    }
+    filterRow.appendChild(cell);
+  });
+
+  thead.appendChild(filterRow);
+  tableEl.dataset.filtersBound = 'true';
+
+  function apply() {
+    const filters = Array.from(filterRow.querySelectorAll('input')).map(i => (i.value || '').trim().toLowerCase());
+    const rows = Array.from(tableEl.querySelectorAll('tbody tr'));
+    rows.forEach(tr => {
+      let visible = true;
+      filters.forEach((f, i) => {
+        if (!f) return;
+        const td = tr.children[i];
+        const text = (td ? td.textContent : '').toLowerCase();
+        if (!text.includes(f)) visible = false;
+      });
+      tr.style.display = visible ? '' : 'none';
+    });
+  }
+}
+
+function enhanceTablesInSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  // Primary list tables are usually wrapped in .table-container
+  section.querySelectorAll('.table-container table.data-table, .table-container table.ledger-table').forEach(t => makeTableFilterable(t));
 }
 
 // -----------------------------------------------------------------------------
@@ -2735,9 +2816,12 @@ function computeFilteredCustomerSummary(customerId, start, end, brokerFilter, co
   });
   // Helper to check if a policy passes filters
   function policyPasses(p) {
-    if (brokerFilter && p.brokerId !== brokerFilter) return false;
-    if (companyFilter && p.companyId !== companyFilter) return false;
-    if (vehicleFilter && p.vehicleId !== vehicleFilter) return false;
+    const pBroker = p.brokerId || p.broker || '';
+    const pCompany = p.companyId || p.company || '';
+    const pVehicle = p.vehicleId || p.vehicle || '';
+    if (brokerFilter && pBroker !== brokerFilter) return false;
+    if (companyFilter && pCompany !== companyFilter) return false;
+    if (vehicleFilter && pVehicle !== vehicleFilter) return false;
     if (typeFilter) {
       // Check both simple policyType and master category name
       if (p.policyType && p.policyType === typeFilter) {
@@ -2804,9 +2888,12 @@ function computeFilteredGlobalSummary(start, end, brokerFilter, companyFilter, t
   let totalNetCommission = 0;
   // Helper to check if a policy passes filters
   function policyPasses(p) {
-    if (brokerFilter && p.brokerId !== brokerFilter) return false;
-    if (companyFilter && p.companyId !== companyFilter) return false;
-    if (vehicleFilter && p.vehicleId !== vehicleFilter) return false;
+    const pBroker = p.brokerId || p.broker || '';
+    const pCompany = p.companyId || p.company || '';
+    const pVehicle = p.vehicleId || p.vehicle || '';
+    if (brokerFilter && pBroker !== brokerFilter) return false;
+    if (companyFilter && pCompany !== companyFilter) return false;
+    if (vehicleFilter && pVehicle !== vehicleFilter) return false;
     if (typeFilter) {
       if (p.policyType && p.policyType === typeFilter) {
         // ok
@@ -2865,11 +2952,13 @@ function computeFilteredGlobalSummary(start, end, brokerFilter, companyFilter, t
 function computeVehicleSummary(vehicleId, start, end, brokerFilter, companyFilter, typeFilter) {
   const summary = { paymentsCount: 0, premiumPaid: 0, commissionReceived: 0, cashback: 0, netCommission: 0 };
   // Get policies with this vehicle
-  const vehiclePolicies = data.policies.filter(p => p.vehicleId === vehicleId);
+  const vehiclePolicies = data.policies.filter(p => (p.vehicleId || p.vehicle) === vehicleId);
   // Helper to check if a policy passes filters
   function policyPasses(p) {
-    if (brokerFilter && p.brokerId !== brokerFilter) return false;
-    if (companyFilter && p.companyId !== companyFilter) return false;
+    const pBroker = p.brokerId || p.broker || '';
+    const pCompany = p.companyId || p.company || '';
+    if (brokerFilter && pBroker !== brokerFilter) return false;
+    if (companyFilter && pCompany !== companyFilter) return false;
     if (typeFilter) {
       if (p.policyType && p.policyType === typeFilter) {
         // ok
@@ -3007,10 +3096,13 @@ function renderReports() {
       alert('Policy not found');
       return;
     }
-    const passes = (!brokerFilter || pol.brokerId === brokerFilter) && (!companyFilter || pol.companyId === companyFilter) && (!typeFilter || (pol.policyType === typeFilter || (function(){
+    const polBroker = pol.brokerId || pol.broker || '';
+    const polCompany = pol.companyId || pol.company || '';
+    const polVehicle = pol.vehicleId || pol.vehicle || '';
+    const passes = (!brokerFilter || polBroker === brokerFilter) && (!companyFilter || polCompany === companyFilter) && (!typeFilter || (pol.policyType === typeFilter || (function(){
       const cat = data.settings?.master?.categories?.find(cat => cat.id === pol.policyCategoryId);
       return cat && cat.name === typeFilter;
-    })())) && (!vehicleFilter || pol.vehicleId === vehicleFilter);
+    })())) && (!vehicleFilter || polVehicle === vehicleFilter);
     if (passes) {
       summary = computePolicySummary(entityId, start, end);
       chartLabel = pol.policyNumber || 'Policy';
@@ -4470,7 +4562,7 @@ function handlePolicyForm() {
 }
 
 // Policy detail modal
-function openPolicyDetail(id) {
+function openPolicyDetail(id, options = {}) {
   const policy = data.policies.find(p => p.id === id);
   if (!policy) return;
   const modal = document.getElementById('policy-detail-modal');
@@ -4725,6 +4817,7 @@ function openPolicyDetail(id) {
   if (policy.compliance && Array.isArray(policy.compliance.items) && policy.compliance.items.length > 0) {
     const compSection = document.createElement('div');
     compSection.className = 'profile-section';
+    compSection.id = 'policy-compliance-section';
     const header = document.createElement('div');
     header.className = 'section-header';
     header.innerHTML = '<h4>Compliance Checklist</h4><span class="toggle-icon">▾</span>';
@@ -4856,6 +4949,18 @@ function openPolicyDetail(id) {
   // Show modal
   modal.classList.remove('hidden');
   modal.classList.add('open');
+
+  // Optional focus helpers (used by Compliance screens)
+  if (options && options.focus === 'compliance') {
+    setTimeout(() => {
+      const sec = modal.querySelector('#policy-compliance-section');
+      if (sec) {
+        // Ensure not collapsed and scroll into view
+        sec.classList.remove('collapsed');
+        sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  }
   // Close handler
   document.getElementById('close-policy-detail').addEventListener('click', () => {
     modal.classList.add('hidden');
@@ -8904,6 +9009,38 @@ function setupModalInteractions() {
   });
 }
 
+// -----------------------------------------------------------------------------
+// Modal root (critical UX fix)
+//
+// Many modals were originally nested inside hidden sections (display:none),
+// which makes them impossible to open from other modules (e.g. Compliance,
+// Alerts, KYC & Docs). We lift all modals into a dedicated root at the end of
+// <body> so they can always render.
+// -----------------------------------------------------------------------------
+
+function ensureModalRoot() {
+  let root = document.getElementById('modal-root');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'modal-root';
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+function liftModalsToBody() {
+  try {
+    const root = ensureModalRoot();
+    document.querySelectorAll('.modal').forEach(modal => {
+      // Already lifted
+      if (modal.closest('#modal-root')) return;
+      root.appendChild(modal);
+    });
+  } catch (e) {
+    console.warn('Failed to lift modals', e);
+  }
+}
+
 // Setup quick add menu functionality
 function setupQuickAddMenu() {
   const btn = document.getElementById('quick-add-btn');
@@ -9650,36 +9787,69 @@ function renderQuotesList() {
     renderQuotesSummary();
     return;
   }
-  let html = '';
+  // Table view (improves scanability vs cards)
+  let html = '<div class="table-container">';
+  html += '<table class="data-table quotes-table">';
+  html += '<thead><tr>';
+  html += '<th style="width:120px;">Date</th>';
+  html += '<th>Prospect</th>';
+  html += '<th style="width:120px;">Type</th>';
+  html += '<th style="width:90px;">Version</th>';
+  html += '<th>Company</th>';
+  html += '<th style="width:130px;">Premium</th>';
+  html += '<th style="width:130px;">Margin</th>';
+  html += '<th style="width:120px;">Status</th>';
+  html += '<th class="no-filter" style="width:160px;">Actions</th>';
+  html += '</tr></thead><tbody>';
+
   list.forEach(q => {
     const cust = data.customers.find(c => c.id === q.customer) || {};
     const lead = (data.leads || []).find(l => l.id === q.leadId) || {};
     const comp = data.companies.find(c => c.id === q.company) || {};
-    const bro = data.brokers.find(b => b.id === q.broker) || {};
-    const premium = q.premium ? `₹${q.premium}` : '';
-    html += `<div class="card quote-card" data-id="${q.id}">
-      <div class="card-header">
-        <span class="card-title">${q.policyType} Quote</span>
-        ${q.status ? `<span class="status-badge">${q.status}</span>` : ''}
-      </div>
-      <div class="card-body">
-        ${q.quoteDate ? `<p>Date: ${formatDate(q.quoteDate)}</p>` : ''}
-        ${(q.version || q.versionNumber) ? `<p>Version: v${q.version || q.versionNumber}</p>` : ''}
-        ${q.margin ? `<p>Margin: ₹${q.margin}</p>` : ''}
-        ${(q.prospectType === 'lead' ? (lead.name ? `<p>Lead: ${lead.name}</p>` : '') : (cust.fullName ? `<p>Customer: ${cust.fullName}</p>` : ''))}
-        ${(q.prospectType === 'lead' && lead.phone) ? `<p>Phone: ${lead.phone}</p>` : ''}
-        ${comp.name ? `<p>Company: ${comp.name}</p>` : ''}
-        ${bro.name ? `<p>Broker: ${bro.name}</p>` : ''}
-        ${premium ? `<p>Premium: ${premium}</p>` : ''}
-      </div>
-      <div class="card-actions">
+
+    const isLead = q.prospectType === 'lead' || (!!q.leadId && !q.customer);
+    const prospectName = isLead
+      ? (lead.name || lead.fullName || lead.phone || '(Lead)')
+      : (cust.fullName || cust.primaryMobile || '(Customer)');
+    const prospectBadge = isLead ? '<span class="badge warn" title="Prospect is a Lead">Lead</span>' : '<span class="badge good" title="Prospect is a Customer">Customer</span>';
+
+    const dt = q.quoteDate || q.createdAt || '';
+    const version = q.version || q.versionNumber || 1;
+    const premium = safeNumber(q.premium);
+    const margin = safeNumber(q.margin);
+    const status = q.status || '';
+    const statusBadge = status ? `<span class="badge ${status.toLowerCase() === 'accepted' ? 'good' : (status.toLowerCase() === 'lost' ? 'bad' : '')}">${escapeHtml(status)}</span>` : '<span class="muted">—</span>';
+
+    html += `<tr data-id="${q.id}" class="quote-row">
+      <td class="mono">${escapeHtml(formatDate(dt) || '')}</td>
+      <td>${prospectBadge} <span style="margin-left:0.35rem;">${escapeHtml(prospectName)}</span></td>
+      <td>${escapeHtml(q.policyType || '')}</td>
+      <td class="mono">v${escapeHtml(String(version))}</td>
+      <td>${escapeHtml(comp.name || '')}</td>
+      <td>${premium ? formatINR(premium) : ''}</td>
+      <td>${margin ? formatINR(margin) : ''}</td>
+      <td>${statusBadge}</td>
+      <td class="actions">
         <button class="view-quote" data-id="${q.id}" title="View">${ICONS.eye}</button>
         <button class="edit-quote" data-id="${q.id}" title="Edit">${ICONS.pencil}</button>
+        <button class="new-version-quote" data-id="${q.id}" title="New Version">${ICONS['rotate-cw']}</button>
         <button class="delete-quote" data-id="${q.id}" title="Delete">${ICONS.trash}</button>
-      </div>
-    </div>`;
+      </td>
+    </tr>`;
   });
+
+  html += '</tbody></table></div>';
   container.innerHTML = html;
+
+  // Column-level filters for usability
+  try {
+    makeTableFilterable(container.querySelector('table.data-table'));
+  } catch (_) {}
+
+  // Row click opens detail (actions stop propagation)
+  container.querySelectorAll('tr.quote-row').forEach(tr => {
+    tr.addEventListener('click', () => openQuoteDetail(tr.dataset.id));
+  });
   container.querySelectorAll('.view-quote').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -9690,6 +9860,12 @@ function renderQuotesList() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       openQuoteForm(btn.getAttribute('data-id'));
+    });
+  });
+  container.querySelectorAll('.new-version-quote').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      createNewQuoteVersion(btn.getAttribute('data-id'));
     });
   });
   container.querySelectorAll('.delete-quote').forEach(btn => {
@@ -10547,7 +10723,8 @@ function renderOutstandingPremiumTab() {
 
   const searchId = 'finance-outstanding-search';
   const existingSearch = document.getElementById(searchId);
-  const term = existingSearch ? (existingSearch.value || '').trim().toLowerCase() : '';
+  const rawSearch = existingSearch ? (existingSearch.value || '') : '';
+  const term = rawSearch.trim().toLowerCase();
 
   const list = term ? outstanding.filter(r => {
     const p = r.policy;
@@ -10560,7 +10737,10 @@ function renderOutstandingPremiumTab() {
 
   content.innerHTML = `
     <div class="finance-toolbar">
-      <label>Search <input id="${searchId}" type="text" placeholder="Policy / customer / company" value="${escapeHtml(term)}"></label>
+      <div class="toolbar-group">
+        <span class="toolbar-label">Search</span>
+        <input id="${searchId}" type="text" placeholder="Policy / customer / company" value="${escapeHtml(rawSearch)}">
+      </div>
       <span class="spacer"></span>
       <button id="finance-refresh-outstanding" type="button">Refresh</button>
     </div>
@@ -10583,6 +10763,10 @@ function renderOutstandingPremiumTab() {
             const p = r.policy;
             const cust = getCustomerForPolicy(p) || {};
             const comp = (data.companies || []).find(c => c.id === p.company) || {};
+            const statusDerived = (r.totals.totalPaid >= (r.totals.totalDue - 0.01))
+              ? 'Paid'
+              : (r.totals.totalPaid > 0.01 ? 'Partially Paid' : 'Pending');
+            const statusCls = statusDerived === 'Paid' ? 'good' : (statusDerived === 'Partially Paid' ? 'warn' : 'bad');
             return `
               <tr>
                 <td class="mono">${escapeHtml(p.policyNumber || '')}</td>
@@ -10591,7 +10775,7 @@ function renderOutstandingPremiumTab() {
                 <td>${formatINR(r.totals.totalDue)}</td>
                 <td>${formatINR(r.totals.totalPaid)}</td>
                 <td><span class="badge bad">${formatINR(r.totals.outstanding)}</span></td>
-                <td>${escapeHtml(p.paymentStatus || '')}</td>
+                <td><span class="badge ${statusCls}">${escapeHtml(statusDerived)}</span></td>
                 <td class="actions">
                   <button class="view-policy" data-id="${p.id}" title="View">${ICONS.eye}</button>
                   <button class="add-payment" data-id="${p.id}" title="Add Payment">${ICONS['credit-card']}</button>
@@ -10627,6 +10811,11 @@ function renderOutstandingPremiumTab() {
       if (sel) sel.value = policyId;
     }, 50);
   }));
+
+  // Column-level filters for the main list
+  try {
+    makeTableFilterable(content.querySelector('table.data-table'));
+  } catch (_) {}
 }
 
 function computeCustomerLedgerEntries(customerId, startIso, endIso) {
@@ -11469,7 +11658,7 @@ function renderComplianceList() {
   }).join('');
 
   container.querySelectorAll('.view-policy').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
-  container.querySelectorAll('.open-checklist').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id)));
+  container.querySelectorAll('.open-checklist').forEach(btn => btn.addEventListener('click', () => openPolicyDetail(btn.dataset.id, { focus: 'compliance' })));
 }
 
 
@@ -11733,6 +11922,11 @@ function renderComplianceDocsList() {
       else if (etype === 'policy') openPolicyDetail(eid);
     });
   });
+
+  // Column filters under headers
+  try {
+    makeTableFilterable(container.querySelector('table.data-table'));
+  } catch (_) {}
 }
 
 function expiryStatus(expiryIso, horizonDays) {
@@ -11965,6 +12159,11 @@ function renderComplianceExpiryList() {
       });
     });
   });
+
+  // Column filters under headers
+  try {
+    makeTableFilterable(container.querySelector('table.data-table'));
+  } catch (_) {}
 }
 
 function renderCompliance() {
@@ -12909,7 +13108,7 @@ function renderPlanner(dateStr) {
           <div class="card-body">
             ${cust.fullName ? `<p>Customer: ${escapeHtml(cust.fullName)}</p>` : ''}
             <p>Expiry: ${escapeHtml(formatDate(p.endDate))}</p>
-            ${p.premiumAmount ? `<p>Premium: ₹${escapeHtml(p.premiumAmount)}</p>` : ''}
+        ${premiumAmt ? `<p>Premium: ${escapeHtml(formatINR(premiumAmt))}</p>` : ''}
           </div>
           <div class="card-actions">
             <button onclick="openPolicyDetail('${p.id}')">Open</button>
@@ -12934,7 +13133,7 @@ function renderPlanner(dateStr) {
 
 let campaignSelectedPolicyIds = new Set();
 
-const CAMPAIGN_TEMPLATES = [
+const DEFAULT_CAMPAIGN_TEMPLATES = [
   {
     id: 'renewal_reminder',
     name: 'Renewal Reminder (simple)',
@@ -12952,11 +13151,31 @@ const CAMPAIGN_TEMPLATES = [
   }
 ];
 
+function getCampaignTemplates() {
+  if (!data.settings) data.settings = {};
+  if (!Array.isArray(data.settings.campaignTemplates) || data.settings.campaignTemplates.length === 0) {
+    data.settings.campaignTemplates = DEFAULT_CAMPAIGN_TEMPLATES.map(t => ({ ...t }));
+  }
+  // Basic sanitisation
+  data.settings.campaignTemplates = (data.settings.campaignTemplates || []).filter(t => t && t.id && t.name);
+  if (data.settings.campaignTemplates.length === 0) {
+    data.settings.campaignTemplates = DEFAULT_CAMPAIGN_TEMPLATES.map(t => ({ ...t }));
+  }
+  return data.settings.campaignTemplates;
+}
+
 function applyTemplate(str, ctx) {
-  return (str || '').replace(/\{([a-zA-Z0-9_.]+)\}/g, (_, key) => {
+  // Support both {key} and {{key}} placeholders.
+  const s = (str || '')
+    .replace(/\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g, (_, key) => {
+      const val = getValueByPath(ctx, key);
+      return (val === undefined || val === null) ? '' : String(val);
+    })
+    .replace(/\{\s*([a-zA-Z0-9_.]+)\s*\}/g, (_, key) => {
     const val = getValueByPath(ctx, key);
     return (val === undefined || val === null) ? '' : String(val);
   });
+  return s;
 }
 
 function renderCampaignBuilder() {
@@ -12983,16 +13202,18 @@ function renderCampaignBuilder() {
   });
   if (curComp) companyEl.value = curComp;
 
-  // templates
+  // templates (persisted in Settings)
+  const templates = getCampaignTemplates();
   const curTpl = templateEl.value;
   templateEl.innerHTML = '';
-  CAMPAIGN_TEMPLATES.forEach(t => {
+  templates.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.id;
     opt.textContent = t.name;
     templateEl.appendChild(opt);
   });
-  if (curTpl) templateEl.value = curTpl;
+  if (curTpl && templates.some(t => t.id === curTpl)) templateEl.value = curTpl;
+  if (!templateEl.value && templates.length) templateEl.value = templates[0].id;
 
   refreshCampaignPolicyList();
 }
@@ -13008,7 +13229,7 @@ function refreshCampaignPolicyList() {
   const policies = (data.policies || [])
     .filter(p => p.endDate && (!from || p.endDate >= from) && (!to || p.endDate <= to))
     .filter(p => !type || (p.policyType || '') === type)
-    .filter(p => !companyId || (p.companyId || '') === companyId)
+    .filter(p => !companyId || ((p.companyId || p.company || '') === companyId))
     .sort((a, b) => (a.endDate || '').localeCompare(b.endDate || ''));
 
   if (policies.length === 0) {
@@ -13018,7 +13239,8 @@ function refreshCampaignPolicyList() {
   }
 
   listEl.innerHTML = policies.map(p => {
-    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const cust = getCustomerForPolicy(p) || {};
+    const premiumAmt = policyTotalDue(p) || p.premiumAmount || p.premium || p.totalPayable || 0;
     const checked = campaignSelectedPolicyIds.has(p.id) ? 'checked' : '';
     return `<div class="card" style="margin-bottom:0.6rem;">
       <div class="card-header">
@@ -13032,7 +13254,7 @@ function refreshCampaignPolicyList() {
         ${cust.fullName ? `<p>Customer: ${escapeHtml(cust.fullName)}</p>` : ''}
         ${cust.mobileNumber ? `<p>Phone: ${escapeHtml(cust.mobileNumber)}</p>` : ''}
         <p>Expiry: ${escapeHtml(formatDate(p.endDate))}</p>
-        ${p.premiumAmount ? `<p>Premium: ₹${escapeHtml(p.premiumAmount)}</p>` : ''}
+        ${premiumAmt ? `<p>Premium: ${escapeHtml(formatINR(premiumAmt))}</p>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -13065,7 +13287,8 @@ function campaignSelectAll(flag) {
 
 function generateCampaignMessages() {
   const templateId = document.getElementById('campaign-template')?.value;
-  const tpl = CAMPAIGN_TEMPLATES.find(t => t.id === templateId) || CAMPAIGN_TEMPLATES[0];
+  const templates = getCampaignTemplates();
+  const tpl = templates.find(t => t.id === templateId) || templates[0];
   const agentName = (data.settings.agentDisplayName || '').trim();
   const selected = Array.from(campaignSelectedPolicyIds);
   const outputEl = document.getElementById('campaign-output');
@@ -13081,14 +13304,19 @@ function generateCampaignMessages() {
   const msgs = selected.map(pid => {
     const p = data.policies.find(x => x.id === pid);
     if (!p) return '';
-    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const cust = getCustomerForPolicy(p) || {};
+    const company = (p.company || p.companyId) ? data.companies.find(c => c.id === (p.company || p.companyId)) : null;
+    const premiumAmt = policyTotalDue(p) || p.premiumAmount || p.premium || p.totalPayable || '';
     const ctx = {
       customerName: cust.fullName || '',
       phone: cust.mobileNumber || '',
       policyType: p.policyType || '',
       policyNumber: p.policyNumber || p.id,
       endDate: p.endDate ? formatDate(p.endDate) : '',
-      premium: p.premiumAmount || '',
+      expiryDate: p.endDate ? formatDate(p.endDate) : '',
+      premium: premiumAmt ? formatINR(premiumAmt) : '',
+      premiumRaw: premiumAmt || '',
+      companyName: company ? (company.name || '') : '',
       agentName: agentName
     };
     return applyTemplate(tpl.text, ctx);
@@ -13106,6 +13334,7 @@ function generateCampaignMessages() {
     policyIds: selected,
     messageCount: msgs.length
   };
+  if (!Array.isArray(data.campaigns)) data.campaigns = [];
   data.campaigns.push(campaign);
   logChange('campaign', campaign.id, null, campaign);
 
@@ -13142,7 +13371,8 @@ function exportCampaignCSV() {
   const outputEl = document.getElementById('campaign-output');
   if (!outputEl) return;
   const templateId = document.getElementById('campaign-template')?.value;
-  const tpl = CAMPAIGN_TEMPLATES.find(t => t.id === templateId) || CAMPAIGN_TEMPLATES[0];
+  const templates = getCampaignTemplates();
+  const tpl = templates.find(t => t.id === templateId) || templates[0];
   const agentName = (data.settings.agentDisplayName || '').trim();
   const selected = Array.from(campaignSelectedPolicyIds);
   if (selected.length === 0) return;
@@ -13151,14 +13381,19 @@ function exportCampaignCSV() {
   selected.forEach(pid => {
     const p = data.policies.find(x => x.id === pid);
     if (!p) return;
-    const cust = data.customers.find(c => c.id === p.customerId) || {};
+    const cust = getCustomerForPolicy(p) || {};
+    const company = (p.company || p.companyId) ? data.companies.find(c => c.id === (p.company || p.companyId)) : null;
+    const premiumAmt = policyTotalDue(p) || p.premiumAmount || p.premium || p.totalPayable || '';
     const ctx = {
       customerName: cust.fullName || '',
       phone: cust.mobileNumber || '',
       policyType: p.policyType || '',
       policyNumber: p.policyNumber || p.id,
       endDate: p.endDate ? formatDate(p.endDate) : '',
-      premium: p.premiumAmount || '',
+      expiryDate: p.endDate ? formatDate(p.endDate) : '',
+      premium: premiumAmt ? formatINR(premiumAmt) : '',
+      premiumRaw: premiumAmt || '',
+      companyName: company ? (company.name || '') : '',
       agentName: agentName
     };
     const msg = applyTemplate(tpl.text, ctx).replace(/\n/g, ' ');
@@ -13178,6 +13413,163 @@ function exportCampaignCSV() {
 
   const status = document.getElementById('campaign-status');
   if (status) status.textContent = `Exported ${selected.length} rows as CSV.`;
+}
+
+// -----------------------------------------------------------------------------
+// Campaign Template Manager (create/edit/delete persisted templates)
+// -----------------------------------------------------------------------------
+
+function openCampaignTemplatesModal() {
+  const modal = document.getElementById('campaign-templates-modal');
+  if (!modal) return;
+  renderCampaignTemplatesModal();
+  modal.classList.remove('hidden');
+  modal.classList.add('open');
+}
+
+function closeCampaignTemplatesModal() {
+  const modal = document.getElementById('campaign-templates-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('open');
+}
+
+function renderCampaignTemplatesModal() {
+  const listEl = document.getElementById('campaign-templates-list');
+  const form = document.getElementById('campaign-template-form');
+  if (!listEl || !form) return;
+
+  const templates = (getCampaignTemplates() || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  listEl.innerHTML = `
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Preview</th>
+            <th class="no-filter">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${templates.map(t => {
+            const preview = (t.text || '').replace(/\s+/g, ' ').trim().slice(0, 90);
+            return `
+              <tr data-id="${escapeHtml(t.id)}">
+                <td>${escapeHtml(t.name || '')}</td>
+                <td class="muted">${escapeHtml(preview)}${preview.length >= 90 ? '…' : ''}</td>
+                <td>
+                  <div class="table-actions">
+                    <button type="button" class="icon-btn edit-campaign-template" title="Edit" data-id="${escapeHtml(t.id)}">${ICONS.edit}</button>
+                    <button type="button" class="icon-btn delete-campaign-template" title="Delete" data-id="${escapeHtml(t.id)}">${ICONS.trash}</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <p class="small-note" style="margin-top:0.5rem;">Use placeholders like <code>{customerName}</code>, <code>{policyNumber}</code>, <code>{endDate}</code>, <code>{premium}</code>, <code>{agentName}</code>.</p>
+  `;
+
+  // Bind list actions
+  listEl.querySelectorAll('.edit-campaign-template').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const t = (getCampaignTemplates() || []).find(x => x.id === id);
+      if (!t) return;
+      fillCampaignTemplateForm(t);
+    });
+  });
+  listEl.querySelectorAll('.delete-campaign-template').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const templates = getCampaignTemplates();
+      const idx = templates.findIndex(x => x.id === id);
+      if (idx < 0) return;
+      const toDelete = templates[idx];
+      if (!confirm(`Delete template "${toDelete.name}"?`)) return;
+      templates.splice(idx, 1);
+      // Prevent empty list
+      if (templates.length === 0) {
+        templates.push(...DEFAULT_CAMPAIGN_TEMPLATES.map(t => ({ ...t })));
+      }
+      logChange('campaignTemplate', id, toDelete, null);
+      saveData();
+      renderCampaignBuilder();
+      renderCampaignTemplatesModal();
+    });
+  });
+
+  // Make the list filterable
+  try {
+    makeTableFilterable(listEl.querySelector('table.data-table'));
+  } catch (_) {}
+}
+
+function resetCampaignTemplateForm() {
+  const form = document.getElementById('campaign-template-form');
+  if (!form) return;
+  form.reset();
+  const idEl = document.getElementById('campaign-template-id');
+  if (idEl) idEl.value = '';
+}
+
+function fillCampaignTemplateForm(tpl) {
+  const idEl = document.getElementById('campaign-template-id');
+  const nameEl = document.getElementById('campaign-template-name');
+  const textEl = document.getElementById('campaign-template-text');
+  if (idEl) idEl.value = tpl.id || '';
+  if (nameEl) nameEl.value = tpl.name || '';
+  if (textEl) textEl.value = tpl.text || '';
+  // Scroll to editor
+  document.getElementById('campaign-template-name')?.focus();
+}
+
+function handleCampaignTemplateFormSubmit(e) {
+  e.preventDefault();
+  const idEl = document.getElementById('campaign-template-id');
+  const nameEl = document.getElementById('campaign-template-name');
+  const textEl = document.getElementById('campaign-template-text');
+  if (!nameEl || !textEl) return;
+
+  const name = (nameEl.value || '').trim();
+  const text = (textEl.value || '').trim();
+  if (!name || !text) {
+    alert('Please provide a template name and message text.');
+    return;
+  }
+
+  const templates = getCampaignTemplates();
+  const existingId = (idEl && idEl.value) ? idEl.value : '';
+
+  if (existingId) {
+    const idx = templates.findIndex(t => t.id === existingId);
+    if (idx < 0) {
+      // Treat as new
+      const newId = generateId();
+      const tpl = { id: newId, name, text };
+      templates.push(tpl);
+      logChange('campaignTemplate', newId, null, tpl);
+    } else {
+      const before = { ...templates[idx] };
+      templates[idx].name = name;
+      templates[idx].text = text;
+      logChange('campaignTemplate', existingId, before, { ...templates[idx] });
+    }
+  } else {
+    // New template
+    const newId = generateId();
+    const tpl = { id: newId, name, text };
+    templates.push(tpl);
+    logChange('campaignTemplate', newId, null, tpl);
+  }
+
+  saveData();
+  renderCampaignBuilder();
+  renderCampaignTemplatesModal();
+  resetCampaignTemplateForm();
 }
 
 // -----------------------------------------------------------------------------
@@ -14062,6 +14454,36 @@ function setupEventListeners() {
     campaignExportBtn.addEventListener('click', () => exportCampaignCSV());
   }
 
+  // Campaign templates (create/edit)
+  const manageCampaignTemplatesBtn = document.getElementById('manage-campaign-templates-btn');
+  if (manageCampaignTemplatesBtn && !manageCampaignTemplatesBtn.dataset.bound) {
+    manageCampaignTemplatesBtn.dataset.bound = 'true';
+    manageCampaignTemplatesBtn.addEventListener('click', () => openCampaignTemplatesModal());
+  }
+  const addCampaignTemplateBtn = document.getElementById('add-campaign-template-btn');
+  if (addCampaignTemplateBtn && !addCampaignTemplateBtn.dataset.bound) {
+    addCampaignTemplateBtn.dataset.bound = 'true';
+    addCampaignTemplateBtn.addEventListener('click', () => {
+      resetCampaignTemplateForm();
+      document.getElementById('campaign-template-name')?.focus();
+    });
+  }
+  const campaignTemplateForm = document.getElementById('campaign-template-form');
+  if (campaignTemplateForm && !campaignTemplateForm.dataset.bound) {
+    campaignTemplateForm.dataset.bound = 'true';
+    campaignTemplateForm.addEventListener('submit', (e) => handleCampaignTemplateFormSubmit(e));
+  }
+  const cancelCampaignTemplateBtn = document.getElementById('cancel-campaign-template-btn');
+  if (cancelCampaignTemplateBtn && !cancelCampaignTemplateBtn.dataset.bound) {
+    cancelCampaignTemplateBtn.dataset.bound = 'true';
+    cancelCampaignTemplateBtn.addEventListener('click', () => resetCampaignTemplateForm());
+  }
+  const closeCampaignTemplatesBtn = document.getElementById('close-campaign-templates-modal');
+  if (closeCampaignTemplatesBtn && !closeCampaignTemplatesBtn.dataset.bound) {
+    closeCampaignTemplatesBtn.dataset.bound = 'true';
+    closeCampaignTemplatesBtn.addEventListener('click', () => closeCampaignTemplatesModal());
+  }
+
   // Automation rules
   const addRuleBtn = document.getElementById('add-rule-btn');
   if (addRuleBtn && !addRuleBtn.dataset.bound) {
@@ -14360,7 +14782,7 @@ function setupEventListeners() {
       data.policies.forEach(p => {
         if (p.policyCategoryId) {
           // Use master category name if available
-          const cat = data.settings.master.categories.find(cat => cat.id === p.policyCategoryId);
+          const cat = (data.settings?.master?.categories || []).find(cat => cat.id === p.policyCategoryId);
           if (cat) types.add(cat.name);
         } else if (p.policyType) {
           types.add(p.policyType);
@@ -14401,16 +14823,15 @@ function setupEventListeners() {
 
 // Initialise the app
 async function init() {
-  // Check version and reset data if this is a fresh install or version upgrade
+  // Persist app version marker.
+  // IMPORTANT: Never wipe user data on version upgrades; migrate/normalize instead.
   try {
     const storedVersion = localStorage.getItem('insuranceAppVersion');
     if (storedVersion !== APP_VERSION) {
       localStorage.setItem('insuranceAppVersion', APP_VERSION);
-      // remove old data if any
-      localStorage.removeItem('insuranceData');
     }
   } catch (e) {
-    console.error('Version check failed', e);
+    console.warn('Version check failed', e);
   }
   // Load local data
   loadData();
@@ -14457,6 +14878,8 @@ async function init() {
   setupPageSearches();
   setupQuickAddMenu();
   setupKeyboardShortcuts();
+  // Critical: lift modals out of hidden sections so they always open.
+  liftModalsToBody();
   setupModalInteractions();
   // Initially show home
   showSection('home');
